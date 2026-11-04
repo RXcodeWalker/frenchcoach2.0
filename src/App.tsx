@@ -32,6 +32,15 @@ import { AnalyticsTracker, AnalyticsPersonSync } from './services/telemetry/Anal
 import {
   SavedAnswers,
   ParentView,
+  Premium,
+  FixDrill,
+  Unsubscribe,
+  JoinClass,
+  TeachLayout,
+  TeachHome,
+  TeachClass,
+  TeachStudent,
+  TeachAttempt,
   Home,
   JuniorHome,
   MissionPlayer,
@@ -322,6 +331,11 @@ function AppShell() {
           <Route path="/explore" element={<Explore />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/premium" element={
+            <ComingSoonGate status={resolveFeatureStatus('premium')} featureId="premium" name="Premium" description="More AI-marked answers and mock exams every day." fallbackRoute="/" fallbackLabel="Go Home">
+              <Premium />
+            </ComingSoonGate>
+          } />
           <Route path="/shop" element={
             <ComingSoonGate status={resolveFeatureStatus('shop')} featureId="shop" name="Shop" description="Unlock power-ups and cosmetics with your earned gems." fallbackRoute="/" fallbackLabel="Go Home">
               <Shop />
@@ -359,6 +373,7 @@ function AppShell() {
             </ComingSoonGate>
           } />
           <Route path="/weakness-analysis" element={<WeaknessAnalysis />} />
+          <Route path="/fix/:skillId" element={<FixDrill />} />
           <Route path="/sentence-rebuilder" element={
             <ComingSoonGate status={resolveFeatureStatus('sentenceRebuilder')} featureId="sentenceRebuilder" name="Sentence Rebuilder" description="Drag-and-drop grammar exercises to reinforce sentence structure." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
               <SentenceRebuilder />
@@ -438,6 +453,17 @@ function AppShell() {
             </ComingSoonGate>
           } />
           <Route path="/daily-news" element={<DailyNewsFlash />} />
+          {/* Teacher dashboard (docs/systems/teacher-dashboard.md): a learner joins a class. */}
+          <Route path="/join" element={
+            <ComingSoonGate status={resolveFeatureStatus('teacherDashboard')} featureId="teacherDashboard" name="Classes" description="Join your teacher's class to get speaking homework." fallbackRoute="/profile" fallbackLabel="Back to Profile">
+              <JoinClass />
+            </ComingSoonGate>
+          } />
+          <Route path="/join/:code" element={
+            <ComingSoonGate status={resolveFeatureStatus('teacherDashboard')} featureId="teacherDashboard" name="Classes" description="Join your teacher's class to get speaking homework." fallbackRoute="/profile" fallbackLabel="Back to Profile">
+              <JoinClass />
+            </ComingSoonGate>
+          } />
           {/* DEV-ONLY: coach belief debug dashboard. Tree-shaken out of prod builds. */}
           {import.meta.env.DEV && (
             <>
@@ -470,8 +496,23 @@ function AppShell() {
         <Route path="/story" element={<Story />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
+        {/* The weekly email's unsubscribe link; also in PublicRoutes (a parent is never signed in). */}
+        <Route path="/unsubscribe" element={<Unsubscribe />} />
         <Route path="/age-band" element={<AgeBand />} />
         <Route path="/invite-code" element={<InviteCode />} />
+
+        {/* Teacher dashboard: its own layout, outside the learner shell (no nav, no XP bar, no
+            sound) — and outside the learner onboarding survey (OnboardingCheck exempts /teach). */}
+        <Route element={
+          <ComingSoonGate status={resolveFeatureStatus('teacherDashboard')} featureId="teacherDashboard" name="Teacher dashboard" description="See who is practising, set speaking homework and check AI marks." fallbackRoute="/" fallbackLabel="Go Home">
+            <TeachLayout />
+          </ComingSoonGate>
+        }>
+          <Route path="/teach" element={<TeachHome />} />
+          <Route path="/teach/class/:classId" element={<TeachClass />} />
+          <Route path="/teach/class/:classId/student/:studentId" element={<TeachStudent />} />
+          <Route path="/teach/class/:classId/attempt/:attemptId" element={<TeachAttempt />} />
+        </Route>
 
         {/* Admin content management — gated on JWT app_metadata.role */}
         <Route element={<AdminRoute />}>

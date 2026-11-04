@@ -3,7 +3,8 @@
  * calls at each screen). Renders nothing.
  *
  * - AnalyticsTracker (inside AuthProvider + the router, above the auth gate):
- *   app_opened once per local day, web vitals, a manual $pageview per route
+ *   app_opened once per local day, notification_opened when the page was
+ *   opened from a nudge/weekly-email link, web vitals, a manual $pageview per route
  *   (autocapture is off), the is_guest / route super-properties, and identity —
  *   identify(Supabase user id) on sign-in / sign-up so the guest history merges,
  *   reset() on sign-out. Never an email, username or name.
@@ -21,6 +22,7 @@ import { claimDailyOpen, claimPersonPropsChange } from './analyticsState';
 import { syncAnalyticsIdentity } from './analyticsIdentity';
 import { normaliseRoute } from './analyticsRoute';
 import { startWebVitals } from './webVitals';
+import { notificationOpenFromSearch } from './notificationOpen';
 
 export function AnalyticsTracker() {
   const { user, loading } = useAuth();
@@ -57,6 +59,8 @@ export function AnalyticsTracker() {
       if (props) track({ name: 'app_opened', props });
     };
     open();
+    const nudge = notificationOpenFromSearch(window.location.search);
+    if (nudge) track({ name: 'notification_opened', props: nudge });
     startWebVitals();
     const onVisible = () => {
       if (document.visibilityState === 'visible') open();

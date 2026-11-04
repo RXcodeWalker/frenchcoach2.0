@@ -14,13 +14,20 @@ const POINTS = [
  * The sign-in page frame (Design System v2): from lg up, a recessed brand panel
  * (what the app does, one example of the feedback) beside the form; below lg only
  * the form with a compact brand row. Flat surfaces, hairlines, the `enter` motion.
+ *
+ * Switching Log In ↔ Sign Up changes the form's height, so the frame is built not to
+ * move when it does: the frame is its own scroll container with a stable scrollbar
+ * gutter (a classic scrollbar appearing for the taller Sign Up form must not narrow
+ * the page and shift both columns), the brand panel is pinned to the viewport height
+ * (it never stretches with the form), and the form is anchored to the top rather than
+ * vertically centred (so the tab and fields stay put; only the bottom grows).
  */
 export function AuthSplit({ children, below }: { children: ReactNode; below?: ReactNode }) {
   const reduced = useReducedMotion();
   const v = reduced ? enterReduced : enter;
   return (
-    <div className="min-h-screen bg-bg lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <aside className="hidden border-r border-hairline bg-surface-recessed lg:flex lg:flex-col lg:justify-between lg:px-14 lg:py-12 xl:px-20">
+    <div className="h-dvh overflow-y-auto bg-bg [scrollbar-gutter:stable] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <aside className="hidden border-r border-hairline bg-surface-recessed lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:justify-between lg:gap-8 lg:overflow-y-auto lg:px-14 lg:py-12 xl:px-20">
         <div className="flex items-center gap-3">
           <BrandMark small />
           <span className="text-section text-ink">Français AI</span>
@@ -64,7 +71,7 @@ export function AuthSplit({ children, below }: { children: ReactNode; below?: Re
         <p className="text-caption text-ink-subtle">Built for Cambridge IGCSE French (0520).</p>
       </aside>
 
-      <main className="flex min-h-screen flex-col items-center justify-center px-4 py-10 lg:min-h-0">
+      <main className="flex min-h-dvh flex-col items-center px-4 py-10 lg:pt-[clamp(2.5rem,10vh,6rem)]">
         <motion.div variants={v} initial="hidden" animate="show" className="w-full max-w-[400px]">
           <div className="mb-8 flex items-center gap-3 lg:hidden">
             <BrandMark small />

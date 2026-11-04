@@ -66,10 +66,22 @@ export function weeklyExamLimitMessage(nextAvailableAt: string | null | undefine
   return `You can take one sample exam a week, and you've had this week's.${when ? ` Your next one unlocks on ${when}.` : ''}`;
 }
 
+/** Premium (docs/systems/payments.md): no weekly window, a per-day limit instead. */
+export function dailyExamLimitMessage(): string {
+  return "You've had today's mock exams. Your next one unlocks tomorrow.";
+}
+
 export interface ExamAllowance {
   allowed: boolean;
+  /** True when the Premium rule (per day, no weekly window) applied. */
+  premium: boolean;
   lastExamDate: string | null;
   nextAvailableAt: string | null;
+}
+
+/** The "limit reached" line for this allowance, free or Premium. */
+export function examLimitMessage(allowance: Pick<ExamAllowance, 'premium' | 'nextAvailableAt'> | null): string {
+  return allowance?.premium ? dailyExamLimitMessage() : weeklyExamLimitMessage(allowance?.nextAvailableAt);
 }
 
 /**
@@ -77,14 +89,21 @@ export interface ExamAllowance {
  * read without charging. null when it cannot be read (signed out, offline, not
  * configured) — the caller lets the learner start, and POST /score still enforces it.
  */
-export async function getExamAllowance(): Promise<ExamAllowance | null> {
+export async function getExamAllowance(assignmentId?: string | null): Promise<ExamAllowance | null> {
   if (!SCORING_API_BASE) return null;
   try {
-    const res = await fetch(`${SCORING_API_BASE}/exam/allowance`, { headers: await authHeaders() });
+    // Homework a teacher set has its own allowance (server/examAttemptMeta.ts).
+    const query = assignmentId ? `?assignment=${encodeURIComponent(assignmentId)}` : '';
+    const res = await fetch(`${SCORING_API_BASE}/exam/allowance${query}`, { headers: await authHeaders() });
     if (!res.ok) return null;
     const body = (await res.json()) as Partial<ExamAllowance>;
     if (typeof body.allowed !== 'boolean') return null;
-    return { allowed: body.allowed, lastExamDate: body.lastExamDate ?? null, nextAvailableAt: body.nextAvailableAt ?? null };
+    return {
+      allowed: body.allowed,
+      premium: body.premium === true,
+      lastExamDate: body.lastExamDate ?? null,
+      nextAvailableAt: body.nextAvailableAt ?? null,
+    };
   } catch {
     return null;
   }
@@ -105,9 +124,9 @@ export function terminalScoringMessage(err: ScoringApiError): string {
     return "This exam's questions were updated after you took it, so this attempt can't be marked. Please retake the exam.";
   }
   if (err.status === 429) {
-    return err.code === 'weekly_exam_limit'
-      ? weeklyExamLimitMessage(err.nextAvailableAt)
-      : "You've reached today's limit for exam marking. Please try again tomorrow.";
+    if (err.code === 'weekly_exam_limit') return weeklyExamLimitMessage(err.nextAvailableAt);
+    if (err.code === 'daily_exam_limit') return dailyExamLimitMessage();
+    return "You've reached today's limit for exam marking. Please try again tomorrow.";
   }
   return err.message;
 }
@@ -161,7 +180,29 @@ export function pingScoringServiceHealth(): void {
  * underway) is treated the same as an ambiguous outcome: the caller should
  * move to WaitingForScore/poll, not treat it as done or as an error.
  */
-export async function submitForScoring(transcript: SessionTranscript): Promise<ScoreStatus> {
+/**
+ * How the attempt was sat (teacher dashboard Stage 0, server/examAttemptMeta.ts). Sent as
+ * query params — never inside the transcript, so nothing about it can reach the marker.
+ * The server records it beside the envelope and can only lower `countsTowardProgress`.
+ */
+export interface AttemptConduct {
+  coached: boolean;
+  countsTowardProgress: boolean;
+  /** Homework a teacher set (a mock exam assignment), if this attempt answers one. */
+  assignmentId?: string | null;
+}
+
+export function attemptConductQuery(conduct: AttemptConduct | undefined): string {
+  if (!conduct) return '';
+  const params = new URLSearchParams({
+    mode: conduct.coached ? 'coached' : 'examSim',
+    counts: conduct.countsTowardProgress ? '1' : '0',
+  });
+  if (conduct.assignmentId) params.set('assignment', conduct.assignmentId);
+  return `?${params.toString()}`;
+}
+
+export async function submitForScoring(transcript: SessionTranscript, conduct?: AttemptConduct): Promise<ScoreStatus> {
   if (!SCORING_API_BASE) {
     throw new ScoringApiError('Scoring service is not configured (VITE_SCORING_API_URL unset)');
   }
@@ -170,7 +211,7 @@ export async function submitForScoring(transcript: SessionTranscript): Promise<S
   const timeoutId = setTimeout(() => controller.abort(), SCORE_TIMEOUT_MS);
 
   try {
-    const res = await fetch(`${SCORING_API_BASE}/score`, {
+    const res = await fetch(`${SCORING_API_BASE}/score${attemptConductQuery(conduct)}`, {
       method: 'POST',
       headers: await authHeaders(),
       body: JSON.stringify(transcript),
@@ -234,7 +275,7 @@ async function parseEnvelopeResponse(res: Response): Promise<EnvelopeView> {
       const body = await res.json();
       if (body?.error) message = body.error;
       if (typeof body?.code === 'string') code = body.code;
-      // A usage-limit 429 names its limit in `error` (weekly_exam_limit, daily_quota_reached).
+      // A usage-limit 429 names its limit in `error` (weekly_exam_limit, daily_exam_limit, daily_quota_reached).
       if (res.status === 429 && typeof body?.error === 'string') code = body.error;
       if (typeof body?.nextAvailableAt === 'string') nextAvailableAt = body.nextAvailableAt;
     } catch {

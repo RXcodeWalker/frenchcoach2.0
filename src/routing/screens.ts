@@ -63,6 +63,15 @@ export const SpeakingArena = lazyScreen(() => import('../screens/SpeakingArena')
 export const Challenges = lazyScreen(() => import('../screens/Challenges'), 'Challenges');
 export const DailyNewsFlash = lazyScreen(() => import('../screens/DailyNewsFlash'), 'DailyNewsFlash');
 export const ParentView = lazyScreen(() => import('../screens/ParentView'), 'ParentView');
+export const Premium = lazyScreen(() => import('../screens/Premium'), 'Premium');
+export const FixDrill = lazyScreen(() => import('../screens/FixDrill'), 'FixDrill');
+export const Unsubscribe = lazyScreen(() => import('../screens/Unsubscribe'), 'Unsubscribe');
+export const JoinClass = lazyScreen(() => import('../screens/JoinClass'), 'JoinClass');
+export const TeachLayout = lazyScreen(() => import('../screens/teach/TeachLayout'), 'TeachLayout');
+export const TeachHome = lazyScreen(() => import('../screens/teach/TeachHome'), 'TeachHome');
+export const TeachClass = lazyScreen(() => import('../screens/teach/TeachClass'), 'TeachClass');
+export const TeachStudent = lazyScreen(() => import('../screens/teach/TeachStudent'), 'TeachStudent');
+export const TeachAttempt = lazyScreen(() => import('../screens/teach/TeachAttempt'), 'TeachAttempt');
 export const NotFound = lazyScreen(() => import('../screens/NotFound'), 'NotFound');
 
 // Dev-only screens: the DEV guard keeps their chunks out of production builds entirely.
@@ -161,6 +170,15 @@ export const SCREEN_PATHS: ReadonlyArray<readonly [string, readonly AnyScreen[]]
   ['/reset-password', [ResetPassword]],
   ['/guardian-consent', [GuardianConsent]],
   ['/parent', [ParentView]],
+  ['/premium', [Premium]],
+  ['/fix/:skillId', [FixDrill]],
+  ['/unsubscribe', [Unsubscribe]],
+  ['/join', [JoinClass]],
+  ['/join/:code', [JoinClass]],
+  ['/teach', [TeachLayout, TeachHome]],
+  ['/teach/class/:classId', [TeachLayout, TeachClass]],
+  ['/teach/class/:classId/student/:studentId', [TeachLayout, TeachStudent]],
+  ['/teach/class/:classId/attempt/:attemptId', [TeachLayout, TeachAttempt]],
   ['/admin', [AdminLayout, AdminDashboard]],
   ['/admin/questions', [AdminLayout, QuestionList]],
   ['/admin/questions/new', [AdminLayout, QuestionForm]],

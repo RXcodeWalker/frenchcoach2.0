@@ -9,6 +9,7 @@ import {
   PrivacyPolicy,
   TermsOfService,
   GuardianConsent,
+  Unsubscribe,
   AuthCallback,
   ResetPassword,
 } from './routing/screens';
@@ -31,6 +32,7 @@ export function PublicRoutes() {
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/guardian-consent" element={<GuardianConsent />} />
+      <Route path="/unsubscribe" element={<Unsubscribe />} />
       <Route path="/login" element={<Auth />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/reset-password" element={<ResetPassword />} />

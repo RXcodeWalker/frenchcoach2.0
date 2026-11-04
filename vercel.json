@@ -16,8 +16,13 @@
     { "source": "/admin/scenarios/:id/edit", "destination": "/admin" },
     { "source": "/admin/scenarios/:id/history", "destination": "/admin" },
     { "source": "/junior/:themeId", "destination": "/" },
+    { "source": "/fix/:skillId", "destination": "/" },
     { "source": "/scenario/:scenarioId", "destination": "/" },
-    { "source": "/duel/:duelId", "destination": "/" }
+    { "source": "/duel/:duelId", "destination": "/" },
+    { "source": "/join/:code", "destination": "/" },
+    { "source": "/teach/class/:classId", "destination": "/" },
+    { "source": "/teach/class/:classId/student/:studentId", "destination": "/" },
+    { "source": "/teach/class/:classId/attempt/:attemptId", "destination": "/" }
   ],
   "headers": [
     {

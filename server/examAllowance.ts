@@ -7,6 +7,10 @@
  * days, so "7 days" is 7 calendar days: an exam on a Monday unlocks the next one on the
  * following Monday (00:00 UTC). A retry of the same attempt (same sessionId) is never
  * counted against itself.
+ *
+ * Premium (Stripe subscription, backend routers/billing.py): no 7-day window; instead
+ * the per-UTC-day Premium limit in ai_quota_limits.premium_daily_limit (exam_attempt),
+ * which consume_ai_quota itself also enforces. NULL there = Premium has the free rule.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -15,6 +19,8 @@ export const EXAM_WINDOW_DAYS = 7;
 
 export interface ExamAllowance {
   allowed: boolean;
+  /** True when the Premium rule (per day, no weekly window) was applied. */
+  premium: boolean;
   /** UTC date (YYYY-MM-DD) of the latest exam inside the window, if any. */
   lastExamDate: string | null;
   /** When the next exam unlocks (ISO, 00:00 UTC), or null when one is allowed now. */
@@ -36,13 +42,56 @@ export function windowStart(now: Date): string {
   return utcDay(addDays(utcDay(now), -(EXAM_WINDOW_DAYS - 1)));
 }
 
+/** Which rule applies to this account (loadExamPlan). */
+export interface ExamPlan {
+  premium: boolean;
+  /** Exams a Premium account may sit per UTC day; only read when `premium`. */
+  premiumDailyLimit: number | null;
+}
+
+export const FREE_EXAM_PLAN: ExamPlan = { premium: false, premiumDailyLimit: null };
+
 /** Pure: the allowance given the UTC grant dates of the account's other exams. */
-export function examAllowanceFrom(grantDates: string[], now: Date): ExamAllowance {
+export function examAllowanceFrom(grantDates: string[], now: Date, plan: ExamPlan = FREE_EXAM_PLAN): ExamAllowance {
   const start = windowStart(now);
   const inWindow = grantDates.filter((d) => d >= start).sort();
-  if (inWindow.length === 0) return { allowed: true, lastExamDate: null, nextAvailableAt: null };
-  const last = inWindow[inWindow.length - 1];
-  return { allowed: false, lastExamDate: last, nextAvailableAt: addDays(last, EXAM_WINDOW_DAYS).toISOString() };
+  const last = inWindow.length > 0 ? inWindow[inWindow.length - 1] : null;
+  if (plan.premium && plan.premiumDailyLimit !== null) {
+    const today = utcDay(now);
+    const usedToday = grantDates.filter((d) => d === today).length;
+    const allowed = usedToday < plan.premiumDailyLimit;
+    return { allowed, premium: true, lastExamDate: last, nextAvailableAt: allowed ? null : addDays(today, 1).toISOString() };
+  }
+  if (last === null) return { allowed: true, premium: false, lastExamDate: null, nextAvailableAt: null };
+  return { allowed: false, premium: false, lastExamDate: last, nextAvailableAt: addDays(last, EXAM_WINDOW_DAYS).toISOString() };
+}
+
+/**
+ * Free or Premium for this account. Reads exam_attempt's premium_daily_limit, then (only
+ * when one is set) the service-role has_premium() RPC.
+ *
+ * Any error reads as the FREE plan, never as Premium and never as a 503: the free rule is
+ * always the stricter one, a real DB outage still 503s through loadExamGrantDates, and this
+ * keeps POST /score working if this service deploys before migration 20261104230000 (the
+ * column would not exist yet).
+ */
+export async function loadExamPlan(client: Pick<SupabaseClient, 'from' | 'rpc'>, userId: string): Promise<ExamPlan> {
+  try {
+    const { data, error } = await client
+      .from('ai_quota_limits')
+      .select('premium_daily_limit')
+      .eq('feature', EXAM_ATTEMPT_FEATURE)
+      .maybeSingle();
+    if (error) throw error;
+    const limit = (data as { premium_daily_limit: number | null } | null)?.premium_daily_limit ?? null;
+    if (limit === null) return FREE_EXAM_PLAN;
+    const premium = await client.rpc('has_premium', { p_user_id: userId });
+    if (premium.error) throw premium.error;
+    return premium.data === true ? { premium: true, premiumDailyLimit: limit } : FREE_EXAM_PLAN;
+  } catch (err) {
+    console.warn('[examAllowance] Premium lookup failed; applying the free rule:', err);
+    return FREE_EXAM_PLAN;
+  }
 }
 
 /** The grant id consume_ai_quota writes for (user, feature, key). */

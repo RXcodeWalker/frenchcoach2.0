@@ -41,7 +41,7 @@ learner makes a private link in **Profile → Parent view**, and the parent open
 
 | Piece | Where |
 |---|---|
-| Table + RPCs (`create_parent_link`, `list_parent_links`, `revoke_parent_link`, `get_parent_report` (anon-callable)) | backend `supabase/migrations/20261104090000_parent_links.sql` |
+| Table + RPCs (`create_parent_link`, `list_parent_links`, `revoke_parent_link`, `get_parent_report` (anon-callable)) | backend `supabase/migrations/20261104090000_parent_links.sql` + `20261104100000_parent_report_exam_columns.sql`, both applied to production 2026-11-04 |
 | Wire shape + parser | `src/features/parentView/rawReport.ts` |
 | Report builder (pure, tested) | `src/features/parentView/buildReport.ts` |
 | RPC client, link/hash helpers | `src/features/parentView/parentLinkService.ts` |

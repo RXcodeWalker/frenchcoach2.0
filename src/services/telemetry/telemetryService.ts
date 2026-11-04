@@ -294,6 +294,29 @@ interface LabOpenedProps {
   entry: LabEntry;
 }
 
+// Teacher dashboard (docs/systems/teacher-dashboard.md §7): enums and counts only —
+// never a class name, student name, code, transcript or mark comment.
+interface ClassJoinedProps {
+  via: 'code' | 'link';
+  switched_class: boolean;
+}
+interface TeacherDashboardViewedProps {
+  tab: 'week' | 'insights' | 'homework' | 'students' | 'student' | 'attempt';
+  students: number;
+}
+interface AssignmentCreatedProps {
+  kind: 'learn_topic' | 'role_play' | 'mock_exam';
+  targeted: boolean;
+}
+interface TeacherMarkSavedProps {
+  agreed: boolean;
+  delta: number;
+  shared: boolean;
+}
+interface HomeworkOpenedProps {
+  kind: 'learn_topic' | 'role_play' | 'mock_exam';
+}
+
 interface LabTakeProps {
   /** "N of M words clear" for one whole-sentence take. */
   words_clear: number;
@@ -421,6 +444,13 @@ interface BackendColdStartProps {
   reached: boolean;
 }
 
+/** Retention loop: a nudge or weekly-email link was opened (its UTM tags; docs/systems/retention-notifications.md §5). */
+interface NotificationOpenedProps {
+  /** The nudge variant or email link, e.g. 'streak_at_risk', 'mistake_comeback', 'weekly_fix'. */
+  campaign: string;
+  channel: 'push' | 'email';
+}
+
 export type TelemetryEvent =
   | { name: 'session_completed';       props: SessionCompletedProps }
   | { name: 'feedback_received';       props: FeedbackReceivedProps }
@@ -488,7 +518,16 @@ export type TelemetryEvent =
   | { name: 'progress_viewed';         props: NoProps }
   | { name: 'profile_viewed';          props: NoProps }
   | { name: 'web_vitals';              props: WebVitalsProps }
-  | { name: 'backend_cold_start';      props: BackendColdStartProps };
+  | { name: 'backend_cold_start';      props: BackendColdStartProps }
+  | { name: 'teacher_class_created';   props: NoProps }
+  | { name: 'class_joined';            props: ClassJoinedProps }
+  | { name: 'class_left';              props: NoProps }
+  | { name: 'teacher_dashboard_viewed'; props: TeacherDashboardViewedProps }
+  | { name: 'assignment_created';      props: AssignmentCreatedProps }
+  | { name: 'teacher_mark_saved';      props: TeacherMarkSavedProps }
+  | { name: 'class_exported';          props: NoProps }
+  | { name: 'homework_opened';         props: HomeworkOpenedProps }
+  | { name: 'notification_opened';     props: NotificationOpenedProps };
 
 export type TelemetryEventName = TelemetryEvent['name'];
 type PropsOf<N extends TelemetryEventName> = Extract<TelemetryEvent, { name: N }>['props'];
@@ -566,6 +605,15 @@ const DECLARED_PROPS = {
   profile_viewed: [],
   web_vitals: ['lcp_ms', 'inp_ms', 'cls'],
   backend_cold_start: ['latency_ms', 'attempts', 'reached'],
+  teacher_class_created: [],
+  class_joined: ['via', 'switched_class'],
+  class_left: [],
+  teacher_dashboard_viewed: ['tab', 'students'],
+  assignment_created: ['kind', 'targeted'],
+  teacher_mark_saved: ['agreed', 'delta', 'shared'],
+  class_exported: [],
+  homework_opened: ['kind'],
+  notification_opened: ['campaign', 'channel'],
 } as const satisfies { [N in TelemetryEventName]: readonly (keyof PropsOf<N> & string)[] };
 
 type UndeclaredProps = {
@@ -646,7 +694,8 @@ export type FailureArea =
   | 'sync'
   | 'storage'
   | 'app_load'
-  | 'contact';
+  | 'contact'
+  | 'teacher';
 
 export interface ErrorContext {
   /** Becomes a searchable Sentry tag. */

@@ -4,6 +4,9 @@ import { enter } from '../components/motion/variants';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { LEARN_TOPIC_PARAM, topicFromDeepLink } from '../features/learn/topicDeepLink';
+import { HOMEWORK_PARAM, homeworkSessionLength, isAssignmentId } from '../features/homework/homework';
+import { setActiveLearnHomework } from '../features/homework/homeworkContext';
+import { useMyHomework } from '../features/homework/useMyHomework';
 import { TOPICS, getTopicQuestions, getQuestionById } from '../data/gameData';
 import { isOnline } from '../pwa/useOnlineStatus';
 import { SAVED_ANSWER_PARAM } from '../features/learn/savedAnswers/savedAnswerLink';
@@ -18,7 +21,7 @@ import {
   type SavedAnswer,
 } from '../services/offline/savedAnswers';
 import { getAIFeedback, streamFeedback, getExaminerFeedback, isExaminerQuotaExceededError, getLearnAllowance, isLearnDailyLimitError, SIGNED_OUT_FEEDBACK_REASON } from '../services/api/apiClient';
-import { LEARN_ANSWERS_PER_DAY, LEARN_DAILY_LIMIT_MESSAGE, dailySessionLength } from '../features/learn/dailyAllowance';
+import { LEARN_ANSWERS_PER_DAY, dailySessionLength, learnDailyLimit, learnDailyLimitMessage } from '../features/learn/dailyAllowance';
 import { isAuthRequiredError } from '../lib/authToken';
 import { isConsentRequiredError } from '../lib/consentRequired';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
@@ -164,6 +167,8 @@ export function Learn() {
   // Launch limit: AI-marked answers left today (GET /api/learn/allowance), read each time
   // the setup screen opens; null while unknown (the server still enforces the limit).
   const [answersLeft, setAnswersLeft] = useState<number | null>(null);
+  // The daily number (free 3, or the Premium limit when the server says so).
+  const [dailyLimit, setDailyLimit] = useState<number>(LEARN_ANSWERS_PER_DAY);
   // 2.4: transcript confirmation step between stop() and evaluation, behind
   // learnTranscriptConfirm. Holds the transcription awaiting the student's
   // Use this / Re-record choice (Whisper primary, live captions second opinion —
@@ -351,10 +356,41 @@ export function Learn() {
   // outgoing page first, so a Learn that consumed it there would leave the real one with nothing.
   const [searchParams] = useSearchParams();
   const deepLinkTopicKey = searchParams.get(LEARN_TOPIC_PARAM);
+
+  // Homework (features/homework): `/learn?topic=<key>&assignment=<id>` is a Learn set a
+  // teacher assigned. It applies only once the learner's own my_assignments() confirms it,
+  // and only while they are on that topic: then the session is the teacher's length and the
+  // backend charges the assignment's allowance (X-Assignment-Id), not today's answers.
+  const requestedHomeworkId = searchParams.get(HOMEWORK_PARAM)?.toLowerCase() ?? null;
+  const { assignments: myHomework } = useMyHomework(isAssignmentId(requestedHomeworkId));
+  const homework = useMemo(
+    () => myHomework?.find(a => a.id === requestedHomeworkId && a.kind === 'learn_topic' && a.topicKey) ?? null,
+    [myHomework, requestedHomeworkId],
+  );
+  const homeworkActive = homework !== null && selectedTopic?.key === homework.topicKey;
   useEffect(() => {
-    const topic = topicFromDeepLink(deepLinkTopicKey);
-    if (topic) selectTopic(topic);
-  }, [deepLinkTopicKey]);
+    setActiveLearnHomework(homeworkActive && homework ? homework.id : null);
+    return () => setActiveLearnHomework(null);
+  }, [homeworkActive, homework]);
+
+  const deepLinkHandledRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!deepLinkTopicKey || deepLinkHandledRef.current === deepLinkTopicKey) return;
+    // A teacher's homework opens its topic even if the learner hasn't unlocked it yet.
+    const topic = topicFromDeepLink(deepLinkTopicKey)
+      ?? (homework?.topicKey === deepLinkTopicKey ? TOPICS.find(t => t.key === homework.topicKey) ?? null : null);
+    if (!topic) return;
+    deepLinkHandledRef.current = deepLinkTopicKey;
+    selectTopic(topic);
+  }, [deepLinkTopicKey, homework]);
+
+  /** How many questions this session keeps: the homework's count, else the answers left today. */
+  const sessionLengthFor = useCallback(
+    (built: number) => (homeworkActive && homework
+      ? homeworkSessionLength(homework.questionCount, built)
+      : dailySessionLength(answersLeft, built, dailyLimit)),
+    [homeworkActive, homework, answersLeft, dailyLimit],
+  );
 
   // `/learn?saved=<id>` (Saved answers' "Get feedback") opens that answer once.
   const savedAnswerParam = searchParams.get(SAVED_ANSWER_PARAM);
@@ -437,7 +473,7 @@ export function Learn() {
       focusedSkillId,
       sessionBlend,
       // Planned for the length it will really have (the answers left today).
-      { aim, migratedTier: selectedDifficulty, filters, count: dailySessionLength(answersLeft, SESSION_TARGET[mode]) },
+      { aim, migratedTier: selectedDifficulty, filters, count: sessionLengthFor(SESSION_TARGET[mode]) },
     );
     // Filters that match nothing build an empty session; the setup screen
     // disables Start in that case, so this is only a backstop.
@@ -448,7 +484,7 @@ export function Learn() {
       setRecommendationStatus('accepted');
     }
 
-    const target = dailySessionLength(answersLeft, mode === 'full_topic' ? questions.length : SESSION_TARGET[mode]);
+    const target = sessionLengthFor(mode === 'full_topic' ? questions.length : SESSION_TARGET[mode]);
     if (target === 0) return; // no answers left today; the setup screen already says so
     const slotByQuestionId = new Map((builtSlots ?? []).map(s => [s.questionId, s]));
     const sessionQuestions: SessionQuestion[] = questions
@@ -492,7 +528,7 @@ export function Learn() {
     setIsRetry(false);
     resetSessionScopedState();
     setLearnState('question');
-  }, [selectedTopic, skillProfile, topicMastery, selectedDifficulty, aim, filters, dispatch, resetSessionScopedState, resolveSelectionInputs, focusTokenActive, adaptiveDifficultyLive, answersLeft, feedbackMode]);
+  }, [selectedTopic, skillProfile, topicMastery, selectedDifficulty, aim, filters, dispatch, resetSessionScopedState, resolveSelectionInputs, focusTokenActive, adaptiveDifficultyLive, sessionLengthFor, feedbackMode]);
 
   useEffect(() => {
     if (learnState !== 'session_start') return;
@@ -500,7 +536,11 @@ export function Learn() {
     void getLearnAllowance().then((allowance) => {
       // Never more than the daily number: a guest's backend allowance is the looser
       // per-IP guest cap (5), and a guest also has only 3 free attempts in all.
-      if (!cancelled) setAnswersLeft(allowance ? Math.min(allowance.remaining, LEARN_ANSWERS_PER_DAY) : null);
+      // A Premium account's daily number is its own (learnDailyLimit).
+      if (cancelled) return;
+      const limit = learnDailyLimit(allowance);
+      setDailyLimit(limit);
+      setAnswersLeft(allowance ? Math.min(allowance.remaining, limit) : null);
     });
     return () => { cancelled = true; };
   }, [learnState]);
@@ -528,10 +568,10 @@ export function Learn() {
       selectedDifficulty,
       focusedSkillId,
       sessionBlend,
-      { aim: previewAim, migratedTier: selectedDifficulty, filters, count: dailySessionLength(answersLeft, SESSION_TARGET[mode]) },
+      { aim: previewAim, migratedTier: selectedDifficulty, filters, count: sessionLengthFor(SESSION_TARGET[mode]) },
     );
     // Only the questions this session keeps (the answers left today), as startSession slices them.
-    const kept = (slots ?? []).slice(0, dailySessionLength(answersLeft, (slots ?? []).length));
+    const kept = (slots ?? []).slice(0, sessionLengthFor((slots ?? []).length));
     return summarisePreview(kept, computeSessionTarget(sessionStartAbility().abilityScore, previewAim));
   };
 
@@ -596,6 +636,7 @@ export function Learn() {
       durationSec: elapsed,
       feedback: fb,
       createdAt: new Date().toISOString(),
+      ...(homeworkActive && homework ? { assignmentId: homework.id } : {}),
     };
 
     logSpeakingSample(attemptId, transcript, {
@@ -1110,7 +1151,7 @@ export function Learn() {
           if (myAttemptId !== attemptIdRef.current) return;
           setAnswersLeft(0);
           setIsLoadingFeedback(false);
-          setFeedbackErrorMessage(LEARN_DAILY_LIMIT_MESSAGE);
+          setFeedbackErrorMessage(learnDailyLimitMessage(dailyLimit));
           setLearnState('question');
           return;
         }
@@ -1752,7 +1793,9 @@ export function Learn() {
                 markingLevel={markingLive ? markingLevel : undefined}
                 onMarkingLevelChange={markingLive ? (level) => dispatch({ type: 'SET_MARKING_LEVEL', level }) : undefined}
                 answersLeft={answersLeft}
+                dailyLimit={dailyLimit}
                 streakDays={profile.streak_days}
+                homework={homeworkActive && homework ? { title: homework.title, teacherName: homework.teacherName, questionCount: homework.questionCount } : null}
               />
             </motion.div>
           )}

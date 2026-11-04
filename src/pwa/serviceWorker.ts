@@ -42,6 +42,7 @@ interface NotificationEvent extends ExtendableEvent {
 interface SwClient {
   url: string;
   focus(): Promise<unknown>;
+  navigate(url: string): Promise<SwClient | null>;
 }
 interface SwScope {
   location: Location;
@@ -316,23 +317,36 @@ async function trimCache(cacheName: string, max: number): Promise<void> {
 
 // ── Web Push (Phase 4.3) ─────────────────────────────────────────────────────
 
+// Retention loop (docs/systems/retention-notifications.md §3): a nudge carries a
+// `tag` so a newer one replaces an unread older one, and its `url` is a deep link
+// (e.g. /fix/tense_past) that a tap must actually open — also when the app is
+// already open in a tab.
 sw.addEventListener('push', (event) => {
-  const data = (event.data?.json() ?? {}) as { title?: string; body?: string; url?: string };
-  event.waitUntil(sw.registration.showNotification(data.title ?? 'Français AI', {
+  const data = (event.data?.json() ?? {}) as { title?: string; body?: string; url?: string; tag?: string };
+  const options: NotificationOptions = {
     body: data.body,
     icon: '/icons/icon-192.png',
     badge: '/favicon.svg',
     data: { url: data.url ?? '/' },
-  }));
+  };
+  if (data.tag) options.tag = data.tag;
+  event.waitUntil(sw.registration.showNotification(data.title ?? 'Français AI', options));
 });
 
 sw.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = event.notification.data?.url ?? '/';
+  const url = new URL(event.notification.data?.url ?? '/', sw.location.origin).href;
   event.waitUntil(
-    sw.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((wins) => {
+    sw.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (wins) => {
       const existing = wins.find((c) => c.url.startsWith(sw.location.origin));
-      return existing ? existing.focus() : sw.clients.openWindow(url);
+      if (!existing) return sw.clients.openWindow(url);
+      // navigate() only works on a client this worker controls; otherwise open fresh.
+      try {
+        const navigated = existing.url === url ? existing : await existing.navigate(url);
+        return (navigated ?? existing).focus();
+      } catch {
+        return sw.clients.openWindow(url);
+      }
     }),
   );
 });

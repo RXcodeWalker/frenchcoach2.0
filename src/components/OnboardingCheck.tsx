@@ -23,7 +23,11 @@ export function OnboardingCheck({ children }: Props) {
   if (
     !coachProfile.onboardingComplete &&
     location.pathname !== '/onboarding' &&
-    location.pathname !== '/age-band'
+    location.pathname !== '/age-band' &&
+    // The teacher area is not a learner surface: a teacher never has to take the
+    // learner goal survey to see their classes (docs/systems/teacher-dashboard.md).
+    location.pathname !== '/teach' &&
+    !location.pathname.startsWith('/teach/')
   ) {
     const returnTo = encodeURIComponent(location.pathname + location.search + location.hash);
     return <Navigate to={`/onboarding?returnTo=${returnTo}`} replace />;
