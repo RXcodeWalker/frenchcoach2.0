@@ -4,7 +4,7 @@
 // learner's filters, and the live "what will this session be like" preview.
 // No React, no storage: the setup screen and Learn.tsx both call these.
 
-import type { SessionMode, Topic } from '../../types';
+import type { SessionMode } from '../../types';
 import { SESSION_TARGET, type BuiltSessionQuestionSlot } from '../../utils/sessionBuilder';
 import { levelLabel } from '../../domain/learn/ability/levelLabel';
 import { demandScoreToAbilityLevel } from '../../domain/learn/ability/thresholds';
@@ -17,16 +17,7 @@ export const SETUP_LENGTHS: { mode: SessionMode; count: number }[] = [
   { mode: 'deep_dive', count: SESSION_TARGET.deep_dive },
 ];
 
-/**
- * A topic holding fewer questions than the shortest multi-question session (5)
- * can't be practised as a session, so the topic grid hides it (docs §13.4: the
- * eight advanced topics hold one question each).
- */
-export const MIN_TOPIC_QUESTIONS = SESSION_TARGET.quick;
-
-export function isTopicVisible(topic: Topic): boolean {
-  return topic.questionsCount >= MIN_TOPIC_QUESTIONS;
-}
+export { MIN_TOPIC_QUESTIONS, isTopicVisible } from './topicVisibility';
 
 /** A length is offered only when enough questions match to fill it — never padded with non-matching ones. */
 export function isLengthAvailable(mode: SessionMode, matchCount: number): boolean {

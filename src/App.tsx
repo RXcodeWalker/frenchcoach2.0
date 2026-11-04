@@ -31,6 +31,7 @@ import { supabaseConfigured } from './lib/supabase';
 import { AnalyticsTracker, AnalyticsPersonSync } from './services/telemetry/AnalyticsTracker';
 import {
   SavedAnswers,
+  ParentView,
   Home,
   JuniorHome,
   MissionPlayer,
@@ -262,6 +263,13 @@ function AppShell() {
   useEffect(() => {
     if (user && isGuest) exitGuestMode();
   }, [user, isGuest, exitGuestMode]);
+
+  // The parent view is a standalone read-only page opened from a shared link
+  // (`/parent#<token>`): no account needed, and it must not be caught by the
+  // auth, age-band, invite or onboarding gates below.
+  if (location.pathname === '/parent') {
+    return <ParentView />;
+  }
 
   if (loading) return <FullPageSpinner />;
 

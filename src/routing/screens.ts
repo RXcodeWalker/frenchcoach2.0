@@ -62,6 +62,7 @@ export const ListeningMode = lazyScreen(() => import('../screens/ListeningMode')
 export const SpeakingArena = lazyScreen(() => import('../screens/SpeakingArena'), 'SpeakingArena');
 export const Challenges = lazyScreen(() => import('../screens/Challenges'), 'Challenges');
 export const DailyNewsFlash = lazyScreen(() => import('../screens/DailyNewsFlash'), 'DailyNewsFlash');
+export const ParentView = lazyScreen(() => import('../screens/ParentView'), 'ParentView');
 export const NotFound = lazyScreen(() => import('../screens/NotFound'), 'NotFound');
 
 // Dev-only screens: the DEV guard keeps their chunks out of production builds entirely.
@@ -159,6 +160,7 @@ export const SCREEN_PATHS: ReadonlyArray<readonly [string, readonly AnyScreen[]]
   ['/auth/callback', [AuthCallback]],
   ['/reset-password', [ResetPassword]],
   ['/guardian-consent', [GuardianConsent]],
+  ['/parent', [ParentView]],
   ['/admin', [AdminLayout, AdminDashboard]],
   ['/admin/questions', [AdminLayout, QuestionList]],
   ['/admin/questions/new', [AdminLayout, QuestionForm]],

@@ -857,3 +857,133 @@ export const QUESTION_COUNT_BY_TOPIC: Readonly<Record<string, number>> = {
   "survival": 1,
   "transport": 30,
 };
+
+// Per topic, how many questions practise each coach skill (services/coach/topicSkillCoverage.ts).
+export const TOPIC_SKILL_COVERAGE: Readonly<Record<string, Readonly<Record<string, number>>>> = {
+  "animals": {
+    "comparative": 1,
+    "etre_avoir": 4,
+    "hypothetical": 3,
+    "opinion": 5,
+    "tense_future": 1,
+    "tense_past": 4
+  },
+  "arts": {
+    "comparative": 2,
+    "etre_avoir": 4,
+    "hypothetical": 1,
+    "opinion": 4,
+    "tense_past": 4
+  },
+  "clothes": {
+    "comparative": 1,
+    "etre_avoir": 5,
+    "hypothetical": 2,
+    "opinion": 3,
+    "tense_future": 1,
+    "tense_past": 5
+  },
+  "emotions": {
+    "comparative": 2,
+    "etre_avoir": 3,
+    "opinion": 2,
+    "tense_past": 4
+  },
+  "environment": {
+    "comparative": 2,
+    "etre_avoir": 4,
+    "hypothetical": 6,
+    "opinion": 16,
+    "tense_future": 1,
+    "tense_past": 5
+  },
+  "family": {
+    "comparative": 8,
+    "etre_avoir": 6,
+    "hypothetical": 5,
+    "opinion": 6,
+    "tense_future": 2,
+    "tense_past": 8
+  },
+  "food": {
+    "comparative": 8,
+    "etre_avoir": 7,
+    "hypothetical": 9,
+    "opinion": 18,
+    "tense_future": 1,
+    "tense_past": 10
+  },
+  "future": {
+    "comparative": 4,
+    "etre_avoir": 1,
+    "hypothetical": 15,
+    "opinion": 10,
+    "tense_future": 24,
+    "tense_past": 2
+  },
+  "hobbies": {
+    "comparative": 11,
+    "etre_avoir": 11,
+    "hypothetical": 8,
+    "opinion": 4,
+    "tense_future": 1,
+    "tense_past": 13
+  },
+  "holidays": {
+    "comparative": 14,
+    "etre_avoir": 11,
+    "hypothetical": 9,
+    "opinion": 5,
+    "tense_future": 3,
+    "tense_past": 12
+  },
+  "home": {
+    "comparative": 6,
+    "etre_avoir": 2,
+    "hypothetical": 8,
+    "opinion": 3,
+    "tense_future": 1,
+    "tense_past": 6
+  },
+  "jobs": {
+    "comparative": 1,
+    "etre_avoir": 2,
+    "hypothetical": 4,
+    "opinion": 5,
+    "tense_future": 2,
+    "tense_past": 2
+  },
+  "school": {
+    "comparative": 4,
+    "etre_avoir": 4,
+    "hypothetical": 11,
+    "opinion": 10,
+    "tense_future": 2,
+    "tense_past": 7
+  },
+  "shopping": {
+    "comparative": 1,
+    "etre_avoir": 5,
+    "opinion": 3,
+    "tense_future": 1,
+    "tense_past": 5
+  },
+  "sports": {
+    "comparative": 2,
+    "etre_avoir": 4,
+    "hypothetical": 2,
+    "opinion": 2,
+    "tense_future": 1,
+    "tense_past": 4
+  },
+  "survival": {
+    "hypothetical": 1
+  },
+  "transport": {
+    "etre_avoir": 6,
+    "hypothetical": 2,
+    "opinion": 5,
+    "tense_future": 1,
+    "tense_past": 7
+  }
+};

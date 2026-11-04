@@ -18,6 +18,7 @@ import {
 import { getActiveGoal } from './coachProfileService';
 import { getSkillLabel, isSkillReady } from './skillGraph';
 import { getActiveProblem } from './interventionService';
+import { TOPICS } from '../../data/topics';
 
 const POLICY_VERSION = 'coach-mvp-1';
 const WEAK_MASTERY_THRESHOLD = 0.6;
@@ -201,9 +202,11 @@ function buildDemandProblemRecommendation(nodeId: string): CoachRecommendation {
 }
 
 function buildContinueTopic(topicKey: string): CoachRecommendation {
+  // The learner-facing name ("School"), never the raw key ("school").
+  const topicName = TOPICS.find(t => t.key === topicKey)?.labelEn ?? topicKey;
   const rationale: RecommendationRationale = {
-    primaryReason: `Keep building momentum on ${topicKey}.`,
-    evidenceSummary: `You have recent activity on ${topicKey} and no single skill is critically weak.`,
+    primaryReason: `Keep building momentum on ${topicName}.`,
+    evidenceSummary: `You have recent activity on ${topicName} and no single skill is critically weak.`,
     goalLinks: [`Supports your goal: ${goalLabel()}.`],
     targetWeaknesses: [],
     successCriteria: [`Complete a session and keep your average score steady or rising.`],
@@ -219,8 +222,8 @@ function buildContinueTopic(topicKey: string): CoachRecommendation {
     generatedAt: new Date().toISOString(),
     policyVersion: POLICY_VERSION,
     type: 'continue_topic',
-    title: `Continue ${topicKey}`,
-    description: `Keep practicing ${topicKey} to lock in progress.`,
+    title: `Continue ${topicName}`,
+    description: `Keep practising ${topicName} to lock in progress.`,
     targetSkillIds: [],
     targetTopicKey: topicKey,
     suggestedMode: 'standard',
