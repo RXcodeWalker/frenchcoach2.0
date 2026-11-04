@@ -28,7 +28,7 @@ export type DemandSatisfactionState = 'met' | 'not_attempted' | 'unknown';
  * anchors. Not-attempted fires only at 0.4x this floor (docs §9.3): a
  * conservative, authoritative absence, not a marker-based guess.
  */
-const RESPONSE_LOAD_MIN_WORDS: Record<ResponseLoad, number> = {
+export const RESPONSE_LOAD_MIN_WORDS: Record<ResponseLoad, number> = {
   short: 15,
   developed: 40,
   extended: 70,

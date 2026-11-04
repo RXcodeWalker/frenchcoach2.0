@@ -46,6 +46,10 @@ export const FEATURE_FLAGS = {
   // preview with ?ff_premium=live. Rollback: 'coming-soon' (billing keeps working
   // for existing subscribers; only the page and its links hide).
   premium: 'coming-soon',
+  // Parent view: Profile's "Parent view" card + the shared /parent#<token> page
+  // (backend migration 20261104090000 must be applied first). Rollback: 'coming-soon'
+  // hides the card; existing links keep working until the learner turns them off.
+  parentView: 'live',
 }satisfies Record<string, FeatureStatus>;
 
 export type FeatureFlagKey = keyof typeof FEATURE_FLAGS;

@@ -4812,7 +4812,7 @@ lint (0 errors), full `npm test` (6050). **Not done:** any call against real Raz
 
 ## 2026-11-04 — Premium migration renumbered before merge
 
-The Stripe Premium migration was renamed `20261104090000_premium_billing.sql` → `20261104100000_premium_billing.sql`
+The Stripe Premium migration was renamed `20261104090000_premium_billing.sql` → `20261104120000_premium_billing.sql`
 when the branch was merged into `main`, because `main` already had `20261104090000_user_feedback.sql` (applied to
 production) and Supabase migration versions must be unique. Entries above that name `20261104090000` for Premium mean
-`20261104100000`. Neither Premium migration had been applied anywhere but the throwaway test Postgres.
+`20261104120000`. Neither Premium migration had been applied anywhere but the throwaway test Postgres.
