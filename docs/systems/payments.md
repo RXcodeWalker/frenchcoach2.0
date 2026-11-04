@@ -4,7 +4,8 @@
 
 ## §1 What Premium is
 
-A monthly or yearly Stripe subscription that raises three daily limits. Nothing else changes: not a mark,
+A monthly or yearly subscription — through Stripe (international cards) or Razorpay (UPI, RuPay and Indian
+cards, in rupees; §6) — that raises three daily limits. Nothing else changes: not a mark,
 a band, feedback, difficulty, XP or gems. Gems are not for sale (`shop-economy.md` §10).
 
 | Limit | Free | Premium (starting numbers) | Where it lives |
@@ -44,7 +45,8 @@ Every AI call ── consume_ai_quota() ── has_premium()? → premium_daily_
   the `premium` flag), `features/premium/PremiumLink.tsx` (shown at the Learn and exam limits and in Profile
   only while the flag is live). Learn caps a session by the server's Premium limit only when the allowance
   says `premium: true` (`learnDailyLimit`), never by a guest's looser backend cap.
-- **Account deletion** cancels live subscriptions first; the database refuses to delete a profile that is still
+- **Razorpay** is the same design with its own table and routes — §6.
+- **Account deletion** cancels live subscriptions (both providers) first; the database refuses to delete a profile that is still
   being charged (`active_subscription`).
 
 ## §3 Owner setup (one time) — test mode first
@@ -86,3 +88,49 @@ Every AI call ── consume_ai_quota() ── has_premium()? → premium_daily_
 - **The DB integration test** for the migration is not in `backend/supabase/tests/` yet; the migration's SQL was
   verified against a plain Postgres 16 stub (2026-11-03, see `verification-log.md`).
 - **Azure F0's monthly speech cap** is shared by everyone: raising Lab checks for Premium does not raise it.
+- **One account, two providers**: nothing stops a lapsed (`halted`) Razorpay subscriber from subscribing again
+  through either provider; the halted one is cancelled only on account deletion. Rare, not money-losing.
+
+## §6 Razorpay (second provider, 2026-11-04)
+
+**Why**: UPI Autopay, RuPay and Indian cards with RBI-compliant e-mandates, priced in rupees. Same Premium, same
+limits, same `has_premium()`.
+
+**How it differs from Stripe**
+
+| | Stripe | Razorpay |
+|---|---|---|
+| Payment page | Stripe-hosted page (redirect) | Razorpay's window over `/premium` (`checkout.js`, loaded only on tap) |
+| Account link | `billing_customers` + Checkout metadata | the `billing_razorpay_subscriptions` row the backend inserts when it creates the subscription (+ `notes.user_id`) |
+| Manage / cancel | Stripe Customer Portal | in-app "Cancel subscription" → `POST /api/billing/razorpay/cancel` (stops at the period end) |
+| Change payment method | Portal | Razorpay's own emails/texts (it notifies the customer) |
+| Premium statuses | `active`, `trialing`, `past_due` | `active`, `pending` (renewal failed, retrying). `authenticated` is not Premium yet |
+| Webhook signature | `Stripe-Signature` (with timestamp) | `X-Razorpay-Signature` = HMAC-SHA256(raw body); no timestamp, harmless because every event is re-read |
+
+- Routes: `POST /api/billing/razorpay/subscribe {plan}` → `{keyId, subscriptionId}`; `/sync {subscriptionId}` (only
+  a subscription this account's row owns); `/cancel`; `/webhook`. `/api/billing/status` lists each configured
+  provider (`providers: [{id, plans, prices}]`) and the subscription's `provider`.
+- The browser never sends Razorpay's payment id or signature: `/sync` re-reads the subscription itself.
+- Razorpay has no cancel-at-period-end flag, so ours (`cancel_at_period_end`) is set by `/cancel` and kept; a
+  cycle-end cancel made in the Razorpay dashboard only shows when the period ends.
+- When both providers are on, the page asks "Pay with": **UPI & Indian cards** or **International card**, defaulting
+  to Razorpay for a browser in India's time zone. Each shows its own plans and prices.
+
+**Owner setup (test mode first)**
+
+1. Razorpay Dashboard → **Test mode**. Settings → API Keys → Generate: copy the Key Id (`rzp_test_…`) and Secret.
+2. Subscriptions → Plans → Create plan: "Premium monthly" (period Monthly, interval 1, amount e.g. ₹199) and
+   optionally "Premium yearly" (Yearly, 1). Copy both `plan_…` ids. (Subscriptions may need activating on the
+   account first.)
+3. Settings → Webhooks → Add: URL `https://french-coach-backend.onrender.com/api/billing/razorpay/webhook`, a secret
+   you type (keep it), events: `subscription.authenticated`, `subscription.activated`, `subscription.charged`,
+   `subscription.pending`, `subscription.halted`, `subscription.cancelled`, `subscription.completed`,
+   `subscription.paused`, `subscription.resumed`, `subscription.updated`.
+4. Render → FastAPI → Environment: `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_PLAN_MONTHLY`,
+   `RAZORPAY_PLAN_YEARLY`, `RAZORPAY_WEBHOOK_SECRET`. Optional: `RAZORPAY_TOTAL_COUNT_MONTHLY` (default 120 cycles) /
+   `_YEARLY` (default 10) — how long one subscription may run before the learner re-subscribes; Razorpay caps this
+   per payment method, so lower it if creation errors.
+5. Supabase: apply backend migration `20261105090000_razorpay_billing.sql` (after `20261104090000`).
+6. Try it: `/premium?ff_premium=live` → UPI & Indian cards → subscribe with Razorpay's test card or test UPI id
+   (`success@razorpay`). Check: Premium shows, Learn allows 30, "Cancel subscription" → "Ends on …".
+7. Go live: Razorpay KYC + live mode, repeat 1–4 with live keys and plans.

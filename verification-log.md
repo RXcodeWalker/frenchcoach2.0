@@ -4789,3 +4789,23 @@ subscription re-read from Stripe outranks the payload, duplicate events processe
 seen). Frontend: typecheck, lint (0 errors), full `npm test`, `typecheck:server`; `/premium` rendered at 390px
 and 1280px with a mocked status. **Not done:** any call against real Stripe (no keys in this environment) — the
 owner's test-mode purchase in `payments.md` §3 step 7 is the first end-to-end check.
+
+## 2026-11-04 — Premium through Razorpay (second provider): built, not yet switched on
+
+**What.** Razorpay subscriptions beside Stripe (ADR 0014 amendment, `payments.md` §6): backend
+`routers/billing_razorpay.py` + migration `20261105090000` (`billing_razorpay_subscriptions`, `has_premium()` and the
+deletion trigger now read both providers), `/api/billing/status` lists `providers`; `/premium` offers "Pay with" when
+both are on and cancels a Razorpay subscription in-app. Off until the Razorpay env vars are set.
+
+**Checked.** Both migrations applied in order to the throwaway Postgres 16 stub: `created`/`authenticated`/`halted`
+and a period >3 days over are not Premium, `active`/`pending` are (30 Learn answers, then refused), Stripe Premium
+unchanged, deleting a profile is refused for `authenticated`/`active`/`pending`/`halted`/`paused` and allowed after
+`cancelled` (rows cascade), an unknown status is refused by the CHECK, clients cannot write the table or read the
+events table; the 2026-11-03 Stripe SQL checks pass again on top of the new migration. Backend pytest 1085 passed
+(36 new Razorpay tests: real HMAC webhook signature, forged/unsigned refused, re-read outranks the payload, our row
+outranks the notes, duplicate events once with or without the event-id header, failed sync not marked seen, sync
+only for this account's own subscription and a strict `sub_` id, cancel keeps Premium to the period end and its
+flag survives re-reads, deletion cancels at once, the httpx gateway via a mock transport). Frontend: typecheck,
+lint (0 errors), full `npm test` (6050). **Not done:** any call against real Razorpay or a real `checkout.js` window
+(no keys here) — the owner's test-mode purchase in `payments.md` §6 step 6 is the first end-to-end check; the
+`total_count` defaults (120 monthly / 10 yearly) are unverified against Razorpay's per-method limits.

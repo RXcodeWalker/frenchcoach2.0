@@ -14,6 +14,8 @@ const billing = {
   startCheckout: vi.fn<(plan: string) => Promise<void>>(async () => undefined),
   openBillingPortal: vi.fn(async () => undefined),
   syncCheckout: vi.fn<(id: string) => Promise<{ premium: boolean }>>(async () => ({ premium: true })),
+  startRazorpayCheckout: vi.fn<(plan: string) => Promise<{ premium: boolean }>>(async () => ({ premium: true })),
+  cancelRazorpaySubscription: vi.fn(async () => undefined),
 };
 vi.mock('../../services/billing/billingClient', async (orig) => {
   const real = await orig<typeof import('../../services/billing/billingClient')>();
@@ -23,6 +25,10 @@ vi.mock('../../services/billing/billingClient', async (orig) => {
     startCheckout: (plan: string) => billing.startCheckout(plan),
     openBillingPortal: () => billing.openBillingPortal(),
     syncCheckout: (id: string) => billing.syncCheckout(id),
+    startRazorpayCheckout: (plan: string) => billing.startRazorpayCheckout(plan),
+    cancelRazorpaySubscription: () => billing.cancelRazorpaySubscription(),
+    // Pinned so the tests do not depend on the machine's time zone.
+    defaultProvider: (providers: BillingStatus['providers']) => providers[0]?.id ?? null,
   };
 });
 
@@ -34,11 +40,21 @@ const LIMITS: BillingStatus['limits'] = {
   pronunciation_lab: { free: 30, premium: 60 },
 };
 
+const STRIPE: BillingStatus['providers'][number] = {
+  id: 'stripe',
+  plans: ['monthly', 'yearly'],
+  prices: { monthly: { amount: 499, currency: 'gbp', interval: 'month' }, yearly: { amount: 3999, currency: 'gbp', interval: 'year' } },
+};
+const RAZORPAY: BillingStatus['providers'][number] = {
+  id: 'razorpay',
+  plans: ['monthly'],
+  prices: { monthly: { amount: 19900, currency: 'INR', interval: 'month' } },
+};
+
 function status(over: Partial<BillingStatus> = {}): BillingStatus {
   return {
     configured: true,
-    plans: ['monthly', 'yearly'],
-    prices: { monthly: { amount: 499, currency: 'gbp', interval: 'month' }, yearly: { amount: 3999, currency: 'gbp', interval: 'year' } },
+    providers: [STRIPE],
     premium: false,
     subscription: null,
     limits: LIMITS,
@@ -93,7 +109,7 @@ describe('Premium screen', () => {
     auth.user = { id: 'u1' };
     billing.status = status({
       premium: true,
-      subscription: { status: 'active', plan: 'monthly', currentPeriodEnd: '2030-03-17T00:00:00Z', cancelAtPeriodEnd: true },
+      subscription: { provider: 'stripe', status: 'active', plan: 'monthly', currentPeriodEnd: '2030-03-17T00:00:00Z', cancelAtPeriodEnd: true },
     });
     view();
     expect(await screen.findByText(/Premium · Monthly/)).toBeTruthy();
@@ -105,13 +121,13 @@ describe('Premium screen', () => {
 
   it('a failed card payment says how to keep Premium', async () => {
     auth.user = { id: 'u1' };
-    billing.status = status({ premium: true, subscription: { status: 'past_due', plan: 'monthly', currentPeriodEnd: null, cancelAtPeriodEnd: false } });
+    billing.status = status({ premium: true, subscription: { provider: 'stripe', status: 'past_due', plan: 'monthly', currentPeriodEnd: null, cancelAtPeriodEnd: false } });
     view();
     expect(await screen.findByText(/last payment didn't go through/)).toBeTruthy();
   });
 
   it('shows "coming soon" while Stripe is not configured', async () => {
-    billing.status = status({ configured: false, plans: [], prices: {} });
+    billing.status = status({ configured: false, providers: [] });
     view();
     expect(await screen.findByText('Premium is coming soon.')).toBeTruthy();
     expect(screen.queryByTestId('premium-subscribe')).toBeNull();
@@ -129,5 +145,64 @@ describe('Premium screen', () => {
     billing.status = status();
     view('/premium?checkout=cancelled');
     expect(await screen.findByText(/No payment was taken/)).toBeTruthy();
+  });
+
+  describe('with Razorpay', () => {
+    it('offers both ways to pay and uses each one\'s own plans and prices', async () => {
+      auth.user = { id: 'u1' };
+      billing.status = status({ providers: [RAZORPAY, STRIPE] });
+      view();
+      expect(await screen.findByText('UPI & Indian cards')).toBeTruthy();
+      expect(screen.getByText(/₹199/)).toBeTruthy();
+      expect(screen.queryByTestId('premium-plan-yearly')).toBeNull(); // Razorpay has monthly only here
+      fireEvent.click(screen.getByTestId('premium-provider-stripe'));
+      expect(await screen.findByText(/£39\.99/)).toBeTruthy();
+      fireEvent.click(screen.getByTestId('premium-plan-yearly'));
+      fireEvent.click(screen.getByTestId('premium-provider-razorpay'));
+      // Yearly does not exist under Razorpay, so the monthly plan is what is bought.
+      fireEvent.click(screen.getByTestId('premium-subscribe'));
+      await waitFor(() => expect(billing.startRazorpayCheckout).toHaveBeenCalledWith('monthly'));
+      expect(billing.startCheckout).not.toHaveBeenCalled();
+      expect(await screen.findByText(/You're Premium now/)).toBeTruthy();
+    });
+
+    it('closing the Razorpay window says nothing was taken', async () => {
+      auth.user = { id: 'u1' };
+      billing.status = status({ providers: [RAZORPAY] });
+      const { BillingError } = await import('../../services/billing/billingClient');
+      billing.startRazorpayCheckout.mockRejectedValueOnce(new BillingError('checkout_cancelled'));
+      view();
+      expect(screen.queryByTestId('premium-provider-razorpay')).toBeNull(); // one provider: no choice shown
+      fireEvent.click(await screen.findByTestId('premium-subscribe'));
+      expect(await screen.findByText(/No payment was taken/)).toBeTruthy();
+    });
+
+    it('a Razorpay subscriber cancels here (there is no portal), after confirming', async () => {
+      auth.user = { id: 'u1' };
+      billing.status = status({
+        providers: [RAZORPAY],
+        premium: true,
+        subscription: { provider: 'razorpay', status: 'active', plan: 'monthly', currentPeriodEnd: '2030-03-17T00:00:00Z', cancelAtPeriodEnd: false },
+      });
+      view();
+      expect(await screen.findByText(/Renews on/)).toBeTruthy();
+      expect(screen.queryByTestId('premium-manage')).toBeNull();
+      fireEvent.click(screen.getByTestId('premium-stop-renewing'));
+      expect(await screen.findByText(/You won't be charged again/)).toBeTruthy();
+      fireEvent.click(screen.getByTestId('premium-confirm-stop'));
+      await waitFor(() => expect(billing.cancelRazorpaySubscription).toHaveBeenCalled());
+      expect(billing.openBillingPortal).not.toHaveBeenCalled();
+    });
+
+    it('a Razorpay renewal that failed says Razorpay is retrying', async () => {
+      auth.user = { id: 'u1' };
+      billing.status = status({
+        providers: [RAZORPAY],
+        premium: true,
+        subscription: { provider: 'razorpay', status: 'pending', plan: 'monthly', currentPeriodEnd: null, cancelAtPeriodEnd: false },
+      });
+      view();
+      expect(await screen.findByText(/Razorpay will try again/)).toBeTruthy();
+    });
   });
 });

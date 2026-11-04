@@ -37,3 +37,11 @@ Status: Accepted (owner decision 2026-11-03)
 - Sales tax/VAT is the owner's responsibility (Stripe is not the merchant of record); Stripe Tax can be
   switched on with `STRIPE_AUTOMATIC_TAX=1` once configured in the Stripe dashboard.
 - Spec and setup steps: `docs/systems/payments.md`.
+
+## Amendment — Razorpay as a second provider (owner, 2026-11-04)
+
+Razorpay is added beside Stripe for UPI Autopay, RuPay and Indian cards in rupees. Every rule above holds for it
+unchanged: it sells the same capacity, its payment window is Razorpay's own (`checkout.js`), its rows
+(`billing_razorpay_subscriptions`) are written only by the FastAPI service from a subscription re-read from
+Razorpay, and `has_premium()` reads both providers. Razorpay has no customer portal, so cancelling (at the period
+end) is an in-app button that calls the backend. Details: `payments.md` §6.

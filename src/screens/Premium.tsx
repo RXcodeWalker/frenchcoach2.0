@@ -7,23 +7,29 @@ import { TopContextBar } from '../components/TopContextBar';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Segmented } from '../components/ui/Segmented';
+import { Modal } from '../components/ui/Modal';
 import { InlineAlert } from '../components/auth/InlineAlert';
 import {
   BillingError,
+  cancelRazorpaySubscription,
+  defaultProvider,
   formatPrice,
   getBillingStatus,
   openBillingPortal,
   startCheckout,
+  startRazorpayCheckout,
   syncCheckout,
   type BillingStatus,
+  type PaymentProvider,
   type PremiumPlan,
 } from '../services/billing/billingClient';
 
 /**
- * Premium (docs/systems/payments.md, ADR 0014): a Stripe subscription that raises the
- * daily usage limits. Stripe hosts the payment and management pages; this screen only
- * shows the plans, sends the learner there, and reads back the result. It never
- * decides Premium itself — the server does (has_premium → the quota RPC).
+ * Premium (docs/systems/payments.md, ADR 0014): a Stripe or Razorpay subscription that
+ * raises the daily usage limits. Stripe hosts its payment and management pages;
+ * Razorpay's payment window opens over this page (and, having no portal, is cancelled
+ * here). This screen only shows the plans, starts the payment, and reads back the
+ * result. It never decides Premium itself — the server does (has_premium → the quota RPC).
  *
  * Premium sells capacity, never marks: nothing here changes how an answer is marked,
  * and gems are not for sale (shop-economy.md §10).
@@ -42,6 +48,17 @@ const FEATURE_ROWS: { key: keyof BillingStatus['limits']; label: string; unit: (
 
 const PLAN_LABEL: Record<PremiumPlan, string> = { monthly: 'Monthly', yearly: 'Yearly' };
 
+// What a learner recognises, not the company name.
+const PROVIDER_OPTION: Record<PaymentProvider, { label: string; note: string }> = {
+  razorpay: { label: 'UPI & Indian cards', note: 'In rupees, by Razorpay' },
+  stripe: { label: 'International card', note: 'By Stripe' },
+};
+
+const PAYMENT_LINE: Record<PaymentProvider, string> = {
+  stripe: 'Secure payment by Stripe; we never see your card',
+  razorpay: 'Secure payment by Razorpay (UPI, RuPay, cards); we never see your payment details',
+};
+
 function errorMessage(err: unknown): string {
   if (err instanceof BillingError) {
     switch (err.code) {
@@ -55,6 +72,8 @@ function errorMessage(err: unknown): string {
         return 'There is no subscription on this account yet.';
       case 'network_error':
         return "Couldn't reach the server. Check your connection and try again.";
+      case 'checkout_unavailable':
+        return "The payment window couldn't open. Check your connection (or pause an ad blocker for this page) and try again.";
       default:
         return 'The payment service had a problem. Nothing was charged — please try again.';
     }
@@ -73,6 +92,8 @@ export function Premium() {
   const [params, setParams] = useSearchParams();
   const [status, setStatus] = useState<BillingStatus | null | 'loading'>('loading');
   const [plan, setPlan] = useState<PremiumPlan>('monthly');
+  const [provider, setProvider] = useState<PaymentProvider | null>(null);
+  const [confirmCancel, setConfirmCancel] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -81,7 +102,9 @@ export function Premium() {
   const refresh = useCallback(async () => {
     const next = await getBillingStatus();
     setStatus(next);
-    if (next && next.plans.length > 0) setPlan((current) => (next.plans.includes(current) ? current : next.plans[0]));
+    if (next) {
+      setProvider((current) => (current && next.providers.some((p) => p.id === current) ? current : defaultProvider(next.providers)));
+    }
   }, []);
 
   // Stripe sends the learner back here: ?checkout=success&session_id=cs_… or ?checkout=cancelled.
@@ -113,13 +136,43 @@ export function Premium() {
   async function handleSubscribe() {
     setBusy(true);
     setError(null);
+    setNotice(null);
+    if (activeProvider?.id === 'razorpay') {
+      try {
+        const result = await startRazorpayCheckout(shownPlan);
+        setNotice(result.premium ? "You're Premium now — your new limits apply straight away." : 'Payment received. Premium will switch on in a moment.');
+        await refresh();
+      } catch (err) {
+        if (err instanceof BillingError && err.code === 'checkout_cancelled') {
+          setNotice('No payment was taken. You can subscribe whenever you like.');
+        } else {
+          setError(errorMessage(err));
+        }
+      }
+      setBusy(false);
+      return;
+    }
     try {
-      await startCheckout(plan);
+      await startCheckout(shownPlan);
       // The browser is now leaving for Stripe; keep the button busy.
     } catch (err) {
       setError(errorMessage(err));
       setBusy(false);
     }
+  }
+
+  async function handleStopRenewing() {
+    setConfirmCancel(false);
+    setBusy(true);
+    setError(null);
+    try {
+      await cancelRazorpaySubscription();
+      setNotice("Your subscription won't renew. You keep Premium until the end of the period you paid for.");
+      await refresh();
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+    setBusy(false);
   }
 
   async function handleManage() {
@@ -138,6 +191,14 @@ export function Premium() {
   const sub = loaded?.subscription ?? null;
   const limits = loaded?.limits ?? {};
   const shownRows = FEATURE_ROWS.filter((row) => limits[row.key]);
+  const providers = loaded?.providers ?? [];
+  const activeProvider = providers.find((p) => p.id === provider) ?? providers[0] ?? null;
+  const plans = activeProvider?.plans ?? [];
+  const prices = activeProvider?.prices ?? {};
+  // The plan picked under one provider may not exist under another.
+  const shownPlan: PremiumPlan = plans.includes(plan) ? plan : (plans[0] ?? 'monthly');
+  const periodEnd = formatDate(sub?.currentPeriodEnd ?? null);
+  const paymentRetrying = sub?.status === 'past_due' || sub?.status === 'pending';
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -187,21 +248,38 @@ export function Premium() {
             {premium ? (
               <Card eyebrow="Your plan" title={sub?.plan ? `Premium · ${PLAN_LABEL[sub.plan]}` : 'Premium'}>
                 <ul className="mt-2 space-y-1 text-sm text-ink">
-                  {sub?.status === 'past_due' && (
-                    <li className="text-correction-text">Your last payment didn't go through. Update your card under Manage subscription to keep Premium.</li>
-                  )}
-                  {formatDate(sub?.currentPeriodEnd ?? null) && (
-                    <li className="text-ink-muted">
-                      {sub?.cancelAtPeriodEnd ? 'Ends on ' : 'Renews on '}
-                      {formatDate(sub?.currentPeriodEnd ?? null)}
+                  {paymentRetrying && (
+                    <li className="text-correction-text">
+                      {sub?.provider === 'razorpay'
+                        ? "Your last payment didn't go through. Razorpay will try again — use the link in Razorpay's email or text to change how you pay and keep Premium."
+                        : "Your last payment didn't go through. Update your card under Manage subscription to keep Premium."}
                     </li>
                   )}
+                  {periodEnd && (
+                    <li className="text-ink-muted">
+                      {sub?.cancelAtPeriodEnd ? 'Ends on ' : 'Renews on '}
+                      {periodEnd}
+                    </li>
+                  )}
+                  {sub?.provider === 'razorpay' && (
+                    <li className="text-xs text-ink-muted">Receipts come from Razorpay by email or text.</li>
+                  )}
                 </ul>
-                <div className="mt-4">
-                  <Button variant="secondary" onClick={handleManage} loading={busy} data-testid="premium-manage">
-                    Manage subscription
-                  </Button>
-                </div>
+                {sub?.provider === 'razorpay' ? (
+                  !sub.cancelAtPeriodEnd && (
+                    <div className="mt-4">
+                      <Button variant="secondary" onClick={() => setConfirmCancel(true)} loading={busy} data-testid="premium-stop-renewing">
+                        Cancel subscription
+                      </Button>
+                    </div>
+                  )
+                ) : (
+                  <div className="mt-4">
+                    <Button variant="secondary" onClick={handleManage} loading={busy} data-testid="premium-manage">
+                      Manage subscription
+                    </Button>
+                  </div>
+                )}
               </Card>
             ) : !loaded.configured ? (
               <Card>
@@ -210,29 +288,40 @@ export function Premium() {
               </Card>
             ) : (
               <Card eyebrow="Choose a plan" title="Go Premium">
-                {loaded.plans.length > 1 && (
+                {providers.length > 1 && activeProvider && (
+                  <Segmented
+                    className="mt-3"
+                    label="Pay with"
+                    value={activeProvider.id}
+                    onChange={setProvider}
+                    height={60}
+                    testIdPrefix="premium-provider"
+                    options={providers.map((p) => ({ id: p.id, ...PROVIDER_OPTION[p.id] }))}
+                  />
+                )}
+                {plans.length > 1 && (
                   <Segmented
                     className="mt-3"
                     label="Billing period"
-                    value={plan}
+                    value={shownPlan}
                     onChange={setPlan}
                     height={60}
                     testIdPrefix="premium-plan"
-                    options={loaded.plans.map((p) => ({
+                    options={plans.map((p) => ({
                       id: p,
                       label: PLAN_LABEL[p],
-                      note: formatPrice(loaded.prices[p]) ? `${formatPrice(loaded.prices[p])} / ${p === 'yearly' ? 'year' : 'month'}` : undefined,
+                      note: formatPrice(prices[p]) ? `${formatPrice(prices[p])} / ${p === 'yearly' ? 'year' : 'month'}` : undefined,
                     }))}
                   />
                 )}
-                {loaded.plans.length === 1 && formatPrice(loaded.prices[plan]) && (
+                {plans.length === 1 && formatPrice(prices[shownPlan]) && (
                   <p className="mt-3 font-numeral text-2xl text-ink">
-                    {formatPrice(loaded.prices[plan])}
-                    <span className="text-sm text-ink-muted"> / {plan === 'yearly' ? 'year' : 'month'}</span>
+                    {formatPrice(prices[shownPlan])}
+                    <span className="text-sm text-ink-muted"> / {shownPlan === 'yearly' ? 'year' : 'month'}</span>
                   </p>
                 )}
                 <ul className="mt-4 space-y-1.5 text-sm text-ink">
-                  {['Cancel any time — you keep Premium until the end of the period you paid for', 'Secure payment by Stripe; we never see your card'].map((line) => (
+                  {['Cancel any time — you keep Premium until the end of the period you paid for', PAYMENT_LINE[activeProvider?.id ?? 'stripe']].map((line) => (
                     <li key={line} className="flex items-start gap-2">
                       <Check size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-progress-text" />
                       {line}
@@ -259,6 +348,25 @@ export function Premium() {
           </>
         )}
       </PageShell>
+      <Modal
+        open={confirmCancel}
+        onClose={() => setConfirmCancel(false)}
+        title="Stop renewing Premium?"
+        footer={
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button variant="secondary" onClick={() => setConfirmCancel(false)}>
+              Keep Premium
+            </Button>
+            <Button onClick={handleStopRenewing} data-testid="premium-confirm-stop">
+              Stop renewing
+            </Button>
+          </div>
+        }
+      >
+        <p className="text-sm text-ink">
+          You won't be charged again. You keep Premium{periodEnd ? ` until ${periodEnd}` : ' until the end of the period you paid for'}.
+        </p>
+      </Modal>
     </div>
   );
 }
