@@ -11,7 +11,10 @@
 
 import { supabase, supabaseConfigured } from '../../lib/supabase';
 
-const USERNAME_PATTERN = /^[A-Za-z][A-Za-z0-9_]{2,19}$/;
+// 3–20 characters: starts with a letter, then letters, digits, underscores or hyphens,
+// never ending in a hyphen. Mirrors claim_username/rename_username (backend migration
+// 20261104090000) — change both together.
+const USERNAME_PATTERN = /^[A-Za-z][A-Za-z0-9_-]{1,18}[A-Za-z0-9_]$/;
 
 export function isValidUsername(username: string): boolean {
   return USERNAME_PATTERN.test(username);

@@ -44,8 +44,18 @@ describe('isValidUsername', () => {
 
   it('rejects punctuation', () => {
     expect(isValidUsername('marie.d')).toBe(false);
-    expect(isValidUsername('marie-d')).toBe(false);
     expect(isValidUsername('marie@d')).toBe(false);
+  });
+
+  it('accepts hyphens after the first letter', () => {
+    expect(isValidUsername('marie-d')).toBe(true);
+    expect(isValidUsername('the-creator')).toBe(true);
+    expect(isValidUsername('a-b')).toBe(true);
+  });
+
+  it('rejects a leading or trailing hyphen', () => {
+    expect(isValidUsername('-marie')).toBe(false);
+    expect(isValidUsername('marie-')).toBe(false);
   });
 
   it('rejects an empty string', () => {
