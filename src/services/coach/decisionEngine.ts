@@ -340,9 +340,7 @@ export function getDailyPlan(): DailyPlan | null {
 }
 
 /** Invalidate cached plan (call after completing a session). */
-export function invalidateDailyPlan(): void {
-  storageSet(STORAGE_KEYS.coachDailyPlan, null);
-}
+export { invalidateDailyPlan } from './coachStorage';
 
 // ── Focus Token override (Shop plan §14.4, §15 Phase 5) ─────────────────────
 //

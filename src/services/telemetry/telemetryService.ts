@@ -637,7 +637,8 @@ export type FailureArea =
   | 'pronunciation'
   | 'auth'
   | 'sync'
-  | 'storage';
+  | 'storage'
+  | 'app_load';
 
 export interface ErrorContext {
   /** Becomes a searchable Sentry tag. */

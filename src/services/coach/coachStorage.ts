@@ -99,3 +99,9 @@ export function saveRecommendation(rec: CoachRecommendation): void {
 // Goal ownership is unified on coachProfileService (see getActiveGoal there).
 // The previous duplicate goal store that lived here has been removed so the
 // recommendation and decision engines read a single canonical active goal.
+
+/** Forces the coach's daily plan to be rebuilt (new evidence arrived). Lives here, not in
+ *  `decisionEngine.ts`, so cloud sync can call it without pulling the question bank into startup. */
+export function invalidateDailyPlan(): void {
+  storageSet(STORAGE_KEYS.coachDailyPlan, null);
+}

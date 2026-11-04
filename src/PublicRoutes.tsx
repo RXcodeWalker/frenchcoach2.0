@@ -1,15 +1,17 @@
 import { Routes, Route } from 'react-router-dom';
-import { Auth } from './screens/Auth';
-import { Landing } from './screens/Landing';
-import { AboutPublic } from './screens/AboutPublic';
-import { IgcseFrenchSpeaking } from './screens/IgcseFrenchSpeaking';
-import { FrenchRoleplayPractice } from './screens/FrenchRoleplayPractice';
-import { Story } from './screens/Story';
-import { PrivacyPolicy } from './screens/PrivacyPolicy';
-import { TermsOfService } from './screens/TermsOfService';
-import { GuardianConsent } from './screens/GuardianConsent';
-import { AuthCallback } from './screens/AuthCallback';
-import { ResetPassword } from './screens/ResetPassword';
+import {
+  Auth,
+  Landing,
+  AboutPublic,
+  IgcseFrenchSpeaking,
+  FrenchRoleplayPractice,
+  Story,
+  PrivacyPolicy,
+  TermsOfService,
+  GuardianConsent,
+  AuthCallback,
+  ResetPassword,
+} from './routing/screens';
 
 // Rendered by AppShell's early return for a logged-out, non-guest visitor
 // (App.tsx). AppShell's auth check is itself an early return, so this tree

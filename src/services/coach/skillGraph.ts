@@ -3,15 +3,12 @@
 // Node IDs are identical to diagnostic skill IDs so beliefs, evidence, and
 // recommendations all speak the same vocabulary. No traversal in the MVP.
 
-import { QUESTIONS } from '../../data/gameData';
-import { inferQuestionMetadata } from '../content/questionMetadata';
 import { SKILL_DEFS } from '../coaching/diagnosticEngine';
 import {
   nodeForIssueCategory,
   nodeForGrammarTheme,
   isSkillNode,
 } from '../../domain/igcse/evidence/framework/nodeMap';
-import type { Question } from '../../types';
 import type { EvidenceBeliefSnapshot } from '../../types/beliefs';
 
 export interface SkillNode {
@@ -38,11 +35,6 @@ export function getSkillLabel(id: string): string {
 // canonical map (domain/igcse/evidence/framework/nodeMap.ts) and are
 // re-exported here so existing imports of skillGraph keep working.
 export { nodeForIssueCategory, nodeForGrammarTheme, isSkillNode };
-
-/** Questions whose inferred grammarFocus includes this diagnostic skill ID. */
-export function getQuestionsPracticingSkill(skillId: string): Question[] {
-  return QUESTIONS.filter(q => inferQuestionMetadata(q).grammarFocus.includes(skillId));
-}
 
 // ── Static skill graph edges ────────────────────────────────────────────────
 // A small, curated, lookup-only edge table. No traversal engine — just direct

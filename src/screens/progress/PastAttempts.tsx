@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { enter, fadeUp, slide } from '../../components/motion/variants';
 import { Segmented } from '../../components/ui/Segmented';
 import { TopicChip } from '../../components/ui/TopicChip';
-import { TOPICS } from '../../data/gameData';
+import { TOPICS } from '../../data/topics';
 import { EXAM_TOTAL_MAX, type PastAttempt } from '../../features/progress/progressSummary';
 import { formatShortDate } from './formatDate';
 

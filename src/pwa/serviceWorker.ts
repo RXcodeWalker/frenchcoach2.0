@@ -9,6 +9,9 @@
  * those fail offline exactly as before, and the app's own offline paths (the
  * Learn answer queue, local games) take over. A new deploy installs a new
  * precache and takes over at once; the next page load gets the new shell.
+ * Hashed files are shared between versions and the last few versions are kept
+ * (`swCacheRetention.ts`), so a deploy downloads only what changed and a tab
+ * still on the previous version can open its screens.
  */
 import {
   classifyRequest,
@@ -16,6 +19,7 @@ import {
   NAVIGATION_TIMEOUT_MS,
   parseRange,
 } from './swRouting';
+import { MANIFEST_PATH, parseManifest, planRetention, type PrecacheManifest } from './swCacheRetention';
 
 declare const __PRECACHE_MANIFEST__: string[];
 declare const __SW_VERSION__: string;
@@ -61,39 +65,97 @@ const PRECACHE_URLS = __PRECACHE_MANIFEST__;
 /** Dev (empty list): push only, no caching at all. */
 const CACHING = PRECACHE_URLS.length > 0;
 
+/** This version's shell, public files and manifest. */
 const PRECACHE = `fc-precache-${VERSION}`;
+/** Hashed build files (`/assets/*`), shared by every kept version. */
+const ASSETS = 'fc-assets-v1';
 const PAGES = 'fc-pages-v1';
 const STATIC = 'fc-static-v1';
 const FONTS = 'fc-fonts-v1';
 const VOICES = 'fc-voices-v1';
-const KEPT_CACHES = new Set([PRECACHE, PAGES, STATIC, FONTS, VOICES]);
+const RUNTIME_CACHES = new Set([ASSETS, PAGES, STATIC, FONTS, VOICES]);
+/**
+ * Parallel downloads while installing. Most of the ~240 files are small, so
+ * the install is bound by round trips, not bandwidth; more than this gains
+ * nothing on a phone and competes with the screen the learner is using.
+ */
+const INSTALL_CONCURRENCY = 6;
 
 // ── Lifecycle ────────────────────────────────────────────────────────────────
 
 sw.addEventListener('install', (event) => {
   event.waitUntil((async () => {
-    if (CACHING) {
-      const cache = await caches.open(PRECACHE);
-      // Content-hashed assets can come from the HTTP cache (the page has usually
-      // just downloaded them — no second download on a slow connection); the
-      // shell, manifest and icons skip it so a stale copy never lands here.
-      await cache.addAll(PRECACHE_URLS.map((url) => new Request(url, { cache: url.startsWith('/assets/') ? 'default' : 'reload' })));
-    }
+    if (CACHING) await precacheThisVersion();
     await sw.skipWaiting();
   })());
 });
 
+function isAsset(url: string): boolean {
+  return url.startsWith('/assets/');
+}
+
+async function writeManifest(cache: Cache, manifest: PrecacheManifest): Promise<void> {
+  await cache.put(MANIFEST_PATH, new Response(JSON.stringify(manifest), { headers: { 'content-type': 'application/json' } }));
+}
+
+async function precacheThisVersion(): Promise<void> {
+  const assetUrls = PRECACHE_URLS.filter(isAsset);
+  const precache = await caches.open(PRECACHE);
+  const previous = parseManifest(await (await precache.match(MANIFEST_PATH))?.json().catch(() => null));
+  const installedAt = previous?.installedAt ?? Date.now();
+  // Recorded first, so a cleanup running meanwhile keeps the files this install is adding.
+  await writeManifest(precache, { installedAt, assets: assetUrls, complete: false });
+
+  // Hashed files: only those not already on this device (a deploy changes a few).
+  // From the HTTP cache when there — the page has usually just downloaded them.
+  const assets = await caches.open(ASSETS);
+  const missing: string[] = [];
+  for (const url of assetUrls) if (!(await assets.match(url))) missing.push(url);
+  let next = 0;
+  const worker = async () => {
+    while (next < missing.length) {
+      const url = missing[next++];
+      const res = await fetch(new Request(url, { cache: 'default' }));
+      if (!res.ok || isHtml(res)) throw new Error(`precache ${url}: ${res.status}`);
+      await assets.put(url, res);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(INSTALL_CONCURRENCY, missing.length) }, worker));
+
+  // The shell, manifest and icons skip the HTTP cache so a stale copy never lands here.
+  await precache.addAll(PRECACHE_URLS.filter((u) => !isAsset(u)).map((url) => new Request(url, { cache: 'reload' })));
+  await writeManifest(precache, { installedAt, assets: assetUrls, complete: true });
+}
+
 sw.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
-    const names = await caches.keys();
-    await Promise.all(
-      names
-        .filter((n) => n.startsWith('fc-') && !KEPT_CACHES.has(n))
-        .map((n) => caches.delete(n)),
-    );
+    if (CACHING) await cleanUpVersions();
     await sw.clients.claim();
   })());
 });
+
+/** Keeps this version and the last few (their files are shared), deletes the rest. */
+async function cleanUpVersions(): Promise<void> {
+  const names = (await caches.keys()).filter((n) => n.startsWith('fc-'));
+  const precaches = await Promise.all(
+    names
+      .filter((n) => n.startsWith('fc-precache-'))
+      .map(async (name) => {
+        const res = await (await caches.open(name)).match(MANIFEST_PATH);
+        return { name, manifest: parseManifest(await res?.json().catch(() => null)) };
+      }),
+  );
+  const plan = planRetention(PRECACHE, precaches, Date.now());
+  await Promise.all([
+    ...plan.remove.map((n) => caches.delete(n)),
+    // Caches from an older layout of this worker.
+    ...names.filter((n) => !n.startsWith('fc-precache-') && !RUNTIME_CACHES.has(n)).map((n) => caches.delete(n)),
+  ]);
+  const assets = await caches.open(ASSETS);
+  for (const req of await assets.keys()) {
+    if (!plan.keepAssets.has(new URL(req.url).pathname)) await assets.delete(req);
+  }
+}
 
 // ── Fetch ────────────────────────────────────────────────────────────────────
 
@@ -108,7 +170,7 @@ sw.addEventListener('fetch', (event) => {
       event.respondWith(navigation(event));
       return;
     case 'immutable-asset':
-      event.respondWith(cacheFirst(request, PRECACHE));
+      event.respondWith(cacheFirst(request, ASSETS));
       return;
     case 'static-file':
       event.respondWith(staleWhileRevalidate(event, STATIC));
@@ -180,7 +242,8 @@ async function cacheFirst(request: Request, cacheName: string): Promise<Response
   const cached = await caches.match(request);
   if (cached) return cached;
   const res = await fetch(request);
-  if (res.ok || res.type === 'opaque') {
+  // An HTML reply to a script/font request is an error page, never worth keeping.
+  if ((res.ok && !isHtml(res)) || res.type === 'opaque') {
     const cache = await caches.open(cacheName);
     await cache.put(request, res.clone());
   }

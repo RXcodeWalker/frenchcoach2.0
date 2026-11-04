@@ -42,8 +42,20 @@ These never call each other directly. The frontend is the only thing that talks 
   `public/`: `src/pwa/serviceWorker.ts` (Web Push + caching) is bundled by esbuild — in production
   by the last step of `npm run build` (`scripts/pwa/buildServiceWorker.ts`, which injects the
   precache list: `/`, every `dist/assets/*` file except maps, the favicon, manifest and small
-  icons; ~4.7 MB, mostly the one app bundle), in dev by a Vite plugin with an empty list (push
-  only, nothing cached, so HMR and the e2e servers are untouched). What is cached is decided by
+  icons; ~4.7 MB in ~175 files), in dev by a Vite plugin with an empty list (push
+  only, nothing cached, so HMR and the e2e servers are untouched). Hashed files live once in a
+  shared `fc-assets-v1` cache; each version's `fc-precache-<hash>` holds its shell and a manifest,
+  and the current plus two previous versions keep their files (`src/pwa/swCacheRetention.ts`), so
+  an install downloads only files not already on the device (and resumes if interrupted) and a
+  tab still on the previous version can open its screens after a deploy. The worker is registered
+  only inside the app (signed in or guest), after the first screen is up and the main tabs are
+  prefetched (`src/pwa/registerServiceWorker.ts`), so it never competes with the first screen.
+- **Code splitting (2026-11-04).** Every routed screen is its own chunk (`src/routing/screens.ts`,
+  `lazyScreen`); startup is the entry, `app-core` (the shell's own code) and the `vendor-*`
+  chunks — ~0.28 MB compressed, was 1.2 MB in one 4.2 MB file. `vite.config.ts`'s `namedChunk`
+  keeps library code and startup app code in stable files so a deploy that touches one screen
+  renames ~2 files; a change to startup app code still renames every chunk that imports it
+  (no import maps yet). What is cached is decided by
   the pure `src/pwa/swRouting.ts`: page loads network-first with a 3.5 s timeout then the cached
   shell; hashed assets cache-first; Google Fonts; recorded voices from the public `tts-audio`
   bucket (cache-first, 500 newest, range requests answered from the cached file). Everything that

@@ -11,7 +11,7 @@ import { track } from '../services/telemetry/telemetryService';
 import { useApp, DAILY_GOAL_MIN, DAILY_GOAL_MAX } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { levelProgress } from '../services/progression/progressionService';
-import { ACHIEVEMENT_DEFINITIONS } from '../data/gameData';
+import { ACHIEVEMENT_DEFINITIONS } from '../data/achievements';
 import { enter, fadeUp, fill, slide } from '../components/motion/variants';
 import { PageShell } from '../components/layout/PageShell';
 import { TopContextBar } from '../components/TopContextBar';

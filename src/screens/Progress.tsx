@@ -10,7 +10,7 @@ import { soundProgress } from '../domain/pronunciation/lab/soundProgress';
 import { getSessionHistory } from '../services/analytics/analyticsService';
 import { track } from '../services/telemetry/telemetryService';
 import { getDueReviewCounts } from '../services/coach/reviewPool';
-import { TOPICS } from '../data/gameData';
+import { TOPICS } from '../data/topics';
 import { isTopicVisible } from '../features/learn/sessionSetup';
 import { examSummary, learnAverage, learnSummary, nextStep, pastAttempts, practiceDays } from '../features/progress/progressSummary';
 import { fadeUp } from '../components/motion/variants';

@@ -15,7 +15,7 @@ import { levelProgress } from '../services/progression/progressionService';
 import { computeXPGain } from '../domain/xp';
 import { LEARN_ANSWERS_PER_DAY } from '../features/learn/dailyAllowance';
 import { learnTopicPath } from '../features/progress/progressSummary';
-import { TOPICS } from '../data/gameData';
+import { TOPICS } from '../data/topics';
 import { fadeUp, fill } from '../components/motion/variants';
 import { PageShell } from '../components/layout/PageShell';
 import { useIsDesktop } from '../components/layout/useIsDesktop';

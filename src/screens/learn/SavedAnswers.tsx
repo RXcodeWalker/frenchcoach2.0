@@ -4,7 +4,7 @@ import { CloudOff, Pause, Play, Trash2 } from 'lucide-react';
 import { TopContextBar } from '../../components/TopContextBar';
 import { PageShell } from '../../components/layout/PageShell';
 import { Button } from '../../components/ui/Button';
-import { TOPICS } from '../../data/gameData';
+import { TOPICS } from '../../data/topics';
 import { useOnlineStatus } from '../../pwa/useOnlineStatus';
 import { useSavedAnswers, useSavedAnswerScope } from '../../features/learn/savedAnswers/useSavedAnswers';
 import { processSavedAnswers } from '../../features/learn/savedAnswers/processSavedAnswers';

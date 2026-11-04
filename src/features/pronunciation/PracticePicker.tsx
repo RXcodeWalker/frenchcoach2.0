@@ -4,7 +4,7 @@ import { ChevronRight, RefreshCw } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { enter, enterReduced } from '../../components/motion/variants';
 import { QUESTIONS } from '../../data/questions';
-import { TOPICS } from '../../data/gameData';
+import { TOPICS } from '../../data/topics';
 import { isTopicVisible } from '../learn/sessionSetup';
 import { SOUND_FAMILIES } from '../../domain/pronunciation/lab/soundFamilies';
 import { pickPracticeSentences, seededRng } from '../../domain/pronunciation/lab/practiceSentences';

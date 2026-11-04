@@ -14,7 +14,7 @@ vi.mock('../../../features/learn/topicProgress', () => ({
 // them all, docs §13.4). These tests need an advanced topic that is shown, so
 // the topic list is fixed here: a base topic, a populated advanced topic, and
 // a one-question topic that must stay hidden.
-vi.mock('../../../data/gameData', () => {
+vi.mock('../../../data/topics', () => {
   const topics: Topic[] = [
     { key: 'school', label: "L'école", labelEn: 'School', icon: '🎓', color: '#3b82f6', description: '', questionsCount: 49 },
     { key: 'pro', label: "L'Espace Pro", labelEn: 'Professional French', icon: '💼', color: '#64748b', description: '', questionsCount: 12, isAdvanced: true },

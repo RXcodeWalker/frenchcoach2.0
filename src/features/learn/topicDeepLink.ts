@@ -1,4 +1,4 @@
-import { TOPICS } from '../../data/gameData';
+import { TOPICS } from '../../data/topics';
 import { LEARN_TOPIC_DEPENDENCIES } from '../../data/learnTopicDependencies';
 import { isLearnTopicUnlocked } from './topicProgress';
 import { isTopicVisible } from './sessionSetup';

@@ -7,7 +7,7 @@ import {
 } from '../coach/coachStorage';
 import { rebuildBeliefSnapshot } from '../coach/beliefProjectionService';
 import { detectAndPersistProblem } from '../coach/interventionService';
-import { invalidateDailyPlan } from '../coach/decisionEngine';
+import { invalidateDailyPlan } from '../coach/coachStorage';
 
 // ── Schema version ─────────────────────────────────────────────────────────────
 // Versions the cloud row ↔ EvidenceEvent mapping only. Bump when the shape of

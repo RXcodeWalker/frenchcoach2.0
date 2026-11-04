@@ -165,6 +165,13 @@ html:not(.dark) .border-white\/\[0\.04\] { border-color: rgba(0,0,0,0.06); }
   to { opacity: 0; transform: translateX(-50%) translateY(10px); }
 }
 
+/* RouteLoadingBar: the 'fill' motion, stretched — grows once while a screen
+   downloads (never loops); reduced motion shows it at its end state. */
+@keyframes routeProgress {
+  from { transform: scaleX(0.05); }
+  to { transform: scaleX(0.9); }
+}
+
 ::selection { background: var(--action-soft); color: var(--ink); }
 
 /* Honour the OS "reduce motion" setting — collapse loop/enter animations

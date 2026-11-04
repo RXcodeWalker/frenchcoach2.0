@@ -10,6 +10,9 @@ import type { Question } from '../../../types';
 vi.mock('../../../data/gameData', () => ({
   getQuestionById: (id: string): Question | undefined => FIXTURE_QUESTIONS.find(q => q.id === id),
 }));
+vi.mock('../../../data/questionIds', () => ({
+  QUESTION_IDS: new Set(['q-school-1', 'q-school-2', 'q-hobbies-1']),
+}));
 
 const FIXTURE_QUESTIONS: Question[] = [
   { id: 'q-school-1', topicKey: 'school', text: 'Q1?', hint: '', difficulty: 1, followUps: [], modelAnswer: '', keyVocab: [] },
@@ -21,11 +24,11 @@ const ONE_DAY_MS = 86_400_000;
 
 import { STORAGE_KEYS } from '../../persistence/storage';
 import {
-  getEligibleReviewQuestion,
   recordReviewOutcome,
   getReviewItemFirstRecordedScore,
   getDueReviewCounts,
 } from '../reviewPool';
+import { getEligibleReviewQuestion } from '../reviewSelection';
 
 beforeEach(() => {
   localStorage.clear();

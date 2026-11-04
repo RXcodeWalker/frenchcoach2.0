@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { AudioLines, BookMarked, ChevronRight, UploadCloud, Lock, Shuffle } from 'lucide-react';
-import { TOPICS } from '../../data/gameData';
+import { TOPICS } from '../../data/topics';
 import { LEARN_TOPIC_DEPENDENCIES } from '../../data/learnTopicDependencies';
 import { isLearnTopicUnlocked } from '../../features/learn/topicProgress';
 import { isTopicVisible } from '../../features/learn/sessionSetup';

@@ -5,7 +5,7 @@ import type { QuestionV2 } from '../types/questions';
 import { inferQuestionMetadata } from '../services/content/questionMetadata';
 import { isSkillReady } from '../services/coach/skillGraph';
 import { getBeliefSnapshot } from '../services/coach/coachStorage';
-import { getEligibleReviewQuestion } from '../services/coach/reviewPool';
+import { getEligibleReviewQuestion } from '../services/coach/reviewSelection';
 import type { SessionBlend } from '../types/coach';
 import { resolveFeatureStatus } from '../config/featureFlags';
 import { deriveAbility, coldStart, type AbilityResult } from '../domain/learn/ability/deriveAbility';

@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { listSavedAnswers, subscribeSavedAnswers, type SavedAnswer } from '../../../services/offline/savedAnswers';
-import { processSavedAnswers } from './processSavedAnswers';
 
 /** The account scope saved answers are kept under. */
 export function useSavedAnswerScope(): string {
@@ -28,28 +27,4 @@ export function useSavedAnswers(): { items: SavedAnswer[]; loaded: boolean } {
     };
   }, [scope]);
   return state;
-}
-
-/**
- * Mounted once in the app shell: uploads waiting answers on open, when the
- * connection comes back and when the tab is shown again.
- */
-export function useSavedAnswerUploader(): void {
-  const scope = useSavedAnswerScope();
-  const kick = useCallback(() => {
-    if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
-    void processSavedAnswers(scope);
-  }, [scope]);
-  useEffect(() => {
-    kick();
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') kick();
-    };
-    window.addEventListener('online', kick);
-    document.addEventListener('visibilitychange', onVisible);
-    return () => {
-      window.removeEventListener('online', kick);
-      document.removeEventListener('visibilitychange', onVisible);
-    };
-  }, [kick]);
 }

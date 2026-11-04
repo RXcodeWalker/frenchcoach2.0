@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Routes, Route, Outlet, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { route } from './components/motion/variants';
@@ -14,76 +14,13 @@ import { GemAnimations } from './components/GemAnimation';
 import { SideRail } from './components/Navigation';
 import { KeyboardShortcuts } from './components/KeyboardShortcuts';
 import { ConnectionBanner } from './components/ConnectionBanner';
-import { useSavedAnswerUploader } from './features/learn/savedAnswers/useSavedAnswers';
-import { SavedAnswers } from './screens/learn/SavedAnswers';
-import { Home } from './screens/Home';
-import { JuniorHome } from './screens/junior/JuniorHome';
-import { MissionPlayer } from './screens/junior/MissionPlayer';
-import { Learn } from './screens/Learn';
-import { LearnSounds } from './screens/LearnSounds';
-import { Notebook } from './screens/Notebook';
-import { MonthlyCheckScreen } from './screens/MonthlyCheckScreen';
-import { ExamMode } from './screens/ExamMode';
-import { Explore } from './screens/Explore';
-import { Progress } from './screens/Progress';
-import { Profile } from './screens/Profile';
-import { Shop } from './screens/Shop';
-import { About } from './screens/About';
-import { StudyGroups } from './screens/StudyGroups';
-import { Rankings } from './screens/Rankings';
-import { DailyChallenge } from './screens/DailyChallenge';
-import { League } from './screens/League';
-import { DuelDetail } from './screens/DuelDetail';
-import { WeaknessAnalysis } from './screens/WeaknessAnalysis';
-import { SentenceRebuilder } from './screens/SentenceRebuilder';
-import { Onboarding } from './screens/Onboarding';
-import { OnboardingPlacement } from './screens/OnboardingPlacement';
+import { useSavedAnswerUploader } from './features/learn/savedAnswers/useSavedAnswerUploader';
 import { useGuestMode } from './hooks/useGuestMode';
 import { IdentityScopeGate } from './components/IdentityScopeGate';
 import { OnboardingCheck } from './components/OnboardingCheck';
 import { AgeBandCheck } from './components/AgeBandCheck';
-import { AgeBand } from './screens/AgeBand';
 import { InviteGateCheck } from './components/InviteGateCheck';
-import { InviteCode } from './screens/InviteCode';
-
-import { RapidFire } from './screens/RapidFire';
-import { SpeedSpeaking } from './screens/SpeedSpeaking';
-import { FriendChallenges } from './screens/FriendChallenges';
-import { FrenchRoadmap } from './screens/FrenchRoadmap';
-import { FluencyHeatmap } from './screens/FluencyHeatmap';
-import { RolePlayDrill } from './screens/rolePlayDrill/RolePlayDrill';
-import { ExamGuide } from './screens/examGuide/ExamGuide';
-import { ScenarioArchitect } from './screens/ScenarioArchitect';
-import { ScenarioArchitectSession } from './screens/ScenarioArchitectSession';
-import { RoleplaySession } from './screens/RoleplaySession';
-import { WordDrop } from './screens/WordDrop';
-import { MasteryJourney } from './screens/MasteryJourney';
-import { BossBattle } from './screens/BossBattle';
-import { EmojiMaster } from './screens/EmojiMaster';
-import { MysteryBox } from './screens/MysteryBox';
-import { SurvivalMode } from './screens/SurvivalMode';
-import { AccentAnalyzer } from './screens/AccentAnalyzer';
-import { ListeningMode } from './screens/ListeningMode';
-import { SpeakingArena } from './screens/SpeakingArena';
-import { Challenges } from './screens/Challenges';
-import { DailyNewsFlash } from './screens/DailyNewsFlash';
-import { CoachBeliefDebug } from './screens/CoachBeliefDebug';
-import { JuniorPlaytest } from './screens/JuniorPlaytest';
-import { NotFound } from './screens/NotFound';
-import { IgcseFrenchSpeaking } from './screens/IgcseFrenchSpeaking';
-import { FrenchRoleplayPractice } from './screens/FrenchRoleplayPractice';
-import { Story } from './screens/Story';
-import { PrivacyPolicy } from './screens/PrivacyPolicy';
-import { TermsOfService } from './screens/TermsOfService';
 import { AdminRoute } from './components/auth/AdminRoute';
-import { AdminLayout } from './layouts/AdminLayout';
-import { AdminDashboard } from './screens/admin/AdminDashboard';
-import { InviteCodeList } from './screens/admin/InviteCodeList';
-import { QuestionList } from './screens/admin/questions/QuestionList';
-import { QuestionForm } from './screens/admin/questions/QuestionForm';
-import { ScenarioList } from './screens/admin/scenarios/ScenarioList';
-import { ScenarioForm } from './screens/admin/scenarios/ScenarioForm';
-import { VersionHistory } from './screens/admin/VersionHistory';
 import { LevelUpCelebration, AchievementUnlocked, XPEarnedToast } from './components/CelebrationModals';
 import { MigrationOverlay } from './components/MigrationOverlay';
 import { ComingSoonGate } from './components/ComingSoonGate';
@@ -92,6 +29,73 @@ import { isHiddenPath } from './config/launchScope';
 import { TourHost } from './features/tour/TourHost';
 import { supabaseConfigured } from './lib/supabase';
 import { AnalyticsTracker, AnalyticsPersonSync } from './services/telemetry/AnalyticsTracker';
+import {
+  SavedAnswers,
+  Home,
+  JuniorHome,
+  MissionPlayer,
+  Learn,
+  LearnSounds,
+  Notebook,
+  MonthlyCheckScreen,
+  ExamMode,
+  Explore,
+  Progress,
+  Profile,
+  Shop,
+  About,
+  StudyGroups,
+  Rankings,
+  DailyChallenge,
+  League,
+  DuelDetail,
+  WeaknessAnalysis,
+  SentenceRebuilder,
+  Onboarding,
+  OnboardingPlacement,
+  AgeBand,
+  InviteCode,
+  RapidFire,
+  SpeedSpeaking,
+  FriendChallenges,
+  FrenchRoadmap,
+  FluencyHeatmap,
+  RolePlayDrill,
+  ExamGuide,
+  ScenarioArchitect,
+  ScenarioArchitectSession,
+  RoleplaySession,
+  WordDrop,
+  MasteryJourney,
+  BossBattle,
+  EmojiMaster,
+  MysteryBox,
+  SurvivalMode,
+  AccentAnalyzer,
+  ListeningMode,
+  SpeakingArena,
+  Challenges,
+  DailyNewsFlash,
+  CoachBeliefDebug,
+  JuniorPlaytest,
+  NotFound,
+  IgcseFrenchSpeaking,
+  FrenchRoleplayPractice,
+  Story,
+  PrivacyPolicy,
+  TermsOfService,
+  AdminLayout,
+  AdminDashboard,
+  InviteCodeList,
+  QuestionList,
+  QuestionForm,
+  ScenarioList,
+  ScenarioForm,
+  VersionHistory,
+} from './routing/screens';
+import { RouteChunkBoundary } from './routing/RouteChunkBoundary';
+import { RouteLoadingBar } from './routing/RouteLoadingBar';
+import { startOfflineCache } from './pwa/registerServiceWorker';
 
 // Route change: a plain fade (Design System v2 'enter' — the cards inside rise).
 const pageVariants = route;
@@ -164,17 +168,19 @@ function MainLayout() {
       {!junior && <SideRail />}
       <main className={`relative z-10 ${junior ? '' : 'md:ml-[88px]'}`}>
         {!junior && <ConnectionBanner />}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={location.pathname}
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-          >
-            <Outlet />
-          </motion.div>
-        </AnimatePresence>
+        <RouteChunkBoundary resetKey={location.pathname}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              variants={pageVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
+        </RouteChunkBoundary>
       </main>
       <XPAnimations />
       <GemAnimations />
@@ -189,6 +195,7 @@ function MainLayout() {
 }
 
 function ExamLayout() {
+  const { pathname } = useLocation();
   // The exam voice (white paper, dark-green accent) is the only exam presentation, and it ignores the
   // app's light/dark theme (see styles/exam-voice.css). The nav rail shows only
   // on the exam chooser (ExamMode opts in via useShowNavRail).
@@ -202,7 +209,9 @@ function ExamLayout() {
       {showNavRail && <SideRail keyHint={false} />}
       <main className={`relative z-10 ${showNavRail ? 'md:ml-[88px]' : ''}`}>
         <ConnectionBanner exam />
-        <Outlet />
+        <RouteChunkBoundary resetKey={pathname}>
+          <Outlet />
+        </RouteChunkBoundary>
       </main>
       <XPAnimations />
       <GemAnimations />
@@ -213,6 +222,27 @@ function ExamLayout() {
     </div>
     </NavRailContext.Provider>
   );
+}
+
+/** The sign-in check's spinner, also shown while a screen's code downloads on a cold start (code splitting). */
+function FullPageSpinner() {
+  return (
+    <div className="min-h-screen bg-bg flex items-center justify-center">
+      <div className="w-8 h-8 rounded-full border-2 border-violet-500/30 border-t-violet-500 animate-spin" />
+    </div>
+  );
+}
+
+/** Fills the offline cache once the app (not the landing page) is on screen — src/pwa/registerServiceWorker.ts. */
+function OfflineCacheStarter() {
+  useEffect(() => startOfflineCache(), []);
+  return null;
+}
+
+/** Catches a screen download failure outside the two layouts (onboarding, marketing, admin, signed-out pages). */
+function TopLevelChunkBoundary({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
+  return <RouteChunkBoundary resetKey={pathname}>{children}</RouteChunkBoundary>;
 }
 
 function MigrationGate() {
@@ -233,13 +263,7 @@ function AppShell() {
     if (user && isGuest) exitGuestMode();
   }, [user, isGuest, exitGuestMode]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-bg flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-violet-500/30 border-t-violet-500 animate-spin" />
-      </div>
-    );
-  }
+  if (loading) return <FullPageSpinner />;
 
   // '/login' is an intentionally unregistered pathname: it never appears as a
   // <Route> below, it only exists here to force the auth screen back up for a
@@ -265,6 +289,7 @@ function AppShell() {
       <AgeBandCheck>
       <OnboardingCheck>
         <AppProvider identity={identity}>
+          <OfflineCacheStarter />
           <MigrationGate />
           <AnalyticsPersonSync />
           <SfxBridge />
@@ -471,7 +496,15 @@ export default function App() {
     <MotionConfig reducedMotion="user">
       <AuthProvider>
         <AnalyticsTracker />
-        <AppShell />
+        <RouteLoadingBar />
+        <TopLevelChunkBoundary>
+          {/* The one Suspense boundary for every lazy screen. It is already on screen when the
+              learner navigates, and navigation is a transition, so the current screen stays up
+              while the next one downloads — this fallback only shows on a cold start. */}
+          <Suspense fallback={<FullPageSpinner />}>
+            <AppShell />
+          </Suspense>
+        </TopLevelChunkBoundary>
       </AuthProvider>
     </MotionConfig>
   );

@@ -7,7 +7,7 @@ import type { Aim } from '../domain/learn/selection/sessionTarget';
 import { aimFromMigratedTier } from '../domain/learn/selection/sessionTarget';
 import { DEFAULT_MARKING_LEVEL, isMarkingLevel, type MarkingLevel } from '../domain/learn/marking/markingLevel';
 import { normalizeTopicMasteryAll } from '../features/learn/topicAverage';
-import { ACHIEVEMENTS } from '../data/gameData';
+import { ACHIEVEMENT_DEFINITIONS } from '../data/achievements';
 import { validateAchievementRegistry } from '../data/achievements';
 import { getStats } from '../services/analytics/analyticsService';
 import { getProgressionState, awardGemsForXP, levelFor, setProgressionData, reconcileTotalFromLedger } from '../services/progression/progressionService';
@@ -194,7 +194,7 @@ function buildInitialState(): AppState {
     examMarks: s.examMarks,
   }));
 
-  const achievements = ACHIEVEMENTS.map(a => ({
+  const achievements = ACHIEVEMENT_DEFINITIONS.map(a => ({
     ...a,
     unlocked: unlockedIds.has(a.id),
   }));

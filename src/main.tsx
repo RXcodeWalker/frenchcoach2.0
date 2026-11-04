@@ -6,6 +6,7 @@ import { initTelemetry } from './services/telemetry/telemetryService';
 import { AppErrorFallback } from './components/AppErrorFallback';
 import { startBackendWarmup } from './services/api/backendWarmup';
 import { initInstallPrompt } from './pwa/installPrompt';
+import { preloadScreenFor } from './routing/screens';
 import App from './App.tsx';
 import './index.css';
 
@@ -13,14 +14,10 @@ initTelemetry();
 startBackendWarmup();
 initInstallPrompt();
 
-// Best-effort — no user-visible error on failure (unsupported browser,
-// insecure context, etc). Web Push (Phase 4.3) and offline support
-// (src/pwa/serviceWorker.ts: the app shell, games and recorded voices are
-// cached; nothing that talks to a server about the learner ever is).
-// `updateViaCache: 'none'` so a deploy's new worker is picked up straight away.
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(() => {});
-}
+// Code splitting: the screen in the URL starts downloading now, alongside the
+// sign-in check, rather than after it. The service worker (offline support) is
+// registered later, from the app shell — see src/pwa/registerServiceWorker.ts.
+void preloadScreenFor(window.location.pathname);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
