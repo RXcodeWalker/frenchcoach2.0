@@ -25,8 +25,8 @@ export function OfflineLimitationsBanner({ signedOut = false }: Props) {
         <div className="flex-1 min-w-0">
           <p className="text-xs font-bold text-ink-muted">Basic analysis — sign in for AI feedback</p>
           <p className="text-[11px] text-ink-muted mt-0.5 leading-relaxed">
-            AI coaching and pronunciation scoring run on your account, so as a guest you get offline
-            grammar checks only. <Link to="/login" className="font-semibold text-info-text underline underline-offset-2">Sign in</Link> to get the full feedback on your next answer.
+            AI coaching and pronunciation scoring run on your account, so as a guest you get the offline
+            coach: grammar fixes, what you did well and next steps, but no score. <Link to="/login" className="font-semibold text-info-text underline underline-offset-2">Sign in</Link> to get the full feedback on your next answer.
           </p>
         </div>
         <button
@@ -45,7 +45,7 @@ export function OfflineLimitationsBanner({ signedOut = false }: Props) {
       <div className="flex-1 min-w-0">
         <p className="text-xs font-bold text-ink-muted">Offline analysis — limited feedback</p>
         <p className="text-[11px] text-ink-muted mt-0.5 leading-relaxed">
-          Pronunciation scoring, semantic meaning checks, and advanced style analysis are not available without a connection. Grammar pattern detection and scoring are active.
+          The offline coach still checks common grammar slips, points out what you did well and suggests next steps. Scores, meaning checks and pronunciation need a connection.
         </p>
       </div>
       <button
