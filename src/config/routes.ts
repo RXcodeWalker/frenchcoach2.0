@@ -33,6 +33,8 @@ export const ROUTES: RouteEntry[] = [
   { path: '/auth/callback', kind: 'unregistered', indexable: false },
   { path: '/reset-password', kind: 'unregistered', indexable: false },
   { path: '/guardian-consent', kind: 'unregistered', indexable: false },
+  // The parent view: rendered by AppShell before every gate, never a <Route>.
+  { path: '/parent', kind: 'unregistered', indexable: false },
 
   { path: '/age-band', kind: 'app', indexable: false },
   { path: '/invite-code', kind: 'app', indexable: false },

@@ -44,7 +44,7 @@ export function buildDemandSignals(transcript: string, question: Question): Reco
 /**
  * Adaptive feedback depth (docs Stage 3) — computed client-side as a hint the
  * server may clamp. Error/opportunity density comes from the offline
- * evaluator's rule count (the same 23 rules coachService always runs,
+ * evaluator's rule count (the same GRAMMAR_RULES coachService always runs,
  * independent of which engine ends up answering) rather than re-implementing
  * detection here; demand fit reuses evaluateDemandSatisfaction, the same
  * detector the prompt's DETERMINISTIC SIGNALS section is built from.

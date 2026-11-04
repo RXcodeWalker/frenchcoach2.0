@@ -9,7 +9,7 @@ import { ROUTES } from '../routes';
 // a matching <Route path> below. '/guardian-consent' (Phase 1.6 Part C) is
 // PublicRoutes-only — a guardian confirming by emailed link is never a
 // signed-in app user, so it has no App.tsx <Route>.
-const UNREGISTERED_PATHS = ['/login', '/auth/callback', '/reset-password', '/guardian-consent'];
+const UNREGISTERED_PATHS = ['/login', '/auth/callback', '/reset-password', '/guardian-consent', '/parent'];
 
 function readAppTsx(): string {
   const path = fileURLToPath(new URL('../../App.tsx', import.meta.url));

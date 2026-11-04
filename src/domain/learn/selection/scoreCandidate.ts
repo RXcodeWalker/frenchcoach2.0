@@ -1,6 +1,7 @@
 // ── scoreCandidate — docs §8.2. Pure: every term isolated and independently testable. ─
 
 import { PROVENANCE_TRUST, type ScoreCandidateArgs } from './types';
+import { practisesAnySkill } from './skillStructures';
 
 const W_BAND_FIT = 3.0;
 const W_COACH_FOCUS = 2.0;
@@ -18,11 +19,15 @@ export function bandFit(demandScore: number, band: { lo: number; hi: number } | 
   return Math.max(0, 1 - (demandScore - hi) / 2.0);
 }
 
-/** docs §8.2 — structures ∩ focusSkillIds, or cognitiveDemand matches the active demand problem. */
+/**
+ * docs §8.2 — structures ∩ structuresForSkills(focusSkillIds), or cognitiveDemand
+ * matches the active demand problem. The focus ids are coach skill ids, translated
+ * to question structures first (skillStructures.ts) — the vocabularies differ.
+ */
 export function coachFocusMatch(args: ScoreCandidateArgs): number {
   const { candidate, focusSkillIds, activeDemandProblem } = args;
   const demands = candidate.question.demands;
-  if (demands && focusSkillIds.some((id) => (demands.structures as string[]).includes(id))) return 1;
+  if (demands && practisesAnySkill(demands.structures, focusSkillIds)) return 1;
   if (demands && activeDemandProblem && demands.cognitiveDemand === activeDemandProblem) return 1;
   return 0;
 }
