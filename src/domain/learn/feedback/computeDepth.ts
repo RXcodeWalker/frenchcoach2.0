@@ -5,7 +5,7 @@
  *
  * Pure function over four inputs the client already has before the network
  * request is sent: response length, error/opportunity density (from the
- * offline evaluator's rule count — the same 23 rules coachService always
+ * offline evaluator's rule count — the same GRAMMAR_RULES coachService always
  * runs), demand fit (evaluateDemandSatisfaction's verdict), and how much
  * evidence is actually available (response tier, whether demands resolved
  * server-side at all for this question).
