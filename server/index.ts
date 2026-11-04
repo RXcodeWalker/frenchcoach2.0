@@ -56,6 +56,15 @@ import { createTtlCache, probeGroq, probeGemini, type ProviderProbeStatus } from
 import { consumeAiQuotaOr503, getQuotaClient, QuotaDeniedError, releaseAiQuotaGrant } from './aiQuota';
 import { EXAM_ATTEMPT_FEATURE, examAllowanceFrom, loadExamGrantDates } from './examAllowance';
 import { classifyScoringFailure } from './scoringFailure';
+import {
+  ASSIGNMENT_EXAM_FEATURE,
+  assignmentExamKey,
+  homeworkExamAllowed,
+  parseAssignmentId,
+  parseAttemptMetaParams,
+  saveAttemptMeta,
+  serverCountsTowardProgress,
+} from './examAttemptMeta';
 import { createFeedbackHandlers } from './feedbackRoute';
 import { createSupabaseFeedbackStore } from '../scripts/scoring/supabaseFeedbackStore';
 
@@ -193,28 +202,40 @@ app.post('/score', async (req: Request, res: Response) => {
   // throughout this plan (phase-3-plan-tidy-widget.md §2 correction #6).
   // sessionId is a crypto.randomUUID() minted once per attempt and resent
   // verbatim on retry (ExamMode.tsx), so it doubles as the idempotency key.
+  // Teacher dashboard (examAttemptMeta.ts): how the attempt was sat, and whether it
+  // is homework a teacher set. Homework the RPC accepts charges `assignment_exam`
+  // (its own allowance) and skips the weekly check; anything else, the normal rules.
+  const attemptMeta = parseAttemptMetaParams(req.query as Record<string, unknown>);
+  const homework = await homeworkExamAllowed(getQuotaClient(), userId, attemptMeta.assignmentId, transcript.sessionId);
+  const examFeature = homework ? ASSIGNMENT_EXAM_FEATURE : EXAM_ATTEMPT_FEATURE;
+  const examKey = homework && attemptMeta.assignmentId
+    ? assignmentExamKey(attemptMeta.assignmentId, transcript.sessionId)
+    : transcript.sessionId;
+
   // Launch limit: one sample exam per rolling 7 days (examAllowance.ts). Checked
   // before anything is charged; a retry of this same attempt never counts against
   // itself. A failed scoring gives the week back (catch below).
-  try {
-    const allowance = examAllowanceFrom(
-      await loadExamGrantDates(getQuotaClient(), userId, new Date(), transcript.sessionId),
-      new Date(),
-    );
-    if (!allowance.allowed) {
-      res.status(429).json({ error: 'weekly_exam_limit', nextAvailableAt: allowance.nextAvailableAt });
+  if (!homework) {
+    try {
+      const allowance = examAllowanceFrom(
+        await loadExamGrantDates(getQuotaClient(), userId, new Date(), transcript.sessionId),
+        new Date(),
+      );
+      if (!allowance.allowed) {
+        res.status(429).json({ error: 'weekly_exam_limit', nextAvailableAt: allowance.nextAvailableAt });
+        return;
+      }
+    } catch (err) {
+      console.error(`[POST /score] weekly exam check failed for session "${transcript.sessionId}":`, err);
+      res.status(503).json({ error: 'quota_service_unavailable' });
       return;
     }
-  } catch (err) {
-    console.error(`[POST /score] weekly exam check failed for session "${transcript.sessionId}":`, err);
-    res.status(503).json({ error: 'quota_service_unavailable' });
-    return;
   }
 
   try {
     await consumeAiQuotaOr503(userId, 'score', transcript.sessionId);
     try {
-      await consumeAiQuotaOr503(userId, EXAM_ATTEMPT_FEATURE, transcript.sessionId);
+      await consumeAiQuotaOr503(userId, examFeature, examKey);
     } catch (err) {
       // Not charged for scoring it will not get.
       await releaseAiQuotaGrant(userId, 'score', transcript.sessionId);
@@ -248,6 +269,13 @@ app.post('/score', async (req: Request, res: Response) => {
       { sessionId: transcript.sessionId, questionSet },
     );
     const savedEnvelope = await envelopeStore.saveOriginal(envelope);
+    await saveAttemptMeta(getQuotaClient(), {
+      userId,
+      sessionId: transcript.sessionId,
+      conductMode: attemptMeta.conductMode,
+      countsTowardProgress: serverCountsTowardProgress(attemptMeta, transcript),
+      assignmentId: homework ? attemptMeta.assignmentId : null,
+    });
     logRequest(transcript.sessionId, envelope.llm.provider, Date.now() - startedAt, 'ok');
     res.status(200).json(buildEnvelopeView(savedEnvelope));
   } catch (err) {
@@ -269,7 +297,7 @@ app.post('/score', async (req: Request, res: Response) => {
     // the client's retry POST isn't turned away as an in-flight duplicate.
     await markAttemptFailed(transcriptStoreOptions, transcript.sessionId);
     // A failed scoring does not use up the learner's exam for the week.
-    await releaseAiQuotaGrant(userId, EXAM_ATTEMPT_FEATURE, transcript.sessionId);
+    await releaseAiQuotaGrant(userId, examFeature, examKey);
     // `code` marks this 500 as a definitive failure the client may retry
     // with a fresh POST (see scoringFailure.ts).
     const code = classifyScoringFailure(err);
@@ -291,6 +319,12 @@ app.get('/exam/allowance', async (req: Request, res: Response) => {
   }
   try {
     const now = new Date();
+    // Homework (?assignment=<uuid>) has its own allowance, independent of the week.
+    const assignmentId = parseAssignmentId(req.query.assignment);
+    if (assignmentId && (await homeworkExamAllowed(getQuotaClient(), userId, assignmentId, ''))) {
+      res.status(200).json({ allowed: true, lastExamDate: null, nextAvailableAt: null, homework: true });
+      return;
+    }
     res.status(200).json(examAllowanceFrom(await loadExamGrantDates(getQuotaClient(), userId, now), now));
   } catch (err) {
     console.error('[GET /exam/allowance] lookup failed:', err);

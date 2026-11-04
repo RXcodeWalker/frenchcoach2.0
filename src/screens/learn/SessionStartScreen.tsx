@@ -16,6 +16,7 @@ import { fadeUp, stagger } from '../../components/motion/variants';
 import { Button } from '../../components/ui/Button';
 import { Segmented } from '../../components/ui/Segmented';
 import { TopicChip } from '../../components/ui/TopicChip';
+import { homeworkSessionLength } from '../../features/homework/homework';
 
 interface Props {
   topic: Topic;
@@ -55,6 +56,8 @@ interface Props {
   answersLeft?: number | null;
   /** Current day streak, for the "up to +N XP" summary. */
   streakDays?: number;
+  /** Homework a teacher set on this topic (features/homework): its own answers, not today's. */
+  homework?: { title: string; teacherName: string; questionCount: number | null } | null;
 }
 
 /** The mode a session is built with; Learn then trims it to the answers left today. */
@@ -87,12 +90,16 @@ export function SessionStartScreen({
   filters, onFiltersChange, focusOptions, matchCount, getPreview,
   feedbackMode, onFeedbackModeChange,
   markingLevel, onMarkingLevelChange,
-  answersLeft = null, streakDays = 0,
+  answersLeft = null, streakDays = 0, homework = null,
 }: Props) {
   // No length picker (launch limit): a session is built as 'quick' and Learn keeps as many
   // questions as the learner has AI-marked answers left today (dailySessionLength).
   const { mode: builtMode } = clampLength(DAILY_SESSION_MODE, matchCount);
-  const sessionLength = builtMode ? dailySessionLength(answersLeft, SESSION_TARGET[builtMode]) : 0;
+  const sessionLength = !builtMode
+    ? 0
+    : homework
+      ? homeworkSessionLength(homework.questionCount, SESSION_TARGET[builtMode])
+      : dailySessionLength(answersLeft, SESSION_TARGET[builtMode]);
   const effectiveMode = builtMode && sessionLength > 0 ? builtMode : null;
   const questionsAnswered = topicMastery?.uniqueQuestionsAnswered.length ?? 0;
   const avgScore = topicMastery?.averageScore;
@@ -189,9 +196,14 @@ export function SessionStartScreen({
 
       {/* Today's AI-marked answers (launch limit: 3 a day) — replaces the length picker */}
       <motion.div variants={fadeUp} className="flex flex-col gap-2">
-        <p className={EYEBROW}>Today</p>
-        <div className="rounded-card border border-hairline bg-surface-recessed px-4 py-3 text-body-s text-ink-muted">
-          {answersLeft === 0 ? (
+        <p className={EYEBROW}>{homework ? `Homework from ${homework.teacherName}` : 'Today'}</p>
+        <div className="rounded-card border border-hairline bg-surface-recessed px-4 py-3 text-body-s text-ink-muted" data-testid={homework ? 'learn-homework-allowance' : undefined}>
+          {homework ? (
+            <>
+              <span className="font-semibold text-ink">{homework.title}.</span>{' '}
+              This session has {sessionLength} {sessionLength === 1 ? 'question' : 'questions'}, and they don't use up your daily answers.
+            </>
+          ) : answersLeft === 0 ? (
             LEARN_DAILY_LIMIT_MESSAGE
           ) : (
             <>

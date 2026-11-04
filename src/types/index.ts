@@ -198,6 +198,8 @@ export interface Session {
   examMarks?: ExamAreaMarks;
   /** Exam sessions only: the scoring session id (the transcript's `sessionId`), distinct from `id`. Synced (sessions.scoring_session_id). */
   scoringSessionId?: string;
+  /** Homework a teacher set that this session answered (features/homework). Completion is derived from it, never stored. */
+  assignmentId?: string;
 }
 
 /** The three 0520 scored areas of one marked exam attempt, copied from its envelope. */

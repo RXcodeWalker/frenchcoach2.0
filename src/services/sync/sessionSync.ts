@@ -21,12 +21,13 @@ type CloudSessionRow = {
   feedback: Record<string, unknown> | null;
   created_at: string;
   // Exam-attempt columns (added to production by backend migration
-  // 20261103090000_teacher_dashboard; recorded on backend main by
+  // 20261103091000_teacher_dashboard; recorded on backend main by
   // 20261103140000_sessions_exam_fields). Optional: a row sends them only when
   // set, and a database without them still syncs (see upsertSessionRow).
   practice_only?: boolean | null;
   exam_marks?: Record<string, number> | null;
   scoring_session_id?: string | null;
+  assignment_id?: string | null;
 };
 
 type FeedbackSummaryBlob = {
@@ -59,7 +60,9 @@ interface AnalyticsData {
 }
 
 const BASE_COLUMNS = 'id, user_id, mode, topic_key, question_text, transcript, word_count, score, xp_earned, duration_sec, feedback, created_at';
-const EXAM_COLUMNS = ['practice_only', 'exam_marks', 'scoring_session_id'] as const;
+// assignment_id: the homework a session answered (teacher dashboard; features/homework). Write-only —
+// the teacher view counts homework server-side, so restore never needs it back.
+const EXAM_COLUMNS = ['practice_only', 'exam_marks', 'scoring_session_id', 'assignment_id'] as const;
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -143,11 +146,12 @@ function stripFeedback(feedback: unknown): FeedbackSummaryBlob | null {
 type ExamFields = Pick<StoredSession, 'practiceOnly' | 'examMarks' | 'scoringSessionId'>;
 
 /** The exam columns for a row — only the ones that are set, so a Learn answer's row carries none of them. */
-function examColumns(s: ExamFields): Partial<Pick<CloudSessionRow, typeof EXAM_COLUMNS[number]>> {
+function examColumns(s: ExamFields & { assignmentId?: string }): Partial<Pick<CloudSessionRow, typeof EXAM_COLUMNS[number]>> {
   return {
     ...(typeof s.practiceOnly === 'boolean' ? { practice_only: s.practiceOnly } : {}),
     ...(s.examMarks ? { exam_marks: { ...s.examMarks } } : {}),
     ...(s.scoringSessionId ? { scoring_session_id: s.scoringSessionId } : {}),
+    ...(s.assignmentId ? { assignment_id: s.assignmentId } : {}),
   };
 }
 

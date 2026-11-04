@@ -21,13 +21,14 @@ Depth 2. Four live categories, one archive.
 - `systems/exam-pronunciation.md` — opt-in, feedback-only exam pronunciation analysis: fairness rules, the evidence table and route, metering, privacy, and the release gate (closed until calibration passes)
 - `systems/junior-track.md` — the Junior track (Grades 4–7, A1): mark-free spoken missions with Léo, deterministic answer matching, scaffold ladder, sticker rewards, playtest gate (§-numbered, cited as `junior-track §N` — do not renumber)
 - `systems/learn-marking-levels.md` — the Learn marking-level specification: the six CEFR ladders, which apply per question, Exam standard, verdicts-to-score arithmetic, how scores flow into the app (specification only until the test protocol passes; §-numbered, cited as `learn-marking §N` — do not renumber)
+- `systems/teacher-dashboard.md` — classes, the teacher area, homework and its allowance, teacher marks, the Monday email; access model is ADR 0014 (§-numbered, cited as `teacher-dashboard.md §N` — do not renumber)
 - `guides/content-authoring.md` — content-authoring rules for the question bank
 - `guides/review/` — generated G2 review sheet (`0520-g2-review.md`) and its English glosses source; regenerate, never hand-edit
 - `guides/corpus-matrix.md` — corpus coverage rules
 - `guides/learn-demands.md` — Learn demand-tagging rules
 - `guides/learn-marking-test-protocol.md` — the pre-registered 22-answer test set rules, stages, budget and pass gates G1–G14 for the Learn marking ladder
 - `guides/development.md` — commands, the three test suites, the Assessment-Engine change procedure
-- `decisions/0001-cambridge-0520-only.md` through `0013-learn-marking-level-ladder.md` — ADRs
+- `decisions/0001-cambridge-0520-only.md` through `0014-teacher-access-by-class-membership.md` — ADRs
 - `archive/` — historical documents; see `archive/README.md`
 
 ## Authority model

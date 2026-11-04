@@ -22,6 +22,13 @@ together. This is the map to read before touching anything cross-surface.
 
 These never call each other directly. The frontend is the only thing that talks to both.
 
+**Teacher dashboard (2026-11-03).** `POST /score` also takes `?mode=&counts=&assignment=` and writes
+`exam_attempt_meta` beside the envelope (how the attempt was sat; never in the envelope), and a homework
+mock charges `assignment_exam` instead of `exam_attempt`. FastAPI reads `X-Assignment-Id` on Learn feedback
+and may charge `assignment_learn_answer` instead of `learn_answer`. Both decisions are the service-role RPC
+`assignment_allowance`. Deploy order: migration `20261103091000` → backend → scoring service/frontend
+(`docs/systems/teacher-dashboard.md` §9).
+
 ## Deploy wiring
 
 - **`render.yaml`** (repo root) defines exactly one service: `french-scoring` (Node,
@@ -402,6 +409,10 @@ on them with `backend/supabase/ops/expire_open_duels_at_deploy.sql` (D11; run by
 - `daily-challenge-seed.yml`, `league-weekly-assignment.yml`, and the reusable
   `scheduled-rpc.yml` they call — a single Supabase RPC invocation per run, no outbound
   network calls beyond that.
+- `teacher-digest.yml` (teacher dashboard) — hourly, runs `scripts/scheduledJobs/sendTeacherDigest.ts`,
+  which emails each class's teacher on Monday 07:00–08:59 in the class's time zone (Resend; claim-before-send
+  on `teacher_digest_log`). Secrets `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, optional `RESEND_API_KEY`; repo
+  variable `APP_BASE_URL` (default `https://frenchcoach.app`). `docs/systems/teacher-dashboard.md` §6.
 - `notifications-streak-and-goal.yml` (Phase 4.3) — hourly, runs
   `scripts/scheduledJobs/sendNotifications.ts` once per notification type (`streak_at_risk`,
   `daily_goal`). This is the first workflow that makes outbound HTTP calls the database can't

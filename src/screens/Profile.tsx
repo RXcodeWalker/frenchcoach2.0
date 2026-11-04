@@ -47,10 +47,11 @@ import { CORE_ONLY, JUNIOR_TRACK_SELECTABLE } from '../config/launchScope';
 import { ReplayTourButton } from '../features/tour/ReplayTourButton';
 import { SendFeedbackRow } from '../features/contact/SendFeedbackRow';
 import type { AIEngine } from '../types';
+import { ClassCard } from '../features/homework/ClassCard';
 import { playSfx, setSfxEnabled } from '../services/sound/sfx';
 
 const RENAME_REASON_COPY: Record<string, string> = {
-  invalid_format: 'Start with a letter, 3–20 characters, letters/numbers/underscore only.',
+  invalid_format: 'Start with a letter, 3–20 characters: letters, numbers, underscores or hyphens (not at the end).',
   reserved_client_side: 'That name is reserved. Try another.',
   already_set: 'You already have a username.',
   taken: 'That username is already taken.',
@@ -711,6 +712,10 @@ export function Profile() {
                 </SettingGroup>
               </motion.div>
             )}
+
+            <motion.div variants={fadeUp}>
+              <ClassCard />
+            </motion.div>
 
             {/* Learner track — shown only while Junior is selectable, or so a learner already on it can switch back */}
             {(JUNIOR_TRACK_SELECTABLE || state.learnerTrack === 'junior') && (

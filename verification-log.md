@@ -4771,3 +4771,56 @@ browser voice (the existing fallback).
 **L2-off window.** Frontend (JSON + manifest) and backend (byte copy) are separate commits on
 `claude/sleepy-cerf-pyau1k`; when merged, deploy back to back — between the two deploys the backend reports
 `demandsResolved: false` and L2 evidence is off.
+
+## 2026-11-03 — Teacher dashboard (all stages): classes, homework allowance, teacher marks
+
+**Changed (Assessment-Engine surface: `server/` only, no pipeline stage).** `POST /score` reads
+`?mode=examSim|coached&counts=1|0&assignment=<uuid>` (query params, never the transcript) and, after
+`saveOriginal`, writes `exam_attempt_meta` (best-effort, never fails the response) with the server's own
+"counts" verdict — the client claim lowered for Coached, `userCorrected` or any typed answer
+(`server/examAttemptMeta.ts`). A homework mock the `assignment_allowance` RPC accepts charges
+`assignment_exam` with key `asg:<id>:<sessionId>` and skips the weekly-exam check; a failure releases that
+grant. `GET /exam/allowance?assignment=` answers the same. `scoreAttempt()`, the transcript, the envelope,
+`evidence/`, `judgement/`, `guardrails/`, `envelope/` and `rubric.ts` are untouched; nothing under
+`src/domain/igcse/` or `scripts/scoring/` imports the teacher area (`teacherIsolation.test.ts`).
+`score:golden` was not re-run: no scoring code changed.
+
+**Backend (french-coach-backend).** Migration `20261103091000_teacher_dashboard.sql`; Learn feedback (JSON,
+stream and examiner routes) charges `assignment_learn_answer` for an accepted `X-Assignment-Id`
+(`lib/assignment_allowance.py`), else `learn_answer` as before. **Not applied to production** — the owner
+applies it (deploy order in `docs/systems/teacher-dashboard.md` §9).
+
+**Checked.** The migration applied to a plain local Postgres 16 with stubbed Supabase roles/auth and
+passed its behaviour spec (`supabase/tests/plain_pg/teacher_dashboard_test.sql`, `ALL PASSED`): invite
+redemption and reuse, own-class join refused, a second teacher reads nothing, the D7 join-date window,
+envelope/report/meta projection, unshared marks invisible to the student, assignment targeting, the
+homework caps and retry exclusion, `authenticated` cannot call `assignment_allowance`, leaving ends
+access, code rotation, direct table writes refused, archive. Backend pytest 1023 passed (+6 new). Frontend
+`typecheck`, `typecheck:server`, `lint` (0 errors) and the full `npm test` (536 files, 6034 tests) pass after fixing
+the 4 `vercel.json` rewrite tests the new dynamic routes raised. Not checked against the hosted project.
+
+## 2026-11-03 — Teacher dashboard migration applied to production
+
+`20261103091000_teacher_dashboard.sql` applied to the production Supabase project ("French Coach") via the
+Supabase connector, at the owner's request. Pre-checks: every dependency present (`sessions`, `profiles.username`,
+`scoring_envelopes.regraded_from`, `exam_feedback_reports`, `ai_quota_limits`, `ai_usage_grants`, `is_admin()`), no
+new table already existed. Post-checks on production: 8 new tables, 24 functions, the four new `sessions` columns,
+quota rows `assignment_exam=2` and `assignment_learn_answer=20`; `anon` cannot execute `join_class`;
+`authenticated` cannot execute `assignment_allowance` (service_role can); `authenticated` can execute
+`teacher_class_roster` but cannot insert into `classes`; `anon` cannot select `teacher_marks`. The behavioural spec
+was not run against production (it writes test rows); it passed on local Postgres earlier today. Not yet deployed:
+the FastAPI backend, the scoring service and the frontend from branch `claude/upbeat-rubin-nsginj`.
+
+## 2026-11-04 — Hyphenated usernames, first teacher invite, merge to main
+
+Owner request. Production: `claim_username`/`rename_username` now accept
+`^[A-Za-z][A-Za-z0-9_-]{1,18}[A-Za-z0-9_]$` (backend migration `20261104091000`; only the format check changed,
+bodies otherwise copied from the live `pg_get_functiondef`); the client rule in `usernameService.ts` matches.
+Teacher invite `PILOT-ONE` created with `max_uses = 3`. The owner's account username set to `the-creator`
+directly in `profiles` (with `username_changed_at` left NULL, so the 30-day rename throttle doesn't apply to this
+change). Teacher-dashboard migration renamed `20261103090000` → `20261103091000` because main's `speaking_samples`
+migration shares that version (both already applied; renaming a file doesn't reapply). Merged into main with
+conflicts resolved in `sessionSync.ts` (kept main's restore/repair rewrite, added `assignment_id` as a write-only
+exam column), `ExamMode.tsx`, `ExamSelect.tsx`, `types/index.ts`, `telemetryService.ts` and `CLAUDE.md`. On the
+merged tree: typecheck, `typecheck:server`, lint (0 errors), full `npm test` 551 files / 6278 tests, build; backend
+pytest 1023 passed.
