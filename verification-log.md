@@ -4809,3 +4809,10 @@ flag survives re-reads, deletion cancels at once, the httpx gateway via a mock t
 lint (0 errors), full `npm test` (6050). **Not done:** any call against real Razorpay or a real `checkout.js` window
 (no keys here) — the owner's test-mode purchase in `payments.md` §6 step 6 is the first end-to-end check; the
 `total_count` defaults (120 monthly / 10 yearly) are unverified against Razorpay's per-method limits.
+
+## 2026-11-04 — Premium migration renumbered before merge
+
+The Stripe Premium migration was renamed `20261104090000_premium_billing.sql` → `20261104100000_premium_billing.sql`
+when the branch was merged into `main`, because `main` already had `20261104090000_user_feedback.sql` (applied to
+production) and Supabase migration versions must be unique. Entries above that name `20261104090000` for Premium mean
+`20261104100000`. Neither Premium migration had been applied anywhere but the throwaway test Postgres.

@@ -74,7 +74,7 @@ These never call each other directly. The frontend is the only thing that talks 
   webhook also points directly at Render (`/api/billing/razorpay/webhook`). The browser loads
   `https://checkout.razorpay.com/v1/checkout.js` only when a learner pays with Razorpay — a Content-Security-Policy
   added later must allow that script and Razorpay's frames. Setup: `payments.md` §6.
-- **Deploy order:** apply backend migration `20261104090000` to production before switching billing on, and
+- **Deploy order:** apply backend migration `20261104100000` to production before switching billing on, and
   `20261105090000` before setting the Razorpay keys.
   Either service may deploy first: a missing `premium_daily_limit` column reads as the free limits
   (`main.py`'s `_read_limit_row`, `examAllowance.ts`'s `loadExamPlan`), never as a 503.

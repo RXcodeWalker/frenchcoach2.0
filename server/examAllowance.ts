@@ -72,7 +72,7 @@ export function examAllowanceFrom(grantDates: string[], now: Date, plan: ExamPla
  *
  * Any error reads as the FREE plan, never as Premium and never as a 503: the free rule is
  * always the stricter one, a real DB outage still 503s through loadExamGrantDates, and this
- * keeps POST /score working if this service deploys before migration 20261104090000 (the
+ * keeps POST /score working if this service deploys before migration 20261104100000 (the
  * column would not exist yet).
  */
 export async function loadExamPlan(client: Pick<SupabaseClient, 'from' | 'rpc'>, userId: string): Promise<ExamPlan> {

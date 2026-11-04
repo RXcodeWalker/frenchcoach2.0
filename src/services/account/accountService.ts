@@ -116,7 +116,7 @@ export async function exportMyData(): Promise<ExportedAccountData> {
 export async function deleteMyAccount(): Promise<void> {
   if (!supabaseConfigured) throw new AccountError('network_error', 'offline');
   // Stop Premium billing first: the database refuses to delete an account that is
-  // still being charged (migration 20261104090000). If this call fails, the RPC
+  // still being charged (migration 20261104100000). If this call fails, the RPC
   // below is still tried — it succeeds when there was nothing to cancel, and
   // answers active_subscription when there was.
   try {
