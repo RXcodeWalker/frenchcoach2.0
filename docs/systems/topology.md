@@ -66,6 +66,26 @@ and may charge `assignment_learn_answer` instead of `learn_answer`. Both decisio
   deployed environment has it set — check, and consider adding it to the example file as part of
   that change.
 
+### Premium billing variables (2026-11-03)
+
+- **FastAPI (Render dashboard):** `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`,
+  `STRIPE_PRICE_YEARLY` (optional), `BILLING_APP_URL` (optional), `STRIPE_AUTOMATIC_TAX` (optional, `1`).
+  Unset `STRIPE_SECRET_KEY` or `STRIPE_PRICE_MONTHLY` = billing off (every billing route but `/status` 503s
+  `billing_not_configured`). Stripe's webhook points **directly** at the Render host
+  (`/api/billing/webhook`), not through the Vercel proxy. Nothing new on Vercel or `french-scoring`: the
+  scoring service reads Premium through the service-role `has_premium()` RPC. Full setup:
+  `docs/systems/payments.md` §3.
+- **Razorpay (2026-11-04), same FastAPI service:** `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`,
+  `RAZORPAY_PLAN_MONTHLY`, `RAZORPAY_PLAN_YEARLY` (optional), `RAZORPAY_WEBHOOK_SECRET`,
+  `RAZORPAY_TOTAL_COUNT_MONTHLY`/`_YEARLY` (optional). Unset key id, secret or monthly plan = Razorpay off. Its
+  webhook also points directly at Render (`/api/billing/razorpay/webhook`). The browser loads
+  `https://checkout.razorpay.com/v1/checkout.js` only when a learner pays with Razorpay — a Content-Security-Policy
+  added later must allow that script and Razorpay's frames. Setup: `payments.md` §6.
+- **Deploy order:** apply backend migration `20261104230000` to production before switching billing on, and
+  `20261105090000` before setting the Razorpay keys.
+  Either service may deploy first: a missing `premium_daily_limit` column reads as the free limits
+  (`main.py`'s `_read_limit_row`, `examAllowance.ts`'s `loadExamPlan`), never as a 503.
+
 ### Exam-pronunciation variables (2026-10-06)
 
 - **`EXAM_PRONUNCIATION_ACCESS`** (FastAPI; `off` | `admin` | `all`; unset or anything else = `off`).

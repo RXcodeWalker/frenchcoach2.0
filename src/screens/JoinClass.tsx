@@ -14,7 +14,7 @@ const CODE_RE = /^[A-Z0-9]{6}$/;
 
 /**
  * `/join` and `/join/:code` — a learner joins their teacher's class (teacher dashboard Stage 1).
- * The confirm step says exactly what the teacher will see, and from when (ADR 0014): joining is
+ * The confirm step says exactly what the teacher will see, and from when (ADR 0015): joining is
  * the only thing that gives a teacher access, and leaving ends it.
  */
 export function JoinClass() {

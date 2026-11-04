@@ -46,6 +46,11 @@ export const FEATURE_FLAGS = {
   // every learner surface hides itself if the class service can't be read.
   // Rollback: 'coming-soon'.
   teacherDashboard: 'live',
+  // docs/systems/payments.md — Premium subscriptions (Stripe). Off until the owner
+  // has set the Stripe env vars on the backend and run a test-mode purchase;
+  // preview with ?ff_premium=live. Rollback: 'coming-soon' (billing keeps working
+  // for existing subscribers; only the page and its links hide).
+  premium: 'coming-soon',
   // Parent view: Profile's "Parent view" card + the shared /parent#<token> page
   // (backend migration 20261104090000 must be applied first). Rollback: 'coming-soon'
   // hides the card; existing links keep working until the learner turns them off.

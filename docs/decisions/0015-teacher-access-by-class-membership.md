@@ -1,4 +1,4 @@
-# 0014 — Teacher access to student data is granted by class membership
+# 0015 — Teacher access to student data is granted by class membership
 
 Date: 2026-11-03
 Status: Accepted

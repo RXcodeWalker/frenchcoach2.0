@@ -1,5 +1,5 @@
 /**
- * Teacher dashboard (docs/plans/teacher-dashboard.md Stage 0 + Stage 3; ADR 0014).
+ * Teacher dashboard (docs/plans/teacher-dashboard.md Stage 0 + Stage 3; ADR 0015).
  *
  * Two things POST /score needs that are about the attempt, never about its mark:
  *

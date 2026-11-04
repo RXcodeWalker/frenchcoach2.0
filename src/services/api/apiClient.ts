@@ -663,6 +663,8 @@ export interface LearnAllowance {
   limit: number;
   used: number;
   remaining: number;
+  /** True when the server applied the Premium limit (backend routers/billing.py). */
+  premium: boolean;
   /** ISO time the allowance resets (00:00 UTC). */
   resetsAt: string;
 }
@@ -678,7 +680,13 @@ export async function getLearnAllowance(): Promise<LearnAllowance | null> {
     if (!res.ok) return null;
     const data = (await res.json()) as Partial<LearnAllowance>;
     if (typeof data.limit !== 'number' || typeof data.remaining !== 'number') return null;
-    return { limit: data.limit, used: data.used ?? data.limit - data.remaining, remaining: data.remaining, resetsAt: String(data.resetsAt ?? '') };
+    return {
+      limit: data.limit,
+      used: data.used ?? data.limit - data.remaining,
+      remaining: data.remaining,
+      resetsAt: String(data.resetsAt ?? ''),
+      premium: data.premium === true,
+    };
   } catch {
     return null;
   }

@@ -7,7 +7,7 @@
  *      means another run already took this week, so skip. At-most-once attempt per class
  *      per week, never a duplicate email (same trade-off as sendNotifications.ts).
  *   2. Read last week's activity for active members only, from their join date onward —
- *      the same rule the teacher_* RPCs apply (ADR 0014) — and build the five lines with
+ *      the same rule the teacher_* RPCs apply (ADR 0015) — and build the five lines with
  *      the dashboard's own pure functions (src/domain/teacher/classInsights.ts), so the
  *      email and the screen can never disagree.
  *   3. Send through Resend to the teacher's own account email (from auth, service key).

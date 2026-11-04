@@ -1,5 +1,5 @@
 /**
- * Teacher dashboard data access (docs/systems/teacher-dashboard.md; ADR 0014).
+ * Teacher dashboard data access (docs/systems/teacher-dashboard.md; ADR 0015).
  *
  * Every call is a Supabase RPC from backend migration 20261103091000. A teacher
  * reads a student's data ONLY through the class-scoped teacher_* functions, which

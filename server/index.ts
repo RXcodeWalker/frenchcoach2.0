@@ -54,7 +54,7 @@ import { isScoringDebugEnabled } from '../scripts/scoring/observability/logger';
 import { resolveAndVerifyQuestionSet, QuestionSetNotFoundError, QuestionSetHashMismatchError } from './resolveQuestionSet';
 import { createTtlCache, probeGroq, probeGemini, type ProviderProbeStatus } from './healthProbe';
 import { consumeAiQuotaOr503, getQuotaClient, QuotaDeniedError, releaseAiQuotaGrant } from './aiQuota';
-import { EXAM_ATTEMPT_FEATURE, examAllowanceFrom, loadExamGrantDates } from './examAllowance';
+import { EXAM_ATTEMPT_FEATURE, examAllowanceFrom, loadExamGrantDates, loadExamPlan } from './examAllowance';
 import { classifyScoringFailure } from './scoringFailure';
 import {
   ASSIGNMENT_EXAM_FEATURE,
@@ -204,7 +204,7 @@ app.post('/score', async (req: Request, res: Response) => {
   // verbatim on retry (ExamMode.tsx), so it doubles as the idempotency key.
   // Teacher dashboard (examAttemptMeta.ts): how the attempt was sat, and whether it
   // is homework a teacher set. Homework the RPC accepts charges `assignment_exam`
-  // (its own allowance) and skips the weekly check; anything else, the normal rules.
+  // (its own allowance) and skips the exam limit; anything else, the normal rules.
   const attemptMeta = parseAttemptMetaParams(req.query as Record<string, unknown>);
   const homework = await homeworkExamAllowed(getQuotaClient(), userId, attemptMeta.assignmentId, transcript.sessionId);
   const examFeature = homework ? ASSIGNMENT_EXAM_FEATURE : EXAM_ATTEMPT_FEATURE;
@@ -212,17 +212,22 @@ app.post('/score', async (req: Request, res: Response) => {
     ? assignmentExamKey(attemptMeta.assignmentId, transcript.sessionId)
     : transcript.sessionId;
 
-  // Launch limit: one sample exam per rolling 7 days (examAllowance.ts). Checked
-  // before anything is charged; a retry of this same attempt never counts against
-  // itself. A failed scoring gives the week back (catch below).
+  // Launch limit: one sample exam per rolling 7 days (examAllowance.ts); Premium is
+  // per day instead. Checked before anything is charged; a retry of this same attempt
+  // never counts against itself. A failed scoring gives the exam back (catch below).
   if (!homework) {
     try {
+      const now = new Date();
       const allowance = examAllowanceFrom(
-        await loadExamGrantDates(getQuotaClient(), userId, new Date(), transcript.sessionId),
-        new Date(),
+        await loadExamGrantDates(getQuotaClient(), userId, now, transcript.sessionId),
+        now,
+        await loadExamPlan(getQuotaClient(), userId),
       );
       if (!allowance.allowed) {
-        res.status(429).json({ error: 'weekly_exam_limit', nextAvailableAt: allowance.nextAvailableAt });
+        res.status(429).json({
+          error: allowance.premium ? 'daily_exam_limit' : 'weekly_exam_limit',
+          nextAvailableAt: allowance.nextAvailableAt,
+        });
         return;
       }
     } catch (err) {
@@ -307,8 +312,9 @@ app.post('/score', async (req: Request, res: Response) => {
 });
 
 /**
- * Whether this account may sit a sample exam now (one per rolling 7 days), read without
- * charging anything: { allowed, lastExamDate, nextAvailableAt }. The exam screen asks
+ * Whether this account may sit a sample exam now (one per rolling 7 days; Premium: the
+ * per-day Premium limit), read without charging anything:
+ * { allowed, premium, lastExamDate, nextAvailableAt }. The exam screen asks
  * before the learner starts; POST /score enforces the same rule.
  */
 app.get('/exam/allowance', async (req: Request, res: Response) => {
@@ -319,13 +325,14 @@ app.get('/exam/allowance', async (req: Request, res: Response) => {
   }
   try {
     const now = new Date();
-    // Homework (?assignment=<uuid>) has its own allowance, independent of the week.
+    const client = getQuotaClient();
+    // Homework (?assignment=<uuid>) has its own allowance, independent of the exam limit.
     const assignmentId = parseAssignmentId(req.query.assignment);
-    if (assignmentId && (await homeworkExamAllowed(getQuotaClient(), userId, assignmentId, ''))) {
-      res.status(200).json({ allowed: true, lastExamDate: null, nextAvailableAt: null, homework: true });
+    if (assignmentId && (await homeworkExamAllowed(client, userId, assignmentId, ''))) {
+      res.status(200).json({ allowed: true, premium: false, lastExamDate: null, nextAvailableAt: null, homework: true });
       return;
     }
-    res.status(200).json(examAllowanceFrom(await loadExamGrantDates(getQuotaClient(), userId, now), now));
+    res.status(200).json(examAllowanceFrom(await loadExamGrantDates(client, userId, now), now, await loadExamPlan(client, userId)));
   } catch (err) {
     console.error('[GET /exam/allowance] lookup failed:', err);
     res.status(503).json({ error: 'quota_service_unavailable' });

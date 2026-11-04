@@ -9,7 +9,7 @@ import { setActiveLearnHomework } from '../features/homework/homeworkContext';
 import { useMyHomework } from '../features/homework/useMyHomework';
 import { TOPICS, getTopicQuestions } from '../data/gameData';
 import { getAIFeedback, streamFeedback, getExaminerFeedback, isExaminerQuotaExceededError, getLearnAllowance, isLearnDailyLimitError, SIGNED_OUT_FEEDBACK_REASON } from '../services/api/apiClient';
-import { LEARN_ANSWERS_PER_DAY, LEARN_DAILY_LIMIT_MESSAGE, dailySessionLength } from '../features/learn/dailyAllowance';
+import { LEARN_ANSWERS_PER_DAY, dailySessionLength, learnDailyLimit, learnDailyLimitMessage } from '../features/learn/dailyAllowance';
 import { isAuthRequiredError } from '../lib/authToken';
 import { isConsentRequiredError } from '../lib/consentRequired';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
@@ -155,6 +155,8 @@ export function Learn() {
   // Launch limit: AI-marked answers left today (GET /api/learn/allowance), read each time
   // the setup screen opens; null while unknown (the server still enforces the limit).
   const [answersLeft, setAnswersLeft] = useState<number | null>(null);
+  // The daily number (free 3, or the Premium limit when the server says so).
+  const [dailyLimit, setDailyLimit] = useState<number>(LEARN_ANSWERS_PER_DAY);
   // 2.4: transcript confirmation step between stop() and evaluation, behind
   // learnTranscriptConfirm. Holds the transcription awaiting the student's
   // Use this / Re-record choice (Whisper primary, live captions second opinion —
@@ -351,8 +353,8 @@ export function Learn() {
   const sessionLengthFor = useCallback(
     (built: number) => (homeworkActive && homework
       ? homeworkSessionLength(homework.questionCount, built)
-      : dailySessionLength(answersLeft, built)),
-    [homeworkActive, homework, answersLeft],
+      : dailySessionLength(answersLeft, built, dailyLimit)),
+    [homeworkActive, homework, answersLeft, dailyLimit],
   );
 
   // ── Session start ─────────────────────────────────────────────────────────────
@@ -481,7 +483,11 @@ export function Learn() {
     void getLearnAllowance().then((allowance) => {
       // Never more than the daily number: a guest's backend allowance is the looser
       // per-IP guest cap (5), and a guest also has only 3 free attempts in all.
-      if (!cancelled) setAnswersLeft(allowance ? Math.min(allowance.remaining, LEARN_ANSWERS_PER_DAY) : null);
+      // A Premium account's daily number is its own (learnDailyLimit).
+      if (cancelled) return;
+      const limit = learnDailyLimit(allowance);
+      setDailyLimit(limit);
+      setAnswersLeft(allowance ? Math.min(allowance.remaining, limit) : null);
     });
     return () => { cancelled = true; };
   }, [learnState]);
@@ -1008,7 +1014,7 @@ export function Learn() {
           if (myAttemptId !== attemptIdRef.current) return;
           setAnswersLeft(0);
           setIsLoadingFeedback(false);
-          setFeedbackErrorMessage(LEARN_DAILY_LIMIT_MESSAGE);
+          setFeedbackErrorMessage(learnDailyLimitMessage(dailyLimit));
           setLearnState('question');
           return;
         }
@@ -1649,6 +1655,7 @@ export function Learn() {
                 markingLevel={markingLive ? markingLevel : undefined}
                 onMarkingLevelChange={markingLive ? (level) => dispatch({ type: 'SET_MARKING_LEVEL', level }) : undefined}
                 answersLeft={answersLeft}
+                dailyLimit={dailyLimit}
                 streakDays={profile.streak_days}
                 homework={homeworkActive && homework ? { title: homework.title, teacherName: homework.teacherName, questionCount: homework.questionCount } : null}
               />

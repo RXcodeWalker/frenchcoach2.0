@@ -1,5 +1,5 @@
 /**
- * The teacher area's boundaries (ADR 0014, docs/systems/teacher-dashboard.md §5):
+ * The teacher area's boundaries (ADR 0015, docs/systems/teacher-dashboard.md §5):
  *  - it never reads the learner's local-only data (notebook, speaking log, Pronunciation Lab
  *    history, coach storage) — a teacher sees only what the class-scoped RPCs return;
  *  - nothing in the scored pipeline imports it;

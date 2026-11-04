@@ -1,7 +1,7 @@
 # Teacher dashboard
 
 Live specification (built 2026-11-03 from `docs/plans/teacher-dashboard.md`). §-numbered and cited
-from code as `teacher-dashboard.md §N` — do not renumber. The access rule is ADR 0014.
+from code as `teacher-dashboard.md §N` — do not renumber. The access rule is ADR 0015.
 
 ## §1 What it is
 
