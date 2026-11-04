@@ -398,6 +398,11 @@ interface QuotaHitProps {
   code: string | null;
 }
 
+interface FeedbackSentProps {
+  kind: 'bug' | 'marking' | 'idea' | 'other';
+  has_email: boolean;
+}
+
 interface ErrorScreenShownProps {
   area: 'app_root';
 }
@@ -479,6 +484,7 @@ export type TelemetryEvent =
   | { name: 'quota_hit';               props: QuotaHitProps }
   | { name: 'auth_required_shown';     props: SurfaceProps }
   | { name: 'error_screen_shown';      props: ErrorScreenShownProps }
+  | { name: 'feedback_sent';           props: FeedbackSentProps }
   | { name: 'progress_viewed';         props: NoProps }
   | { name: 'profile_viewed';          props: NoProps }
   | { name: 'web_vitals';              props: WebVitalsProps }
@@ -555,6 +561,7 @@ const DECLARED_PROPS = {
   quota_hit: ['feature', 'code'],
   auth_required_shown: ['surface'],
   error_screen_shown: ['area'],
+  feedback_sent: ['kind', 'has_email'],
   progress_viewed: [],
   profile_viewed: [],
   web_vitals: ['lcp_ms', 'inp_ms', 'cls'],
@@ -637,7 +644,8 @@ export type FailureArea =
   | 'pronunciation'
   | 'auth'
   | 'sync'
-  | 'storage';
+  | 'storage'
+  | 'contact';
 
 export interface ErrorContext {
   /** Becomes a searchable Sentry tag. */
