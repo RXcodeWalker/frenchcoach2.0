@@ -418,7 +418,7 @@ on them with `backend/supabase/ops/expire_open_duels_at_deploy.sql` (D11; run by
 - `feedback-notify.yml` (2026-11-04) — hourly at :17, runs
   `scripts/scheduledJobs/sendFeedbackDigest.ts`: emails every new in-app "Send feedback"
   message (`public.user_feedback`, written only through the `submit_feedback` RPC — backend
-  migration `20261104090000`) to `FEEDBACK_NOTIFY_EMAIL` through Resend, one email per message
+  migration `20261104090000`, applied to production 2026-11-04) to `FEEDBACK_NOTIFY_EMAIL` through Resend, one email per message
   with Reply-To set to the sender's address when they left one. Claims a row (`notified_at`)
   before sending and releases it if Resend fails. Secrets: `SUPABASE_URL` /
   `SUPABASE_SERVICE_KEY` (required), `RESEND_API_KEY` + `FEEDBACK_NOTIFY_EMAIL` (without
