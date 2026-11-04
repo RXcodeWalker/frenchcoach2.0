@@ -34,7 +34,7 @@ Browser (/premium)                 FastAPI (routers/billing.py)          Stripe
 Every AI call ── consume_ai_quota() ── has_premium()? → premium_daily_limit : daily_limit
 ```
 
-- **Tables** (migration `20261104120000`, backend repo): `billing_customers`, `billing_subscriptions`,
+- **Tables** (migration `20261104230000`, backend repo): `billing_customers`, `billing_subscriptions`,
   `stripe_webhook_events`. Service role writes; a user can only read their own subscription row.
 - **Premium = `has_premium(user)`**: a subscription with status `active`, `trialing` or `past_due` (Stripe is
   still retrying the card), whose period ended no more than 3 days ago.
@@ -65,7 +65,7 @@ Every AI call ── consume_ai_quota() ── has_premium()? → premium_daily_
 5. **Render → FastAPI service → Environment**: `STRIPE_SECRET_KEY` (`sk_test_…`), `STRIPE_WEBHOOK_SECRET`,
    `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY`. Optional: `BILLING_APP_URL` (default: the request's allowed
    origin, else `https://french.beyondthebasics.me`), `STRIPE_AUTOMATIC_TAX=1` (only after Stripe Tax is set up).
-6. **Supabase**: apply backend migration `20261104120000_premium_billing.sql` to production. Until it is applied,
+6. **Supabase**: apply backend migration `20261104230000_premium_billing.sql` to production. Until it is applied,
    both services keep working on the free limits (they fall back when the column is missing), but nobody can
    be Premium.
 7. **Try it**: open `/premium?ff_premium=live`, subscribe with card `4242 4242 4242 4242`, any future date, any
@@ -130,7 +130,7 @@ limits, same `has_premium()`.
    `RAZORPAY_PLAN_YEARLY`, `RAZORPAY_WEBHOOK_SECRET`. Optional: `RAZORPAY_TOTAL_COUNT_MONTHLY` (default 120 cycles) /
    `_YEARLY` (default 10) — how long one subscription may run before the learner re-subscribes; Razorpay caps this
    per payment method, so lower it if creation errors.
-5. Supabase: apply backend migration `20261105090000_razorpay_billing.sql` (after `20261104120000`).
+5. Supabase: apply backend migration `20261105090000_razorpay_billing.sql` (after `20261104230000`).
 6. Try it: `/premium?ff_premium=live` → UPI & Indian cards → subscribe with Razorpay's test card or test UPI id
    (`success@razorpay`). Check: Premium shows, Learn allows 30, "Cancel subscription" → "Ends on …".
 7. Go live: Razorpay KYC + live mode, repeat 1–4 with live keys and plans.

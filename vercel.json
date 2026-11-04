@@ -16,6 +16,7 @@
     { "source": "/admin/scenarios/:id/edit", "destination": "/admin" },
     { "source": "/admin/scenarios/:id/history", "destination": "/admin" },
     { "source": "/junior/:themeId", "destination": "/" },
+    { "source": "/fix/:skillId", "destination": "/" },
     { "source": "/scenario/:scenarioId", "destination": "/" },
     { "source": "/duel/:duelId", "destination": "/" }
   ]

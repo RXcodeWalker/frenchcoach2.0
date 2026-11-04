@@ -21,7 +21,8 @@ Depth 2. Four live categories, one archive.
 - `systems/exam-pronunciation.md` — opt-in, feedback-only exam pronunciation analysis: fairness rules, the evidence table and route, metering, privacy, and the release gate (closed until calibration passes)
 - `systems/junior-track.md` — the Junior track (Grades 4–7, A1): mark-free spoken missions with Léo, deterministic answer matching, scaffold ladder, sticker rewards, playtest gate (§-numbered, cited as `junior-track §N` — do not renumber)
 - `systems/learn-marking-levels.md` — the Learn marking-level specification: the six CEFR ladders, which apply per question, Exam standard, verdicts-to-score arithmetic, how scores flow into the app (specification only until the test protocol passes; §-numbered, cited as `learn-marking §N` — do not renumber)
-- `systems/payments.md` — Premium subscriptions through Stripe: what Premium raises, how the webhook mirror and quota RPC fit together, the owner's one-time Stripe setup (§-numbered)
+- `systems/payments.md` — Premium subscriptions through Stripe or Razorpay: what Premium raises, how the webhook mirror and quota RPC fit together, the owner's one-time Stripe setup (§-numbered)
+- `systems/retention-notifications.md` — the retention loop: the learner snapshot, the one-a-day specific nudge (what, when, priority), the weekly learner/parent progress email, unsubscribe and open tracking (§-numbered, do not renumber)
 - `guides/content-authoring.md` — content-authoring rules for the question bank
 - `guides/review/` — generated G2 review sheet (`0520-g2-review.md`) and its English glosses source; regenerate, never hand-edit
 - `guides/corpus-matrix.md` — corpus coverage rules

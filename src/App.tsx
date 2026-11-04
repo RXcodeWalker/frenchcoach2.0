@@ -34,6 +34,8 @@ import { DailyChallenge } from './screens/DailyChallenge';
 import { League } from './screens/League';
 import { DuelDetail } from './screens/DuelDetail';
 import { WeaknessAnalysis } from './screens/WeaknessAnalysis';
+import { FixDrill } from './screens/FixDrill';
+import { Unsubscribe } from './screens/Unsubscribe';
 import { SentenceRebuilder } from './screens/SentenceRebuilder';
 import { Onboarding } from './screens/Onboarding';
 import { OnboardingPlacement } from './screens/OnboardingPlacement';
@@ -327,6 +329,7 @@ function AppShell() {
             </ComingSoonGate>
           } />
           <Route path="/weakness-analysis" element={<WeaknessAnalysis />} />
+          <Route path="/fix/:skillId" element={<FixDrill />} />
           <Route path="/sentence-rebuilder" element={
             <ComingSoonGate status={resolveFeatureStatus('sentenceRebuilder')} featureId="sentenceRebuilder" name="Sentence Rebuilder" description="Drag-and-drop grammar exercises to reinforce sentence structure." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
               <SentenceRebuilder />
@@ -438,6 +441,8 @@ function AppShell() {
         <Route path="/story" element={<Story />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
+        {/* The weekly email's unsubscribe link; also in PublicRoutes (a parent is never signed in). */}
+        <Route path="/unsubscribe" element={<Unsubscribe />} />
         <Route path="/age-band" element={<AgeBand />} />
         <Route path="/invite-code" element={<InviteCode />} />
 

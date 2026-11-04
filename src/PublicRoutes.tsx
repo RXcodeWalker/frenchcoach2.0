@@ -8,6 +8,7 @@ import { Story } from './screens/Story';
 import { PrivacyPolicy } from './screens/PrivacyPolicy';
 import { TermsOfService } from './screens/TermsOfService';
 import { GuardianConsent } from './screens/GuardianConsent';
+import { Unsubscribe } from './screens/Unsubscribe';
 import { AuthCallback } from './screens/AuthCallback';
 import { ResetPassword } from './screens/ResetPassword';
 
@@ -29,6 +30,7 @@ export function PublicRoutes() {
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/guardian-consent" element={<GuardianConsent />} />
+      <Route path="/unsubscribe" element={<Unsubscribe />} />
       <Route path="/login" element={<Auth />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/reset-password" element={<ResetPassword />} />

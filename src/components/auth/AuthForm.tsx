@@ -224,7 +224,9 @@ export function AuthForm({ onAuthenticated, footer, page = false }: Props) {
       <div className="space-y-2">
         {!googleButtonFailed ? (
           <GoogleSignInButton
-            text={tab === 'signup' ? 'signup_with' : 'continue_with'}
+            // One wording for both tabs: a changed `text` makes Google re-render its
+            // button (cleared, then redrawn), which flashed on every tab switch.
+            text="continue_with"
             onCredential={handleGoogleCredential}
             onUnavailable={handleGoogleUnavailable}
           />
