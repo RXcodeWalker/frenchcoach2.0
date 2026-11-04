@@ -4,9 +4,23 @@ import { applyQualityGate } from './qualityGate';
 import { detectAvoidance } from './diagnosticEngine';
 import { NOT_BEFORE, NOT_AFTER } from './regexBoundary';
 import { evaluateDemandSatisfaction } from '../../domain/learn/demand/satisfaction';
+import { findSelfCorrection, type SelfCorrection } from '../../domain/learn/feedback/selfCorrection';
+import { keepLeadingCase, patternRule, startsWithVowelSound, type CapturedSpan, type GrammarRule, type ThemeKey } from './offline/grammarRule';
+import {
+  EXTRA_GRAMMAR_RULES,
+  EXTRA_TEACHME,
+  FEMININE_NOUN_LOOKAHEAD,
+  JOUER_SPORT_PATTERN,
+  NEG_MISSING_NE_PATTERN,
+  jouerSportRewrite,
+  negMissingNeRewrite,
+} from './offline/extraRules';
+import { findOfflineStrengths, type BlockedSpan } from './offline/strengths';
+import { checkEnglish, type EnglishRun } from './offline/englishCheck';
+import { buildNextSteps, buildRepetitionVocab } from './offline/nextSteps';
 
 // ── Diagnostic themes ──────────────────────────────────────────────────────────
-const THEMES: Record<string, { label: string; desc: string; sde_key: string; master_tip: string }> = {
+const THEMES: Record<ThemeKey, { label: string; desc: string; sde_key: string; master_tip: string }> = {
   ELISION:       { label: "Elision & Contraction",       desc: "In French, words like je, le, la, de, que must contract before a vowel or mute H.", sde_key: "elision",       master_tip: "Think of French as a smooth flow — je aime is impossible; it must be j'aime." },
   AUXILIARY:     { label: "Avoir vs Être",               desc: "Most verbs use avoir in the past, but movement and reflexive verbs require être.",    sde_key: "etre_avoir",    master_tip: "Remember DR MRS VANDERTRAMP! If you're physically moving, use Être." },
   ANGLICISM:     { label: "The English Trap",            desc: "Word-for-word translation from English often creates Franglais.",                     sde_key: "vocab_range",   master_tip: "French logic is different — you 'have' an age, hunger, or thirst; you don't 'be' them!" },
@@ -21,6 +35,7 @@ const THEMES: Record<string, { label: string; desc: string; sde_key: string; mas
   CONFUSION:     { label: "Word Confusions",             desc: "Common mix-ups like bien vs bon or mieux vs meilleur.",                               sde_key: "confusions",    master_tip: "Bon/Meilleur describe things (adjectives); Bien/Mieux describe actions (adverbs)." },
   ADJECTIVE:     { label: "Adjective Agreement",         desc: "Adjectives must match the number (plural) of the noun.",                             sde_key: "gender",        master_tip: "Always check your S at the end of adjectives describing multiple things!" },
   PRONOUN:       { label: "Pronoun Placement",           desc: "Object pronouns usually go before the verb in French.",                               sde_key: "grammar",       master_tip: "French is like a puzzle — the pronoun slides in right before the action!" },
+  REFLEXIVE:     { label: "Reflexive Verbs",             desc: "Reflexive verbs need a pronoun that matches the subject: je me, tu te, il se, nous nous.", sde_key: "grammar",       master_tip: "Daily routine is reflexive — you get yourself up: je me lève, je me couche." },
 };
 
 // ── TeachMe library: cognitive explanations + 3 drills per rule ───────────────
@@ -233,97 +248,67 @@ export const TEACHME_LIBRARY: Record<string, Partial<TeachMe>> = {
     advanced: "Cet engouement pour les nouvelles technologies est-il vraiment justifié ?",
     examinerNote: "Cet vs ce before vowels is a classic accuracy detail. It signals phonetic awareness of French.",
   },
+  ...EXTRA_TEACHME,
 };
 
-// ── Grammar rules: each entry has test + capture ──────────────────────────────
+// ── Grammar rules ─────────────────────────────────────────────────────────────
+// Every rule is built from one regex by patternRule (offline/grammarRule.ts),
+// which gives it test / capture / captureAll — so every occurrence of an
+// error is found, not just the first. The original 22 rules come first and
+// keep their ids; the second set (offline/extraRules.ts) follows. Order
+// matters: when two rules flag overlapping words, the earlier rule wins.
 
-/**
- * A regex match's text plus its offset in the source transcript. capture()
- * used to return only the matched string, forcing _buildTranscriptAnnotations
- * to re-find it with transcript.indexOf(quote) — first-occurrence-only, no
- * overlap handling (docs Stage 4 item 4). A regex match already knows its
- * index; carrying it through here makes offline spans unambiguous by
- * construction instead of guessed.
- */
-export interface CapturedSpan {
-  text: string;
-  start: number;
-  end: number;
+export type { CapturedSpan, GrammarRule } from './offline/grammarRule';
+
+/** « nous » / « vous » before a verb of another person is an object pronoun (« il nous a pas dit »), not the subject. */
+function negSubjectAgrees(m: RegExpExecArray): boolean {
+  const subject = m[1].trim().toLowerCase();
+  const verb = m[2].toLowerCase();
+  if (subject === 'nous') return /ons$/.test(verb) || verb === 'sommes';
+  if (subject === 'vous') return /ez$/.test(verb) || verb === 'êtes';
+  return true;
 }
 
-/** Shared capture implementation: every GRAMMAR_RULES entry runs the same
- * `t.match(regex)[0]` shape, so this is the one place that turns a regex
- * match into a CapturedSpan. */
-function matchSpan(t: string, regex: RegExp): CapturedSpan | null {
-  const m = regex.exec(t);
-  if (!m || m.index === undefined) return null;
-  return { text: m[0], start: m.index, end: m.index + m[0].length };
-}
-
-interface GrammarRule {
-  id: string;
-  theme: keyof typeof THEMES;
-  severity: 'major' | 'minor';
-  test: (t: string) => boolean;
-  capture?: (t: string) => CapturedSpan | null;
-  buildDiagnostic?: (quote: string) => string;
-  correction: string;
-  /**
-   * Opt-in mechanical rewrite for unambiguous elisions only (docs Stage 4
-   * item 2) — e.g. "je aime" -> "j'aime", "de le" -> "du", "à les" -> "aux".
-   * Rules with a genuine choice ("je suis allé(e)", "du / des" as a pair)
-   * get no rewrite and are never applied mechanically. Returning null means
-   * "this particular match can't be rewritten safely" even though the rule
-   * fired (should not normally happen if the rule has a rewrite at all, but
-   * keeps the type honest for edge cases).
-   */
-  rewrite?: (match: string) => string | null;
-}
-
-export const GRAMMAR_RULES: GrammarRule[] = [
-  {
+const ORIGINAL_GRAMMAR_RULES: GrammarRule[] = [
+  patternRule({
     id: "el_je",
     theme: "ELISION", severity: "major",
-    test: (t) => /\bje (aime|ai|habite|arrive|écoute|adore|étudie|espère|achète|utilise|organise|apprends|entends)\b/i.test(t),
-    capture: (t) => matchSpan(t, /\bje (aime|ai|habite|arrive|écoute|adore|étudie|espère|achète|utilise|organise|apprends|entends)\b/i),
+    pattern: /\bje (aime|ai|habite|arrive|écoute|adore|étudie|espère|achète|utilise|organise|apprends|entends)\b/i,
     buildDiagnostic: (q) => `You wrote "${q}" — je must elide to j' before a vowel sound. French phonetics forbid the vowel clash.`,
     correction: "j'…",
     // The verb is inside the match, so it's preserved: "je aime" -> "j'aime".
-    rewrite: (m) => m.replace(/^je\s+/i, "j'"),
-  },
-  {
+    rewrite: (m) => keepLeadingCase(m, m.replace(/^je\s+/i, "j'")),
+  }),
+  patternRule({
     id: "el_le_la",
     theme: "ELISION", severity: "major",
-    test: (t) => new RegExp(`\\b(le|la) (hôtel|hôpital|avion|ordinateur|école|université|histoire|idée|avis|été|hiver|automne|examen|exercice)${NOT_AFTER}`, 'i').test(t),
-    capture: (t) => matchSpan(t, new RegExp(`\\b(le|la) (hôtel|hôpital|avion|ordinateur|école|université|histoire|idée|avis|été|hiver|automne|examen|exercice)${NOT_AFTER}`, 'i')),
+    pattern: new RegExp(`\\b(le|la) (hôtel|hôpital|avion|ordinateur|école|université|histoire|idée|avis|été|hiver|automne|examen|exercice)${NOT_AFTER}`, 'i'),
     buildDiagnostic: (q) => `You wrote "${q}" — le/la contracts to l' before a vowel or mute h. This is a fundamental French phonetics rule.`,
     correction: "l'…",
     // The noun is inside the match: "la école" -> "l'école".
-    rewrite: (m) => m.replace(/^(le|la)\s+/i, "l'"),
-  },
-  {
+    rewrite: (m) => keepLeadingCase(m, m.replace(/^(le|la)\s+/i, "l'")),
+  }),
+  patternRule({
     id: "el_de",
     theme: "ELISION", severity: "major",
-    test: (t) => new RegExp(`\\bde (un|une|ami|amie|école|université|ordinateur|idée|avis|eau|argent|orange)${NOT_AFTER}`, 'i').test(t),
-    capture: (t) => matchSpan(t, new RegExp(`\\bde (un|une|ami|amie|école|université|ordinateur|idée|avis|eau|argent|orange)${NOT_AFTER}`, 'i')),
+    pattern: new RegExp(`\\bde (un|une|ami|amie|école|université|ordinateur|idée|avis|eau|argent|orange)${NOT_AFTER}`, 'i'),
     buildDiagnostic: (q) => `You wrote "${q}" — de contracts to d' before a vowel. Same rule as je → j'.`,
     correction: "d'…",
-    rewrite: (m) => m.replace(/^de\s+/i, "d'"),
-  },
-  {
+    rewrite: (m) => keepLeadingCase(m, m.replace(/^de\s+/i, "d'")),
+  }),
+  patternRule({
     id: "el_que",
     theme: "ELISION", severity: "major",
-    test: (t) => /\bque (il|elle|ils|elles|on|un|une)\b/i.test(t),
-    capture: (t) => matchSpan(t, /\bque (il|elle|ils|elles|on|un|une)\b/i),
+    pattern: /\bque (il|elle|ils|elles|on|un|une)\b/i,
     buildDiagnostic: (q) => `You wrote "${q}" — que must elide to qu' before a vowel or h muet.`,
     correction: "qu'…",
-    rewrite: (m) => m.replace(/^que\s+/i, "qu'"),
-  },
-  {
+    rewrite: (m) => keepLeadingCase(m, m.replace(/^que\s+/i, "qu'")),
+  }),
+  patternRule({
     id: "con_au",
     theme: "ELISION", severity: "major",
-    test: (t) => new RegExp(`${NOT_BEFORE}à (le|les)\\b`, 'i').test(t),
-    capture: (t) => matchSpan(t, new RegExp(`${NOT_BEFORE}à (le|les)\\b`, 'i')),
+    // « à le maison » is a gender slip (à la maison), left to gen_det — not a missing « au ».
+    pattern: new RegExp(`${NOT_BEFORE}à (le${FEMININE_NOUN_LOOKAHEAD}|les)\\b`, 'i'),
     buildDiagnostic: (q) => `You wrote "${q}" — à + le always contracts to au, and à + les to aux. There are no exceptions.`,
     correction: "au / aux",
     // The matched text is exactly "à le"/"à les" (NOT_BEFORE is a
@@ -332,95 +317,107 @@ export const GRAMMAR_RULES: GrammarRule[] = [
     // determined by which alternative matched: no learner choice involved,
     // unlike aux_aller/aux_venir's gender-dependent "allé(e)".
     rewrite: (m) => (/les\s*$/i.test(m) ? 'aux' : 'au'),
-  },
-  {
+  }),
+  patternRule({
     id: "con_du",
     theme: "ELISION", severity: "major",
-    test: (t) => /\bde (le|les)\b/i.test(t),
-    capture: (t) => matchSpan(t, /\bde (le|les)\b/i),
+    pattern: new RegExp(`\\bde (le${FEMININE_NOUN_LOOKAHEAD}|les)\\b`, 'i'),
     buildDiagnostic: (q) => `You wrote "${q}" — de + le must contract to du, and de + les to des.`,
     correction: "du / des",
     // "du / des" here is the display label for two mechanically distinct
     // outcomes, not a genuine learner choice — the captured group determines
     // which one applies, same reasoning as con_au above.
     rewrite: (m) => (/les\s*$/i.test(m) ? 'des' : 'du'),
-  },
-  {
+  }),
+  patternRule({
     id: "aux_aller",
     theme: "AUXILIARY", severity: "major",
-    test: (t) => new RegExp(`\\bj'ai allé${NOT_AFTER}`, 'i').test(t),
-    capture: (t) => matchSpan(t, new RegExp(`\\bj'ai allé${NOT_AFTER}`, 'i')),
+    pattern: new RegExp(`\\bj'ai allé${NOT_AFTER}`, 'i'),
     buildDiagnostic: (q) => `You wrote "${q}" — you translated 'I have gone' directly from English. Movement verbs use être in passé composé: je suis allé(e).`,
     correction: "je suis allé(e)",
-  },
-  {
+  }),
+  patternRule({
     id: "aux_venir",
     theme: "AUXILIARY", severity: "major",
-    test: (t) => /\bj'ai venu\b/i.test(t),
-    capture: (t) => matchSpan(t, /\bj'ai venu\b/i),
+    pattern: /\bj'ai venu\b/i,
     buildDiagnostic: (q) => `You wrote "${q}" — venir is a movement verb; it uses être, not avoir: je suis venu(e).`,
     correction: "je suis venu(e)",
-  },
-  {
+  }),
+  patternRule({
     id: "gen_probleme",
     theme: "GENDER", severity: "minor",
-    test: (t) => /\bla problème\b/i.test(t),
-    capture: (t) => matchSpan(t, /\bla problème\b/i),
+    pattern: /\bla problème\b/i,
     buildDiagnostic: (q) => `You wrote "${q}" — problème is masculine. The -ème suffix is a masculine indicator: le problème.`,
     correction: "le problème",
-  },
-  {
+    rewrite: (m) => keepLeadingCase(m, 'le problème'),
+  }),
+  patternRule({
     id: "adj_plural",
     theme: "ADJECTIVE", severity: "minor",
     // français/anglais excluded — they are already correct in the masculine
     // plural (no -s), so flagging them told a correct student to introduce
     // an error that doesn't exist.
-    test: (t) => /\b(les|mes|tes|ses|nos|vos|leurs) (amis|parents|enfants|élèves) (intelligent|grand|petit|content|important)\b/i.test(t),
-    capture: (t) => matchSpan(t, /\b(les|mes|tes|ses|nos|vos|leurs) (amis|parents|enfants|élèves) (intelligent|grand|petit|content|important)\b/i),
+    pattern: /\b(les|mes|tes|ses|nos|vos|leurs) (amis|parents|enfants|élèves) (intelligent|grand|petit|content|important)\b/i,
     buildDiagnostic: (q) => `You wrote "${q}" — the adjective must agree with the plural noun: add -s (or -ux for some endings).`,
     correction: "… [adjective]s",
-  },
-  {
+    // All five adjectives take a plain -s with these masculine-plural nouns.
+    rewrite: (m) => `${m}s`,
+  }),
+  patternRule({
     id: "ang_age",
     theme: "ANGLICISM", severity: "major",
-    test: (t) => /\bje suis \d+\b/i.test(t),
-    capture: (t) => matchSpan(t, /\bje suis \d+ ?(ans)?\b/i),
+    pattern: /\bje suis \d+ ?(ans)?\b/i,
     buildDiagnostic: (q) => `You wrote "${q}" — you translated 'I am [age]' directly from English. French uses avoir for age: j'ai … ans. You possess your age in French.`,
     correction: "j'ai … ans",
-  },
-  {
+    rewrite: (m) => {
+      const n = /\d+/.exec(m)?.[0];
+      return n ? keepLeadingCase(m, `j'ai ${n} ans`) : null;
+    },
+  }),
+  patternRule({
     id: "ang_faim_soif",
     theme: "ANGLICISM", severity: "major",
-    test: (t) => /\bje suis (faim|soif|chaud|froid|peur|raison|sommeil)\b/i.test(t),
-    capture: (t) => matchSpan(t, /\bje suis (faim|soif|chaud|froid|peur|raison|sommeil)\b/i),
+    pattern: /\bje suis (faim|soif|chaud|froid|peur|raison|sommeil)\b/i,
     buildDiagnostic: (q) => `You wrote "${q}" — physical and emotional states use avoir, not être: j'ai faim, j'ai peur, j'ai froid. You 'have' these feelings in French.`,
     correction: "j'ai faim / soif / froid / peur / raison / sommeil",
-  },
-  {
+    rewrite: (m) => keepLeadingCase(m, m.replace(/^je suis/i, "j'ai")),
+  }),
+  patternRule({
     id: "prep_jouer",
     theme: "PREPOSITION", severity: "minor",
-    test: (t) => /\bjouer (le|la|les|un|une) (foot|football|tennis|basket|rugby|badminton|volley)\b/i.test(t),
-    capture: (t) => matchSpan(t, /\bjouer (le|la|les|un|une) (foot|football|tennis|basket|rugby|badminton|volley)\b/i),
+    // Every form of jouer (jouer, je joue, on jouait…), not just the infinitive.
+    pattern: JOUER_SPORT_PATTERN,
     buildDiagnostic: (q) => `You wrote "${q}" — sports require jouer à (not jouer + article directly): jouer au foot, jouer au tennis.`,
     correction: "jouer au / à la…",
-  },
-  {
+    rewrite: jouerSportRewrite,
+  }),
+  patternRule({
     id: "prep_ecouter_a",
     theme: "PREPOSITION", severity: "minor",
-    test: (t) => new RegExp(`écout(?:e|es|ons|ez|ent|ais|ait|iez|aient|é|er)\\s+(à|pour)${NOT_AFTER}`, 'i').test(t),
-    capture: (t) => matchSpan(t, new RegExp(`écout(?:e|es|ons|ez|ent|ais|ait|iez|aient|é|er)\\s+(à|pour)${NOT_AFTER}`, 'i')),
+    pattern: new RegExp(`écout(?:e|es|ons|ez|ent|ais|ait|iez|aient|é|er)\\s+(à|pour)${NOT_AFTER}`, 'i'),
     buildDiagnostic: (q) => `You wrote "${q}" — unlike English, écouter is a direct verb in French. No preposition is needed: j'écoute de la musique.`,
     correction: "[verb] [object] (no preposition)",
-  },
-  {
+  }),
+  patternRule({
     id: "subj_il_faut",
     theme: "SUBJUNCTIVE", severity: "major",
-    test: (t) => /\bil faut que (je suis|j'ai|je vais|je fais|je peux|je veux|il est|il a|on est|nous sommes|vous êtes|ils sont)\b/i.test(t),
-    capture: (t) => matchSpan(t, /\bil faut que (je suis|j'ai|je vais|je fais|je peux|je veux|il est|il a|on est|nous sommes|vous êtes|ils sont)\b/i),
+    pattern: /\bil faut que (je suis|j'ai|je vais|je fais|je peux|je veux|il est|il a|on est|nous sommes|vous êtes|ils sont)\b/i,
     buildDiagnostic: (q) => `You wrote "${q}" — il faut que triggers the subjunctive, not the indicative. You translated the English infinitive directly: je vais → j'aille, je suis → je sois.`,
     correction: "il faut que je sois / j'aille / je fasse…",
-  },
-  {
+    rewrite: (m) => {
+      const SUBJUNCTIVE: Record<string, string> = {
+        'je suis': 'je sois', "j'ai": "j'aie", 'je vais': "j'aille", 'je fais': 'je fasse', 'je peux': 'je puisse',
+        'je veux': 'je veuille', 'il est': 'il soit', 'il a': 'il ait', 'on est': 'on soit', 'nous sommes': 'nous soyons',
+        'vous êtes': 'vous soyez', 'ils sont': 'ils soient',
+      };
+      const p = /^(il faut )que (.+)$/i.exec(m);
+      if (!p) return null;
+      const fixed = SUBJUNCTIVE[p[2].toLowerCase()];
+      if (!fixed) return null;
+      return `${p[1]}${startsWithVowelSound(fixed) ? "qu'" : 'que '}${fixed.replace(/^je (?=[aeiouyh])/i, "j'")}`;
+    },
+  }),
+  patternRule({
     id: "si_clause",
     theme: "SI_CLAUSE", severity: "major",
     // si + [subject] + imparfait (…ais/ait/ions/iez/aient), then — allowing an
@@ -428,67 +425,65 @@ export const GRAMMAR_RULES: GrammarRule[] = [
     // second clause using future tense (…erai/eras/era/erons/erez/eront or
     // the -ir-verb equivalents) instead of the required conditional. Covers
     // all persons (je/tu/il/elle/on/nous/vous/ils/elles), not just je/on.
-    test: (t) => /\bsi (j'|je |tu |il |elle |on |nous |vous |ils |elles )[a-zàâäéèêëïîôöùûüç']*?(ais|ait|ions|iez|aient)\b[^.!?]{0,50}?\b(j'|je |tu |il |elle |on |nous |vous |ils |elles )[a-zàâäéèêëïîôöùûüç']*?(erai|eras|era|erons|erez|eront|irai|iras|ira|irons|irez|iront)\b/i.test(t),
-    capture: (t) => matchSpan(t, /\bsi (j'|je |tu |il |elle |on |nous |vous |ils |elles )[a-zàâäéèêëïîôöùûüç']*?(ais|ait|ions|iez|aient)\b[^.!?]{0,50}?\b(j'|je |tu |il |elle |on |nous |vous |ils |elles )[a-zàâäéèêëïîôöùûüç']*?(erai|eras|era|erons|erez|eront|irai|iras|ira|irons|irez|iront)\b/i),
+    pattern: /\bsi (j'|je |tu |il |elle |on |nous |vous |ils |elles )[a-zàâäéèêëïîôöùûüç']*?(ais|ait|ions|iez|aient)\b[^.!?]{0,50}?\b(j'|je |tu |il |elle |on |nous |vous |ils |elles )[a-zàâäéèêëïîôöùûüç']*?(erai|eras|era|erons|erez|eront|irai|iras|ira|irons|irez|iront)\b/i,
     buildDiagnostic: (q) => `You wrote "${q}" — after si + imparfait, the main clause must use the conditional (not future or present): si j'avais, j'achèterais (not j'achèterai).`,
     correction: "si [imparfait], [conditional]",
-  },
-  {
+  }),
+  patternRule({
     id: "pron_placement",
     theme: "PRONOUN", severity: "major",
-    test: (t) => /\b(je|tu|il|elle|on|nous|vous|ils|elles) (aime|adore|vois|regarde|déteste|écoute|aide|comprends|crois|appelle|rencontre) (lui|leur|me|te|nous|vous)\b/i.test(t),
-    capture: (t) => matchSpan(t, /\b(je|tu|il|elle|on|nous|vous|ils|elles) (aime|adore|vois|regarde|déteste|écoute|aide|comprends|crois|appelle|rencontre) (lui|leur|me|te|nous|vous)\b/i),
+    pattern: /\b(je|tu|il|elle|on|nous|vous|ils|elles) (aime|adore|vois|regarde|déteste|écoute|aide|comprends|crois|appelle|rencontre) (lui|leur|me|te|nous|vous)\b/i,
     buildDiagnostic: (q) => `You wrote "${q}" — object pronouns must come BEFORE the verb in French. English puts them after ('I see him'), French does not.`,
     correction: "[subject] [pronoun] [verb]",
-  },
-  {
+  }),
+  patternRule({
     id: "neg_missing_ne",
     theme: "NEGATION", severity: "minor",
     // "j'" has no following space before the verb, so it needs its own
-    // alternative rather than sharing the "(pronoun) " prefix — the original
-    // pattern required a space after j', which is unreachable (j'ai, not j' ai).
-    test: (t) => new RegExp(`${NOT_BEFORE}(?:j'|(?:je|tu|il|elle|on|nous|vous|ils|elles) )(?:suis|ai|vais|fais|peux|dois|veux|sais|vois|mange|parle) pas\\b`, 'i').test(t),
-    capture: (t) => matchSpan(t, new RegExp(`${NOT_BEFORE}(?:j'|(?:je|tu|il|elle|on|nous|vous|ils|elles) )(?:suis|ai|vais|fais|peux|dois|veux|sais|vois|mange|parle) pas\\b`, 'i')),
+    // alternative rather than sharing the "(pronoun) " prefix.
+    pattern: NEG_MISSING_NE_PATTERN,
+    accept: negSubjectAgrees,
     buildDiagnostic: (q) => `You wrote "${q}" — you dropped the ne. In IGCSE formal speech, the full sandwich is required: je NE [verb] PAS.`,
     correction: "je ne [verb] pas",
-  },
-  {
+    rewrite: negMissingNeRewrite,
+  }),
+  patternRule({
     // A nested lookbehind is required: deleting the inner boundary check
     // introduces a false negative — "le monde qui je vois" would be wrongly
     // suppressed because "monde" ends in "de " (matching the "de " prefix
     // alternative literally, not just as a preposition token boundary).
     id: "rel_qui_subj",
     theme: "RELATIVE", severity: "major",
-    test: (t) => new RegExp(`(?<!${NOT_BEFORE}(?:avec|à|a|pour|chez|sans|sur|dans|de|en) )${NOT_BEFORE}qui (?:j'|je|tu|il|elle|on|nous|vous|ils|elles)\\b`, 'i').test(t),
-    capture: (t) => matchSpan(t, new RegExp(`(?<!${NOT_BEFORE}(?:avec|à|a|pour|chez|sans|sur|dans|de|en) )${NOT_BEFORE}qui (?:j'|je|tu|il|elle|on|nous|vous|ils|elles)\\b`, 'i')),
+    pattern: new RegExp(`(?<!${NOT_BEFORE}(?:avec|à|a|pour|chez|sans|sur|dans|de|en) )${NOT_BEFORE}qui (?:j'|je|tu|il|elle|on|nous|vous|ils|elles)\\b`, 'i'),
     buildDiagnostic: (q) => `You wrote "${q}" — qui is for subjects (qui + verb). If a personal pronoun follows, use que instead: c'est le film que j'ai vu.`,
     correction: "que",
-  },
-  {
+  }),
+  patternRule({
     id: "comp_meilleur",
     theme: "COMPARATIVE", severity: "major",
-    test: (t) => /\bplus bon\b/i.test(t),
-    capture: (t) => matchSpan(t, /\bplus bon\b/i),
+    pattern: /\bplus bon\b/i,
     buildDiagnostic: (q) => `You wrote "${q}" — bon has an irregular comparative: meilleur (just like English 'more good' → 'better'). Never say 'plus bon'.`,
     correction: "meilleur(e)",
-  },
-  {
+  }),
+  patternRule({
     id: "comp_mieux",
     theme: "COMPARATIVE", severity: "major",
-    test: (t) => /\bplus bien\b/i.test(t),
-    capture: (t) => matchSpan(t, /\bplus bien\b/i),
+    pattern: /\bplus bien\b/i,
     buildDiagnostic: (q) => `You wrote "${q}" — bien (adverb) has the irregular comparative mieux ('better'). Never say 'plus bien'.`,
     correction: "mieux",
-  },
-  {
+    rewrite: (m) => keepLeadingCase(m, 'mieux'),
+  }),
+  patternRule({
     id: "dem_cet",
     theme: "DEMONSTRATIVE", severity: "minor",
-    test: (t) => new RegExp(`\\bce (hôtel|homme|ordinateur|été|ami|avion)${NOT_AFTER}`, 'i').test(t),
-    capture: (t) => matchSpan(t, new RegExp(`\\bce (hôtel|homme|ordinateur|été|ami|avion)${NOT_AFTER}`, 'i')),
+    pattern: new RegExp(`\\bce (hôtel|homme|ordinateur|été|ami|avion)${NOT_AFTER}`, 'i'),
     buildDiagnostic: (q) => `You wrote "${q}" — masculine ce becomes cet before a vowel or mute h. This is for phonetic ease: cet hôtel, cet homme.`,
     correction: "cet …",
-  },
+    rewrite: (m) => keepLeadingCase(m, m.replace(/^ce\s+/i, 'cet ')),
+  }),
 ];
+
+export const GRAMMAR_RULES: GrammarRule[] = [...ORIGINAL_GRAMMAR_RULES, ...EXTRA_GRAMMAR_RULES];
 
 const STYLE_UPGRADES = [
   { detect: (t: string) => /^C'est (important|primordial|crucial|essentiel|bien|intéressant)\b/i.test(t), upgrade: "Ce qui est $1, c'est que…", label: "Cleft Sentence",       benefit: "Sophisticated emphasis." },
@@ -625,12 +620,16 @@ function _detectFillers(t: string) {
  */
 function _buildImprovedAnswer(
   transcript: string,
-  fired: { rule: GrammarRule; captured: CapturedSpan | null }[],
+  fired: { rule: GrammarRule; captured: CapturedSpan | null; override?: { span: CapturedSpan; replacement: string } }[],
 ): string | null {
   if (fired.length === 0) return null;
 
   const applicable: { span: CapturedSpan; replacement: string }[] = [];
-  for (const { rule, captured } of fired) {
+  for (const { rule, captured, override } of fired) {
+    if (override) {
+      applicable.push(override);
+      continue;
+    }
     if (!rule.rewrite || !captured) return null;
     const replacement = rule.rewrite(captured.text);
     if (replacement === null) return null;
@@ -916,6 +915,141 @@ const OFFLINE_PLACEHOLDER_SCORES: FeedbackV2['scores'] = Object.freeze({
   overall: 0, communication: 0, language: 0, fluency: 0,
 });
 
+/** At most this many occurrences of one rule are listed — the lesson is the same each time. */
+const MAX_MATCHES_PER_RULE = 3;
+
+interface RuleMatch {
+  rule: GrammarRule;
+  captured: CapturedSpan;
+  /** The exact fix for this match, when the rule can name it (the rewrite). */
+  exact: string | null;
+  /** What the learner is shown as the correction. */
+  shown: string;
+}
+
+const spansOverlap = (a: { start: number; end: number }, b: { start: number; end: number }) =>
+  a.start < b.end && b.start < a.end;
+
+/**
+ * Every occurrence of every rule, overlap-free. Earlier rules win an overlap;
+ * the improved answer is marked unsafe unless the winner's rewrite is known to
+ * repair the loser's words too (`subsumes`) — an overlap otherwise means two
+ * diagnoses of the same words, and a mechanical rewrite of one would leave
+ * the other in place.
+ */
+function _collectMatches(t: string): { matches: RuleMatch[]; rewriteUnsafe: boolean } {
+  const matches: RuleMatch[] = [];
+  let rewriteUnsafe = false;
+  for (const rule of GRAMMAR_RULES) {
+    const spans = rule.captureAll ? rule.captureAll(t) : [rule.capture?.(t)].filter((x): x is CapturedSpan => !!x);
+    for (const captured of spans.slice(0, MAX_MATCHES_PER_RULE)) {
+      const winner = matches.find((m) => spansOverlap(m.captured, captured));
+      if (winner) {
+        if (!winner.rule.subsumes?.includes(rule.id)) rewriteUnsafe = true;
+        continue;
+      }
+      const exact = rule.rewrite?.(captured.text) ?? null;
+      const shown = rule.correctionFor?.(captured.text) ?? exact ?? rule.correction;
+      matches.push({ rule, captured, exact, shown });
+    }
+  }
+  matches.sort((x, y) => x.captured.start - y.captured.start);
+  return { matches, rewriteUnsafe };
+}
+
+/** English runs the glossary can translate become fixes; the rest become a next step. */
+function _englishIssue(run: EnglishRun, index: number): CoachingIssue {
+  const span = { start: run.start, end: run.end, severity: 'major' as const, category: 'vocabulary' as const };
+  const id = index === 0 ? 'english_words' : `english_words:${index + 1}`;
+  return {
+    id,
+    category: 'vocabulary',
+    severity: 'major',
+    quote: run.text,
+    span: { ...span, issueId: id },
+    diagnostic: `"${run.text}" is English — keep the whole answer in French: ${run.french}.`,
+    correction: run.french ?? '',
+    marksImpact: 1,
+    themeLabel: 'English words',
+    teachMe: {
+      rule: 'Keep the whole answer in French.',
+      why: "Switching to English for a word you don't have is natural, but the examiner can only credit French. If a word won't come, say it another way with words you know.",
+      examples: [
+        { fr: run.french ?? '', en: run.text },
+        { fr: 'Je ne sais pas le mot, mais c\'est un endroit où on achète du pain.', en: "I don't know the word, but it's a place where you buy bread." },
+      ],
+    },
+    evidence: run.text,
+    sourceWords: run.text.split(/\s+/),
+    confidence: 0.85,
+  };
+}
+
+/** The first sentence of the model answer — a real French example for a mostly-English answer. */
+function _firstSentence(text: string | undefined): string | null {
+  const first = (text ?? '').trim().split(/(?<=[.!?])\s+/)[0]?.trim();
+  return first ? first : null;
+}
+
+/** First `n` words of a span, as written (a quote must be a verbatim slice). */
+function _leadingWords(transcript: string, start: number, end: number, n: number): string {
+  const slice = transcript.slice(start, end);
+  const m = new RegExp(`^\\S+(?:\\s+\\S+){0,${n - 1}}`).exec(slice);
+  return m ? m[0] : slice;
+}
+
+/**
+ * A mostly-English answer gets no grammar checks (there is little French to
+ * check) and no praise for its "clearest sentence" — it gets one honest
+ * fix: say it in French, with the model answer's first sentence as the
+ * example when the question has one.
+ */
+function _buildMostlyEnglishResult(transcript: string, question: Question, runs: EnglishRun[], wordCount: number): FeedbackV2 {
+  const first = runs[0];
+  const quote = first ? _leadingWords(transcript, first.start, first.end, 8) : transcript.trim();
+  const example = _firstSentence(question.modelAnswer);
+  const issues: CoachingIssue[] = [];
+  if (first && example) {
+    const start = first.start;
+    issues.push({
+      id: 'english_answer',
+      category: 'vocabulary',
+      severity: 'major',
+      quote,
+      span: { start, end: start + quote.length, severity: 'major', category: 'vocabulary', issueId: 'english_answer' },
+      diagnostic: 'Most of this answer was in English. Answer in French — short, simple sentences are a fine place to start.',
+      correction: example,
+      marksImpact: 2,
+      themeLabel: 'English words',
+      evidence: quote,
+      confidence: 0.85,
+    });
+  }
+  const demandLadder = _buildDemandLadder(question);
+  return {
+    responseTier: classifyTier(transcript),
+    scores: { ...OFFLINE_PLACEHOLDER_SCORES },
+    unscored: 'no_llm_offline',
+    grammar: { critical: [], polish: [] },
+    vocabulary: [],
+    style: [],
+    fillers: [],
+    wordCount,
+    schemaVersion: 2,
+    encouragement: `I heard mostly English: « ${quote} ». Let's get that into French.`,
+    biggest_opportunity:
+      'Answer in French, even if it is simpler than what you wanted to say: two or three short French sentences beat a long answer in English.',
+    issues,
+    topPriorityIssueId: issues[0]?.id,
+    strengths: [],
+    vocabularyV2: [],
+    avoidanceReport: [],
+    transcriptAnnotations: issues.flatMap((i) => (i.span ? [i.span] : [])),
+    pronunciation: { score: null, issues: [] },
+    ...(demandLadder.length > 0 ? { expansionLevels: demandLadder } : {}),
+  };
+}
+
 export function evaluate(transcript: string, question: Question): FeedbackV2 {
   const tier = classifyTier(transcript);
   if (tier === 0) return buildTier0Result();
@@ -923,26 +1057,49 @@ export function evaluate(transcript: string, question: Question): FeedbackV2 {
 
   const t = transcript;
   const wordCount = t.trim().split(/\s+/).filter(Boolean).length;
+
+  const english = checkEnglish(t);
+  if (english.mostlyEnglish) {
+    return applyQualityGate(_buildMostlyEnglishResult(t, question, english.runs, wordCount), t);
+  }
+
   const fillers = _detectFillers(t);
 
-  // Detect fired rules and extract quotes
-  const firedRules = GRAMMAR_RULES.filter(rule => rule.test(t));
-  const allErrors = firedRules.map(rule => {
-    const captured = rule.capture?.(t) ?? null;
-    return {
-      theme: THEMES[rule.theme].label,
-      themeKey: rule.theme,
-      severity: rule.severity,
-      diagnostic: rule.buildDiagnostic
-        ? (captured ? rule.buildDiagnostic(captured.text) : THEMES[rule.theme].desc)
-        : THEMES[rule.theme].desc,
-      correction: rule.correction,
-      quote: captured?.text ?? '',
-      captured,
-      rule,
-      ruleId: rule.id,
-    };
+  // Every occurrence of every rule; a slip the learner repaired straight away
+  // (« je aime, pardon, j'aime ») is credited, not listed as a mistake.
+  const { matches, rewriteUnsafe } = _collectMatches(t);
+  const selfCorrections: SelfCorrection[] = [];
+  // In the improved answer a repaired slip is simply left out: « je aime,
+  // pardon, j'aime le sport » becomes « j'aime le sport ».
+  const repairs = new Map<RuleMatch, { span: CapturedSpan; replacement: string }>();
+  const errors = matches.filter((m) => {
+    if (!m.exact) return true;
+    const fixed = findSelfCorrection(m.captured.text, m.exact, t);
+    // The repair must come after the slip: when the fix only deletes words
+    // (« veux de visiter » → « veux visiter »), the slip's own last words
+    // would otherwise read as its repair.
+    const repairAt = fixed ? t.indexOf(fixed.repair, m.captured.end) : -1;
+    if (!fixed || repairAt === -1) return true;
+    selfCorrections.push(fixed);
+    const end = repairAt + fixed.repair.length;
+    repairs.set(m, {
+      span: { text: t.slice(m.captured.start, end), start: m.captured.start, end },
+      replacement: keepLeadingCase(m.captured.text, fixed.repair),
+    });
+    return false;
   });
+
+  const allErrors = errors.map((m) => ({
+    theme: THEMES[m.rule.theme].label,
+    themeKey: m.rule.theme,
+    severity: m.rule.severity,
+    diagnostic: m.rule.buildDiagnostic ? m.rule.buildDiagnostic(m.captured.text) : THEMES[m.rule.theme].desc,
+    correction: m.shown,
+    quote: m.captured.text,
+    captured: m.captured,
+    rule: m.rule,
+    ruleId: m.rule.id,
+  }));
 
   const style = STYLE_UPGRADES
     .filter(u => u.detect(t))
@@ -956,10 +1113,15 @@ export function evaluate(transcript: string, question: Question): FeedbackV2 {
     .slice(0, 3)
     .map(({ basic, upgrade }) => ({ basic, upgrade }));
 
-  // Build v2 CoachingIssues with enriched teachMe from TEACHME_LIBRARY
-  const issues: CoachingIssue[] = allErrors.map((err) => {
+  // One CoachingIssue per occurrence (ids stay the rule id for the first, so
+  // existing lookups by rule id keep working), each with its own lesson.
+  const seenPerRule = new Map<string, number>();
+  const grammarIssues: CoachingIssue[] = allErrors.map((err) => {
     const themeKey = err.themeKey;
     const libraryEntry = TEACHME_LIBRARY[err.ruleId] ?? {};
+    const n = (seenPerRule.get(err.ruleId) ?? 0) + 1;
+    seenPerRule.set(err.ruleId, n);
+    const id = n === 1 ? err.ruleId : `${err.ruleId}:${n}`;
 
     const baseTeachMe: TeachMe = {
       rule: THEMES[themeKey]?.desc ?? err.diagnostic,
@@ -970,31 +1132,34 @@ export function evaluate(transcript: string, question: Question): FeedbackV2 {
       examinerNote: libraryEntry.examinerNote,
     };
 
-    // High confidence if we captured the actual quote; medium if quote is empty
-    const confidence = err.quote ? 0.95 : 0.70;
     const category = THEME_TO_CATEGORY[themeKey] ?? 'grammar';
     const severity = err.severity === 'major' ? 'major' : 'minor';
 
     return {
-      id: err.ruleId,
+      id,
       category,
       severity,
       quote: err.quote,
       // Carries the regex match's own offset (docs Stage 4 item 4) so
       // _buildTranscriptAnnotations never has to re-find the quote via
       // indexOf — the offset is known at match time, never guessed.
-      span: err.captured
-        ? { start: err.captured.start, end: err.captured.end, severity, category, issueId: err.ruleId }
-        : undefined,
+      span: { start: err.captured.start, end: err.captured.end, severity, category, issueId: id },
       diagnostic: err.diagnostic,
       correction: err.correction,
       marksImpact: err.severity === 'major' ? 2 : 1,
       teachMe: baseTeachMe,
+      themeLabel: THEMES[themeKey]?.label,
       evidence: err.quote || undefined,
       sourceWords: err.quote ? err.quote.split(/\s+/) : undefined,
-      confidence,
+      confidence: 0.95,
     } satisfies CoachingIssue;
   });
+
+  // English the glossary can translate is a fix with real French to aim at;
+  // the rest is a next step (never a correction we would have to invent).
+  const translated = english.runs.filter((r) => r.french && !matches.some((m) => spansOverlap(m.captured, r)));
+  const untranslated = english.runs.filter((r) => !r.french);
+  const issues = [...grammarIssues, ...translated.map(_englishIssue)];
 
   // Sort by priority and select top priority
   const sortedIssues = [...issues].sort((a, b) => _priorityScore(b) - _priorityScore(a));
@@ -1003,6 +1168,11 @@ export function evaluate(transcript: string, question: Question): FeedbackV2 {
   // Build transcript annotations and strongest moment
   const transcriptAnnotations = _buildTranscriptAnnotations(sortedIssues);
   const strongest = _findStrongestMoment(transcript, transcriptAnnotations);
+
+  // Quoted strengths never overlap anything flagged — an error, a repaired
+  // slip or English — so the coach never praises words it also corrects.
+  const blocked: BlockedSpan[] = [...matches.map((m) => m.captured), ...english.runs];
+  const strengths = findOfflineStrengths(t, blocked, question).map(({ quote, why }) => ({ quote, why }));
 
   // Build avoidance report for offline path
   const avoidanceReport = detectAvoidance(transcript, question);
@@ -1014,21 +1184,33 @@ export function evaluate(transcript: string, question: Question): FeedbackV2 {
     evidence: transcript.split(/\s+/).find(w => entry.observation.toLowerCase().includes(w.toLowerCase())) ?? undefined,
   }));
 
-  // Build vocabulary V2 entries with evidence tags
-  const rawVocabV2 = _buildVocabV2(transcript);
-  const taggedVocabV2 = rawVocabV2.map(entry => ({
-    ...entry,
-    evidence: entry.basic,
-    sourceWords: entry.basic.split(/\s+/),
-    confidence: 0.88,
-  }));
+  // Vocabulary: words leaned on (used again and again) first, then upgrades.
+  const vocabSeen = new Set<string>();
+  const taggedVocabV2 = [
+    ...buildRepetitionVocab(transcript),
+    ..._buildVocabV2(transcript).map(entry => ({
+      ...entry,
+      evidence: entry.basic,
+      sourceWords: entry.basic.split(/\s+/),
+      confidence: 0.88,
+    })),
+  ]
+    .filter((entry) => {
+      const key = entry.basic.toLowerCase().replace('’', "'").trim();
+      if (vocabSeen.has(key)) return false;
+      vocabSeen.add(key);
+      return true;
+    })
+    .slice(0, 5);
 
-  // All-or-nothing (docs Stage 4 item 3): null when any fired rule can't be
-  // safely rewritten — the individual corrections above still ship regardless.
-  const improvedAnswer = _buildImprovedAnswer(
-    transcript,
-    allErrors.map(e => ({ rule: e.rule, captured: e.captured })),
-  );
+  // All-or-nothing (docs Stage 4 item 3): null when any detected error can't
+  // be safely rewritten — including English left in the answer — and the
+  // individual corrections above still ship regardless. A repaired slip is
+  // rewritten too, so the "better" version carries no error at all.
+  const improvedAnswer =
+    rewriteUnsafe || translated.length > 0 || untranslated.length > 0
+      ? null
+      : _buildImprovedAnswer(transcript, matches.map(m => ({ rule: m.rule, captured: m.captured, override: repairs.get(m) })));
 
   // docs Stage 4 item 5: L1 demand verdict only — never a fabricated always-on prompt.
   const biggestOpportunity = _buildOfflineOpportunity(transcript, question);
@@ -1037,13 +1219,22 @@ export function evaluate(transcript: string, question: Question): FeedbackV2 {
   // question has no demands/keyVocab to build frames from.
   const demandLadder = _buildDemandLadder(question);
 
+  // Concrete next steps for this question, phrased as invitations to add
+  // something — a detector miss is never reported as a failure.
+  const nextSteps = buildNextSteps(transcript, question, untranslated);
+
+  const grammarItem = (e: (typeof allErrors)[number]) => ({ theme: e.theme, severity: e.severity, msg: e.diagnostic, diagnostic: e.diagnostic, correction: e.correction });
+  // One grammar item per rule (its first occurrence): these feed skill
+  // evidence, which records that a rule fired, not how often.
+  const firstPerRule = allErrors.filter((e, i) => allErrors.findIndex((o) => o.ruleId === e.ruleId) === i);
+
   const result: FeedbackV2 = {
     responseTier: tier,
     scores: { ...OFFLINE_PLACEHOLDER_SCORES },
     unscored: 'no_llm_offline',
     grammar: {
-      critical: allErrors.filter(e => e.severity === "major").slice(0, 4).map(e => ({ theme: e.theme, severity: e.severity, msg: e.diagnostic, diagnostic: e.diagnostic, correction: e.correction })),
-      polish:   allErrors.filter(e => e.severity === "minor").slice(0, 3).map(e => ({ theme: e.theme, severity: e.severity, msg: e.diagnostic, diagnostic: e.diagnostic, correction: e.correction })),
+      critical: firstPerRule.filter(e => e.severity === "major").slice(0, 4).map(grammarItem),
+      polish:   firstPerRule.filter(e => e.severity === "minor").slice(0, 3).map(grammarItem),
     },
     vocabulary,
     style,
@@ -1057,7 +1248,10 @@ export function evaluate(transcript: string, question: Question): FeedbackV2 {
     topPriorityIssueId: topPriorityIssue?.id,
     strongestMomentSpan: strongest.span,
     strongestMomentExplanation: strongest.explanation,
+    ...(strengths.length > 0 ? { strengths } : {}),
+    ...(selfCorrections.length > 0 ? { selfCorrections } : {}),
     ...(biggestOpportunity !== undefined ? { biggest_opportunity: biggestOpportunity } : {}),
+    ...(nextSteps.length > 0 ? { expansion_ideas: nextSteps } : {}),
     vocabularyV2: taggedVocabV2,
     avoidanceReport: taggedAvoidance,
     transcriptAnnotations,

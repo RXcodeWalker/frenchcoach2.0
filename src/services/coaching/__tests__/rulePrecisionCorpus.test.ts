@@ -1,5 +1,5 @@
 // Stage 4 item 1 (docs/architecture — Learn-mode coach feedback plan): a
-// precision corpus for the 22 offline GRAMMAR_RULES, separate from
+// precision corpus for every offline GRAMMAR_RULES entry (both rule sets), separate from
 // grammarRules.test.ts's smaller per-rule spot-checks. This file reports
 // precision/recall over a larger labelled corpus and gates future rule work —
 // "no new rule lands without demonstrated precision on that corpus" — by
@@ -66,6 +66,38 @@ const FIRE_CASES: FireCase[] = [
   { ruleId: 'comp_meilleur', transcript: 'ce restaurant est plus bon que l\'autre' },
   { ruleId: 'comp_mieux', transcript: 'je parle plus bien que mon frère' },
   { ruleId: 'dem_cet', transcript: 'ce hôtel est vraiment magnifique' },
+  // prep_jouer now covers every form of jouer, not only the infinitive.
+  { ruleId: 'prep_jouer', transcript: 'je joue le tennis avec mon frère' },
+  { ruleId: 'prep_jouer', transcript: 'on jouait les foot le samedi' },
+  // ── Second rule set (offline/extraRules.ts) ──
+  { ruleId: 'aux_etre', transcript: 'nous avons arrivé à huit heures' },
+  { ruleId: 'aux_etre', transcript: 'elle a resté à la maison' },
+  { ruleId: 'aux_etre', transcript: 'ils ont parti en vacances' },
+  { ruleId: 'si_conditional', transcript: "si j'aurais plus de temps, je ferais du sport" },
+  { ruleId: 'si_conditional', transcript: 'si je serais riche, je voyagerais' },
+  { ruleId: 'el_si_il', transcript: 'si il pleut, je reste à la maison' },
+  { ruleId: 'prep_jouer_instrument', transcript: 'je joue le piano depuis cinq ans' },
+  { ruleId: 'prep_jouer_instrument', transcript: 'ma sœur joue à la guitare' },
+  { ruleId: 'adj_after_etre', transcript: 'ma mère est très gentil avec moi' },
+  { ruleId: 'adj_after_etre', transcript: 'mes parents sont content de moi' },
+  { ruleId: 'adj_after_etre', transcript: 'elles sont sportif' },
+  { ruleId: 'gen_det', transcript: "j'habite avec mon mère et ma frère" },
+  { ruleId: 'gen_det', transcript: 'je fais de la sport le week-end' },
+  { ruleId: 'gen_det', transcript: 'on va au plage en été' },
+  { ruleId: 'neg_missing_ne_more', transcript: "c'est pas facile pour moi" },
+  { ruleId: 'neg_missing_ne_more', transcript: 'il y a pas de piscine dans ma ville' },
+  { ruleId: 'prep_country_city', transcript: "je suis allé à Espagne l'année dernière" },
+  { ruleId: 'prep_country_city', transcript: "j'habite en Londres avec ma famille" },
+  { ruleId: 'prep_country_city', transcript: 'je voudrais aller à Japon' },
+  { ruleId: 'prep_verb_de_inf', transcript: 'je veux de devenir médecin' },
+  { ruleId: 'prep_verb_de_inf', transcript: "j'aime de lire le soir" },
+  { ruleId: 'refl_missing', transcript: 'je lève à sept heures le matin' },
+  { ruleId: 'refl_missing', transcript: 'nous couchons tard le week-end' },
+  { ruleId: 'comp_plus_meilleur', transcript: 'ce film est plus meilleur que le livre' },
+  { ruleId: 'ang_tres_beaucoup', transcript: "j'aime très beaucoup le sport" },
+  { ruleId: 'ang_interesse_dans', transcript: 'je suis intéressée dans la musique' },
+  { ruleId: 'ang_depend_sur', transcript: 'ça dépend sur le temps' },
+  { ruleId: 'neg_missing_ne', transcript: "j'aime pas les maths" },
 ];
 
 // ── SILENT corpus: correct French adjacent to what each rule pattern-matches ─
@@ -111,6 +143,36 @@ const SILENT_CASES: SilentCase[] = [
   { guards: 'general', transcript: "j'aime beaucoup lire des romans historiques" },
   { guards: 'general', transcript: 'ce que fait mon père le week-end est intéressant' },
   { guards: 'general', transcript: "nous avons mangé au restaurant hier soir" },
+  // ── Second rule set: the correct French right next to each pattern ──
+  { guards: 'aux_etre', transcript: "nous sommes arrivés à huit heures" },
+  { guards: 'aux_etre', transcript: "j'ai passé une semaine à la plage" },
+  { guards: 'si_conditional', transcript: "je ne sais pas si je pourrais venir demain" },
+  { guards: 'si_conditional', transcript: "je me demande si elle aimerait ce cadeau" },
+  { guards: 'el_si_il', transcript: "s'il pleut, je reste à la maison" },
+  { guards: 'el_si_il', transcript: 'ainsi il a gagné le match' },
+  { guards: 'prep_jouer_instrument', transcript: 'je joue du piano et de la guitare' },
+  { guards: 'adj_after_etre', transcript: 'ma mère est très gentille avec moi' },
+  { guards: 'adj_after_etre', transcript: 'mes parents sont contents et elles sont sportives' },
+  { guards: 'adj_after_etre', transcript: 'elle est grand-mère depuis un an' },
+  { guards: 'adj_after_etre', transcript: 'mes amis sont français et ils sont heureux' },
+  { guards: 'gen_det', transcript: "j'habite avec ma mère et mon frère dans une maison" },
+  { guards: 'gen_det', transcript: 'il la regarde et elle le cuisine bien' },
+  { guards: 'gen_det', transcript: "mon amie et moi allons à la plage" },
+  { guards: 'gen_det', transcript: "je fais du sport et je vais à la piscine" },
+  { guards: 'neg_missing_ne_more', transcript: "ce n'est pas facile et il n'y a pas de piscine" },
+  { guards: 'neg_missing_ne_more', transcript: "c'est plus facile en été" },
+  { guards: 'prep_country_city', transcript: "je suis allé en Espagne puis à Londres et au Japon" },
+  { guards: 'prep_verb_de_inf', transcript: "je veux de l'eau et j'ai décidé de jouer" },
+  { guards: 'prep_verb_de_inf', transcript: 'je préfère de loin le cinéma' },
+  { guards: 'refl_missing', transcript: 'je me lève à sept heures' },
+  { guards: 'refl_missing', transcript: 'nous nous couchons tard le week-end' },
+  { guards: 'refl_missing', transcript: 'je réveille souvent ma sœur' },
+  { guards: 'refl_missing', transcript: "je lève la main en classe" },
+  { guards: 'comp_plus_meilleur', transcript: 'ce film est meilleur que le livre' },
+  { guards: 'ang_tres_beaucoup', transcript: "j'aime beaucoup le sport" },
+  { guards: 'ang_interesse_dans', transcript: 'je suis intéressée par la musique' },
+  { guards: 'ang_depend_sur', transcript: 'ça dépend du temps' },
+  { guards: 'neg_missing_ne', transcript: "je ne l'aime pas et il ne nous a pas parlé" },
 ];
 
 function firedRuleIds(transcript: string): string[] {
@@ -150,7 +212,7 @@ describe('Rule precision corpus (docs Stage 4 item 1)', () => {
     const precision = truePositives / (truePositives + falsePositives);
     const recall = truePositives / (truePositives + falseNegatives);
 
-    // Baseline floor for the current 22 rules — a new rule that drops either
+    // Baseline floor for the current rule set — a new rule that drops either
     // metric below this bar must not land without investigation (docs Stage 4
     // item 1: "no new rule lands without demonstrated precision").
     expect(precision).toBeGreaterThanOrEqual(0.95);
