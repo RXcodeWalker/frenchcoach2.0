@@ -3,6 +3,7 @@ import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
 import { MAX_STORED_SESSIONS, type StoredSession } from '../analytics/analyticsService';
 import type { ExamAreaMarks, Session } from '../../types';
 import { captureError } from '../telemetry/telemetryService';
+import { localDayBefore, localDayOf } from '../../lib/localDay';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -248,27 +249,23 @@ function rowToStoredSession(row: CloudSessionRow): StoredSession {
 
 // ── Streak on hydration ────────────────────────────────────────────────────────
 
-function utcDay(offsetDays = 0): string {
-  return new Date(Date.now() - offsetDays * 86400000).toISOString().slice(0, 10);
-}
-
 /**
  * The streak the session history alone proves: consecutive practice days
  * ending today or yesterday (a streak not yet extended today is still alive).
- * Same UTC day keys as analyticsService.updateStreak. Exported for tests.
+ * Days are the learner's local calendar days, like analyticsService.updateStreak
+ * (lib/localDay.ts). Exported for tests.
  */
 export function streakFromSessions(sessions: StoredSession[]): { count: number; lastDate: string | null } {
-  const days = Array.from(new Set(sessions.map(s => s.date.slice(0, 10)))).sort().reverse();
+  const days = Array.from(new Set(sessions.map(s => localDayOf(s.date)).filter(Boolean))).sort().reverse();
   const latest = days[0];
-  if (!latest || (latest !== utcDay(0) && latest !== utcDay(1))) return { count: 0, lastDate: null };
+  if (!latest || (latest !== localDayBefore(0) && latest !== localDayBefore(1))) return { count: 0, lastDate: null };
   let count = 0;
   let cursor = latest;
   for (const day of days) {
     if (day !== cursor) break;
     count++;
-    const d = new Date(`${cursor}T00:00:00.000Z`);
-    d.setUTCDate(d.getUTCDate() - 1);
-    cursor = d.toISOString().slice(0, 10);
+    const [y, m, d] = cursor.split('-').map(Number);
+    cursor = localDayBefore(1, new Date(y, m - 1, d, 12));
   }
   return { count, lastDate: latest };
 }
