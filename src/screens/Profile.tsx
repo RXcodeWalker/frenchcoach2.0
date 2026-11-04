@@ -43,6 +43,8 @@ import { getActiveGoal, getCoachProfile, daysUntilExam } from '../services/coach
 import { achievementTiles, type AchievementCounts } from '../features/profile/achievementDisplay';
 import { achievementHistoryCounts } from '../services/coach/achievementContextBuilder';
 import { TrackSwitch } from '../features/junior/TrackSwitch';
+import { ParentLinksCard } from '../features/parentView/ParentLinksCard';
+import { resolveFeatureStatus } from '../config/featureFlags';
 import { CORE_ONLY, JUNIOR_TRACK_SELECTABLE } from '../config/launchScope';
 import { ReplayTourButton } from '../features/tour/ReplayTourButton';
 import { SendFeedbackRow } from '../features/contact/SendFeedbackRow';
@@ -575,6 +577,8 @@ export function Profile() {
                 </span>
               </div>
             </motion.section>
+
+            {user && !isGuest && state.learnerTrack !== 'junior' && resolveFeatureStatus('parentView') === 'live' && <ParentLinksCard />}
           </div>
 
           {/* ── Right column: grouped settings ──────────────────────────── */}

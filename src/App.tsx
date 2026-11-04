@@ -7,6 +7,7 @@ import { NavRailContext } from './components/layout/shellChrome';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { PublicRoutes } from './PublicRoutes';
+import { ParentView } from './screens/ParentView';
 import { XPAnimations } from './components/XPAnimation';
 import { SfxBridge } from './components/SfxBridge';
 import { useSfxSilence } from './services/sound/useSfx';
@@ -220,6 +221,13 @@ function AppShell() {
   useEffect(() => {
     if (user && isGuest) exitGuestMode();
   }, [user, isGuest, exitGuestMode]);
+
+  // The parent view is a standalone read-only page opened from a shared link
+  // (`/parent#<token>`): no account needed, and it must not be caught by the
+  // auth, age-band, invite or onboarding gates below.
+  if (location.pathname === '/parent') {
+    return <ParentView />;
+  }
 
   if (loading) {
     return (
