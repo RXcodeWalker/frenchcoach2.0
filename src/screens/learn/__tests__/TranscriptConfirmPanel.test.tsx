@@ -121,4 +121,29 @@ describe('TranscriptConfirmPanel', () => {
     setup(liveOnly(''));
     expect(screen.getByText('Nothing was transcribed.')).toBeTruthy();
   });
+
+  it('does not underline a same-sound reading the sentence already settles', () => {
+    const heard =
+      "Un professeur que j'admire, c'est mon professeur de sciences. Il est très passionnant quand il donne des leçons. En plus, il toujours m'encourage à étudier et à travailler dur. Enfin, grâce à lui, j'ai obtenu de bonnes notes dans sa matière.";
+    const other = heard.replace("m'encourage", 'mon courage').replace('obtenu de bonnes', 'obtenu des bonnes');
+    const { onConfirm } = setup(whisper(heard, other));
+    expect(screen.queryAllByTestId('uncertain-word')).toHaveLength(0);
+    expect(screen.queryByText(/weren’t sure/i)).toBeNull();
+    expect(screen.getByTestId('heard-text').textContent).toContain("m'encourage");
+    expect(screen.getByTestId('heard-text').textContent).toContain('de bonnes notes');
+    fireEvent.click(screen.getByText('Use this'));
+    expect(onConfirm).toHaveBeenCalledWith({ text: expect.stringContaining("m'encourage"), edited: false, source: 'whisper' });
+  });
+
+  it('fills in the fitting reading when the other recogniser was the one who had it', () => {
+    const { onConfirm } = setup(whisper('il mon courage à étudier et j\'ai des bonnes notes', "il m'encourage à étudier et j'ai de bonnes notes"));
+    expect(screen.queryAllByTestId('uncertain-word')).toHaveLength(0);
+    expect(screen.getByTestId('heard-text').textContent).toBe("il m'encourage à étudier et j'ai de bonnes notes");
+    fireEvent.click(screen.getByText('Use this'));
+    expect(onConfirm).toHaveBeenCalledWith({
+      text: "il m'encourage à étudier et j'ai de bonnes notes",
+      edited: false,
+      source: 'whisper',
+    });
+  });
 });

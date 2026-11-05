@@ -2,7 +2,8 @@ import { Fragment, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { enter } from '../../components/motion/variants';
 import { Button } from '../../components/ui/Button';
-import { alignRecognisers, applyAlternatives, swappedWords } from '../../domain/transcription/alignRecognisers';
+import { applyAlternatives, swappedWords } from '../../domain/transcription/alignRecognisers';
+import { resolveObviousHearings } from '../../domain/transcription/obviousHearing';
 import { tokenize } from '../../domain/igcse/stt/homophones/text';
 import type { AnswerTranscription } from '../../features/learn/answerTranscription';
 
@@ -27,13 +28,15 @@ const CARD = 'flex flex-col gap-4 rounded-card border border-hairline bg-surface
 /**
  * "Did we hear you right?" (transcription-accuracy plan, Phase 3). Shows the
  * primary transcript with the words the two recognisers disagreed on
- * underlined. Tapping one offers the other reading or a re-record. There is no
- * free-text editing: the student can only pick between what the recognisers
- * actually heard.
+ * underlined. A same-sound reading the sentence already settles
+ * (« m'encourage » / « mon courage », « de » / « des ») is filled in first
+ * and is not underlined. Tapping one that remains offers the other reading
+ * or a re-record. There is no free-text editing: the student can only pick
+ * between what the recognisers actually heard.
  */
 export function TranscriptConfirmPanel({ checking, transcription, onConfirm, onRerecord }: Props) {
   const alignment = useMemo(
-    () => (transcription ? alignRecognisers(transcription.primaryText, transcription.secondaryText, { spokenNumbers: true }) : null),
+    () => (transcription ? resolveObviousHearings(transcription.primaryText, transcription.secondaryText) : null),
     [transcription],
   );
   const [chosen, setChosen] = useState<ReadonlySet<number>>(new Set());

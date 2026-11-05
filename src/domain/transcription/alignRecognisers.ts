@@ -14,7 +14,8 @@
  *  - Category B (audible, accent-confusable pairs: un/en, ont/sont…) is a
  *    disagreement of kind `nearHomophone`. Any other difference is `different`.
  *  - It never decides which recogniser was right. It reports the span and both
- *    readings; the caller applies the policy (Learn: the student taps).
+ *    readings; the caller applies the policy (Learn: the student taps, after
+ *    obviousHearing.ts has dropped a same-sound reading the sentence settles).
  *
  * Pure and deterministic. Hyphenated words are compared part by part
  * ("peut-être" vs "peut être" agree) and every span is widened to whole
