@@ -22,7 +22,7 @@ them. You only build and upload a new Android version when something in `android
 
 ### 1. Decide the package id (before the first upload — it can never change after)
 
-`android/app-config.json` → `packageId` is `me.beyondthebasics.french`. Change it now if you
+`android/app-config.json` → `packageId` is `french.beyondthebasics.me`. Change it now if you
 want something else; after the first upload to Play it is permanent.
 
 ### 2. Create the upload key and put it in GitHub secrets

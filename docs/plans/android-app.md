@@ -45,9 +45,9 @@ These have lead times longer than the build, so they go first.
    a **closed test with at least 12 testers opted in for 14 consecutive days** before it can publish
    to production. That is the longest item on this plan. Line up 12+ real testers (classmates, a
    study group) now. An organisation account (needs a D-U-N-S number) skips this rule.
-3. **D2 — package name**, e.g. `me.beyondthebasics.french`. Permanent: it can never change after the
+3. **D2 — package name**, e.g. `french.beyondthebasics.me`. Permanent: it can never change after the
    first upload.
-4. **D3 — app name.** The web manifest says "Français AI"; the docs say French Coach. Pick one.
+4. **D3 — app name: decided — "French Coach"** (owner, 2026-11-05) for the Android app. The website still says "Français AI".
 5. **Store gates that are not optional** (these are Play requirements, not the deferred legal work —
    the owner directive defers privacy *engineering*, but Play will not accept a listing without them):
    - a privacy-policy URL;

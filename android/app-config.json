@@ -1,9 +1,9 @@
 {
-  "packageId": "me.beyondthebasics.french",
+  "packageId": "french.beyondthebasics.me",
   "host": "french.beyondthebasics.me",
   "launchPath": "/?utm_source=android_app&utm_medium=twa",
-  "appName": "Français AI",
-  "launcherName": "Français AI",
+  "appName": "French Coach",
+  "launcherName": "French Coach",
   "versionCode": 1,
   "versionName": "1.0.0",
   "colors": {
