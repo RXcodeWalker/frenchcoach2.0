@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, BookOpen, Check, MessagesSquare, Mic, Sparkles } from 'lucide-react';
@@ -87,8 +87,8 @@ export function ExamGuide() {
           {thenSim && (
             <div className="flex flex-col gap-3 rounded-card border border-action bg-action-soft p-4 sm:flex-row sm:items-center" data-testid="guide-first-sim">
               <p className="flex-1 text-body-s text-ink">
-                Before your first Exam Sim: a few minutes here shows you how the exam runs and how it’s marked. You’ll only
-                see this once.
+                Before your first Exam Sim: a few minutes here shows you how the exam runs and how it’s marked. The practice
+                exercises are optional, and you’ll only see this once.
               </p>
               <Button variant="secondary" size="sm" onClick={startSim} className="shrink-0 self-start sm:self-center" data-testid="guide-skip-to-sim">
                 Skip to the exam
@@ -112,7 +112,9 @@ export function ExamGuide() {
             </span>
             <h2 id="guide-chapter-title" className="exam-serif text-display-m text-ink">{chapter.title}</h2>
           </header>
-          <ChapterBody id={chapter.id} />
+          <PracticeOptional.Provider value={thenSim}>
+            <ChapterBody id={chapter.id} />
+          </PracticeOptional.Provider>
         </motion.section>
 
         <nav aria-label="Chapters" className="flex items-center justify-between gap-3 border-t border-hairline pt-5">
@@ -202,6 +204,33 @@ function ChapterBody({ id }: { id: ChapterId }) {
 
 // ── Building blocks ──────────────────────────────────────────────────────────
 
+/** True on the first-time visit before an Exam Sim: practice exercises start folded, so the guide stays short. */
+const PracticeOptional = createContext(false);
+
+/** A practice exercise. Optional (folded behind "Try it") on the first-time visit, open otherwise. */
+function Practice({ title, intro, children }: { title?: string; intro?: string; children: ReactNode }) {
+  const optional = useContext(PracticeOptional);
+  const [open, setOpen] = useState(false);
+  const body =
+    optional && !open ? (
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-dashed border-hairline-strong p-4" data-testid="guide-practice-folded">
+        <span className="text-body-s text-ink-muted">Optional practice · about a minute</span>
+        <Button variant="secondary" size="sm" onClick={() => setOpen(true)} data-testid="guide-practice-open">
+          Try it
+        </Button>
+      </div>
+    ) : (
+      children
+    );
+  return title ? (
+    <Block title={title} intro={intro}>
+      {body}
+    </Block>
+  ) : (
+    body
+  );
+}
+
 function Block({ title, intro, children }: { title: string; intro?: ReactNode; children?: ReactNode }) {
   return (
     <section className="flex flex-col gap-3">
@@ -252,9 +281,9 @@ function ExamChapter() {
         preparation it lasts about 10 minutes, in three parts. Tap each part to see what happens.
       </p>
       <PartsTimeline />
-      <Block title="Check: put it in order" intro="Can you remember the running order without looking?">
+      <Practice title="Check: put it in order" intro="Can you remember the running order without looking?">
         <OrderTheExam />
-      </Block>
+      </Practice>
       <Block
         title="Where the topics come from"
         intro="The syllabus groups topics into five areas. Conversation 1 comes from Area A or B, conversation 2 from C, D or E. You find out the exact topic only when the examiner introduces it."
@@ -283,12 +312,12 @@ function MarksChapter() {
       >
         <BandExplorer />
       </Block>
-      <Block
+      <Practice
         title="Which mark is it?"
         intro="Students often mix up Communication and Quality of Language. Sort each thing an examiner listens for into the right one."
       >
         <SortTheMarks />
-      </Block>
+      </Practice>
       <Block title="What level is expected?">
         <p className="text-body-base text-ink-muted">
           Cambridge tells examiners the exam certifies French at level A2 with elements of B1 on the Common European
@@ -324,9 +353,9 @@ function RolePlayChapter() {
       <Block title="Mark it like an examiner" intro="Four answers to four role-play questions. Decide the mark, then see why.">
         <RolePlayMarker />
       </Block>
-      <Block title="Which reply answers it?" intro="The most common way to lose a role-play mark is answering a different question. Pick the reply that does the job.">
+      <Practice title="Which reply answers it?" intro="The most common way to lose a role-play mark is answering a different question. Pick the reply that does the job.">
         <AnswerTheQuestion />
-      </Block>
+      </Practice>
       <Block title="How to get 2 every time">
         <Tips
           items={[
@@ -352,11 +381,13 @@ function ConversationsChapter() {
       <Block title="Build a better answer" intro="Start with a simple answer and level it up one step at a time. Watch what each step adds.">
         <AnswerLadder />
       </Block>
-      <Block title="Spot the time frame" intro="Using several time frames shows range. First, make sure you can recognise them instantly.">
+      <Practice title="Spot the time frame" intro="Using several time frames shows range. First, make sure you can recognise them instantly.">
         <SpotTheTimeFrame />
-      </Block>
+      </Practice>
       <Block title="When you get stuck" intro="Pick a question and tap through what the examiner does if you can’t answer.">
-        <StuckWalkthrough />
+        <Practice>
+          <StuckWalkthrough />
+        </Practice>
         <h4 className="pt-2 text-section text-ink">What it means for your mark</h4>
         <ol className="flex flex-col gap-2">
           {HELP_LADDER.map((h, i) => (
@@ -395,9 +426,9 @@ function AppChapter() {
       <p className="text-body-l text-ink-muted">
         FrenchCoach runs the same exam with Henri as your examiner. Pick the mode that fits what you need today.
       </p>
-      <Block title="What should I do today?" intro="Tap what you want, and see where to go.">
+      <Practice title="What should I do today?" intro="Tap what you want, and see where to go.">
         <ModePicker />
-      </Block>
+      </Practice>
       <Block title="Exam Sim or Coached Practice?">
         <div className="overflow-hidden rounded-card border border-hairline">
           <div className="grid grid-cols-[1fr_1fr_1fr] gap-px bg-hairline text-body-s">

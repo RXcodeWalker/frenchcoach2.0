@@ -92,6 +92,21 @@ describe('ExamGuide', () => {
     expect(screen.getByText('Exam Sim intro')).toBeTruthy();
   });
 
+  it('first-time visit: practice exercises are folded until "Try it"', () => {
+    renderGuide({ thenSim: true });
+    expect(screen.queryByTestId('guide-order')).toBeNull();
+    fireEvent.click(screen.getByTestId('guide-practice-open'));
+    expect(screen.getByTestId('guide-order')).toBeTruthy();
+    fireEvent.click(screen.getByTestId('guide-tab-conversations'));
+    expect(screen.getAllByTestId('guide-practice-folded')).toHaveLength(2);
+    expect(screen.getByTestId('guide-ladder-answer')).toBeTruthy(); // core lesson stays open
+  });
+
+  it('opened from the chooser: practice exercises are open', () => {
+    renderGuide();
+    expect(screen.queryByTestId('guide-practice-folded')).toBeNull();
+  });
+
   it('jumps straight to a chapter from the chapter list', () => {
     renderGuide();
     fireEvent.click(screen.getByTestId('guide-tab-marks'));
