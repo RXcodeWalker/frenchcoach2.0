@@ -265,7 +265,9 @@ function FeedbackContent({
 
       <SnapshotCard feedback={feedback} variant="line" markingLevel={markingLevel} />
       {/* learn-marking §6.1 — Coach style only (the Examiner style never gets a marking level). */}
-      {markingLevel && <LevelNeedsCard feedback={feedback} markingLevel={markingLevel} />}
+      {markingLevel && (
+        <LevelNeedsCard feedback={feedback} markingLevel={markingLevel} transcript={transcript} />
+      )}
 
       {howItSounded ? (
         <HowItSounded

@@ -54,6 +54,28 @@ describe('LevelNeedsCard', () => {
     expect(screen.queryByRole('heading')).toBeNull();
   });
 
+  it('does not quote an example that rewrites the linking word the learner said', () => {
+    const transcript = "Il est très passionné et il m'encourage toujours.";
+    const swapped = "Il est très passionné mais il m'encourage toujours";
+    const levelCheck: LevelCheck = {
+      ...LEVEL_CHECK,
+      needsByLevel: {
+        ...LEVEL_CHECK.needsByLevel,
+        A2: [{
+          ladder: 'L',
+          label: 'Linking your ideas',
+          nextRung: 'A2',
+          text: 'Use simple connectors like mais, parce que or car.',
+          firstStep: false,
+          example: swapped,
+        }],
+      },
+    };
+    render(<LevelNeedsCard feedback={{ ...LADDER, levelCheck }} markingLevel="A2" transcript={transcript} />);
+    expect(screen.getByText('Use simple connectors like mais, parce que or car.')).toBeTruthy();
+    expect(screen.queryByText(swapped)).toBeNull();
+  });
+
   it('renders nothing without a levelCheck or for an ungraded attempt', () => {
     const { container, rerender } = render(<LevelNeedsCard feedback={BASE} markingLevel="B1" />);
     expect(container.textContent).toBe('');

@@ -11,6 +11,7 @@
 
 import { isUnscored } from '../../scoring';
 import type { FeedbackV2 } from '../../../types';
+import { replacesLinkingWord } from './exampleGrounding';
 import type { LadderId, LadderNeed, MarkingLevel, Rung } from './markingLevel';
 
 /** §6.1 — at most this many "needs" items are shown (UNVALIDATED). The backend already caps its list; this is the display's own ceiling. */
@@ -78,11 +79,15 @@ export type LevelNeedsView =
  * §6.1 — the needs card's content for the learner's level. The list is exactly
  * the backend's unreached rungs at that level, in the backend's order
  * (T, O, F, L, A, R). Model-written text is dropped, never rewritten: an item
- * with no text is skipped, and an empty example is shown as no example.
+ * with no text is skipped, an empty example is shown as no example, and an
+ * example that replaces a linking word the student said ("et" rewritten as
+ * "mais") is dropped when the transcript is known. The checklist applies the
+ * same drop before it sends the reply.
  */
 export function buildLevelNeedsView(
   fb: Pick<FeedbackV2, 'unscored' | 'scores' | 'levelCheck'>,
   level: MarkingLevel,
+  transcript?: string,
 ): LevelNeedsView {
   if (isUnscored(fb) || !fb.levelCheck) return { kind: 'none' };
   const raw: readonly LadderNeed[] = fb.levelCheck.needsByLevel[level] ?? [];
@@ -90,7 +95,8 @@ export function buildLevelNeedsView(
   for (const need of raw) {
     const text = need.text.trim();
     if (!text) continue;
-    const example = need.example?.trim() || null;
+    const rawExample = need.example?.trim() || null;
+    const example = rawExample && transcript && replacesLinkingWord(rawExample, transcript) ? null : rawExample;
     items.push({
       ladder: need.ladder,
       label: need.label.trim() || text,

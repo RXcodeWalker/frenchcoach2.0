@@ -15,6 +15,8 @@ interface Props {
   feedback: FeedbackV2;
   /** The learner's marking level. Coach style only: the Examiner style is never given one. */
   markingLevel: MarkingLevel;
+  /** The answer the example was built from. A linking word swapped against it is not shown. */
+  transcript?: string;
 }
 
 // Items settle in one after another; under reduced motion they only fade (no travel).
@@ -30,9 +32,9 @@ const ITEM_FADE = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { du
  * Colour comes from role tokens only (Learn Batch 5 guard): action for the
  * to-do list, progress for a pass, never a raw palette colour.
  */
-export function LevelNeedsCard({ feedback, markingLevel }: Props) {
+export function LevelNeedsCard({ feedback, markingLevel, transcript }: Props) {
   const reduceMotion = useReducedMotion();
-  const view = buildLevelNeedsView(feedback, markingLevel);
+  const view = buildLevelNeedsView(feedback, markingLevel, transcript);
   if (view.kind === 'none') return null;
 
   if (view.kind === 'meets') {
