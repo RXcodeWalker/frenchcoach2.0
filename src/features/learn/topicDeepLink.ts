@@ -1,7 +1,7 @@
-import { TOPICS } from '../../data/gameData';
+import { TOPICS } from '../../data/topics';
 import { LEARN_TOPIC_DEPENDENCIES } from '../../data/learnTopicDependencies';
 import { isLearnTopicUnlocked } from './topicProgress';
-import { isTopicVisible } from './sessionSetup';
+import { isTopicVisible } from './topicVisibility';
 import type { Topic } from '../../types';
 
 export const LEARN_TOPIC_PARAM = 'topic';

@@ -23,11 +23,18 @@ vi.mock('../../persistence/storage', () => ({
   storageRemove: (...args: unknown[]) => storageRemoveMock(...args),
 }));
 
+const cancelMock = vi.fn();
+vi.mock('../../billing/billingClient', () => ({
+  cancelSubscriptionsForDeletion: (...args: unknown[]) => cancelMock(...args),
+}));
+
 import { exportMyData, deleteMyAccount, AccountError } from '../accountService';
 
 beforeEach(() => {
   rpcMock.mockReset();
   storageRemoveMock.mockReset();
+  cancelMock.mockReset();
+  cancelMock.mockResolvedValue(undefined);
   // jsdom doesn't implement these — stub so exportMyData's download step doesn't throw.
   vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:mock'), revokeObjectURL: vi.fn() });
 });
@@ -52,6 +59,21 @@ describe('exportMyData', () => {
 });
 
 describe('deleteMyAccount', () => {
+  it('cancels Premium billing before deleting', async () => {
+    const order: string[] = [];
+    cancelMock.mockImplementationOnce(async () => { order.push('cancel'); });
+    rpcMock.mockImplementationOnce(async () => { order.push('rpc'); return { data: { ok: true }, error: null }; });
+    await deleteMyAccount();
+    expect(order).toEqual(['cancel', 'rpc']);
+  });
+
+  it('still asks the database when cancelling fails, and maps its refusal', async () => {
+    cancelMock.mockRejectedValueOnce(new Error('backend down'));
+    rpcMock.mockResolvedValueOnce({ data: null, error: { message: 'active_subscription' } });
+    await expect(deleteMyAccount()).rejects.toMatchObject({ name: 'AccountError', code: 'active_subscription' });
+    expect(storageRemoveMock).not.toHaveBeenCalled();
+  });
+
   it('calls delete_my_account and resolves on success', async () => {
     rpcMock.mockResolvedValueOnce({ data: { ok: true }, error: null });
     await expect(deleteMyAccount()).resolves.toBeUndefined();

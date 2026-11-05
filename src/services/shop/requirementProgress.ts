@@ -66,7 +66,7 @@ export function computeRequirementProgress(input: RequirementProgressInput): Req
     }
     case 'causeur': {
       const ratio = clampRatio(roleplayCount, 5);
-      return { ratio, label: `${Math.min(roleplayCount, 5)} / 5 roleplays` };
+      return { ratio, label: `${Math.min(roleplayCount, 5)} / 5 role plays` };
     }
     case 'grammaire_maitrisee': {
       const best = bestSkillMastery(beliefSnapshot);
@@ -92,7 +92,7 @@ export function computeRequirementProgress(input: RequirementProgressInput): Req
     }
     case 'drill_master': {
       const ratio = clampRatio(interventions.length, 5);
-      return { ratio, label: `${Math.min(interventions.length, 5)} / 5 interventions` };
+      return { ratio, label: `${Math.min(interventions.length, 5)} / 5 drills` };
     }
     default:
       // examinateur, fluent, perfectionniste, grand_oral — binary, no natural

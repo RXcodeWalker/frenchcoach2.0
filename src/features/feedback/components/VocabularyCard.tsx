@@ -36,19 +36,19 @@ export function VocabularyCard({ feedback }: Props) {
             return (
               <div key={i} className="p-3 rounded-lg surface-recessed">
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-[10px] text-ink-muted line-through">{entry.basic}</span>
-                  <span className={`text-[9px] font-bold ${cfg.color}`}>{cfg.label}</span>
+                  <span className="text-sm text-ink-muted line-through">{entry.basic}</span>
+                  <span className={`text-xs font-bold ${cfg.color}`}>{cfg.label}</span>
                 </div>
                 <div className="space-y-1">
                   {entry.upgrades.map((up, j) => (
-                    <div key={j} className="flex items-start gap-1.5 text-[10px]">
-                      <ChevronRight size={9} className="text-ink-subtle flex-shrink-0 mt-0.5" />
+                    <div key={j} className="flex items-start gap-1.5 text-sm">
+                      <ChevronRight size={14} className="text-ink-subtle flex-shrink-0 mt-0.5" />
                       <span className="text-progress-text font-medium">{up.phrase}</span>
-                      <span className="text-[9px] text-ink-subtle ml-auto">{up.level}</span>
+                      <span className="text-xs text-ink-subtle ml-auto">{up.level}</span>
                     </div>
                   ))}
                   {entry.upgrades[0]?.nuance && (
-                    <p className="text-[9px] text-ink-subtle pl-3.5 italic">{entry.upgrades[0].nuance}</p>
+                    <p className="text-xs text-ink-subtle pl-3.5 italic">{entry.upgrades[0].nuance}</p>
                   )}
                 </div>
               </div>
@@ -60,13 +60,13 @@ export function VocabularyCard({ feedback }: Props) {
           {legacyVocab.map((v, i) => (
             <div key={i} className="p-2.5 rounded-lg surface-recessed space-y-1">
               <div className="flex items-center gap-2">
-                <span className="text-[12px] text-ink-muted">{v.basic}</span>
+                <span className="text-sm text-ink-muted">{v.basic}</span>
                 <ChevronRight size={12} className="text-ink-subtle" aria-label="could be" />
-                <span className="text-[12px] text-progress-text font-medium">{v.upgrade}</span>
+                <span className="text-sm text-progress-text font-medium">{v.upgrade}</span>
               </div>
               {/* How to say it — the backend sends an example sentence; showing it makes the word usable. */}
-              {v.example && <p className="text-[12px] text-ink-muted italic">« {v.example} »</p>}
-              {v.nuance && <p className="text-[12px] text-ink-subtle">{v.nuance}</p>}
+              {v.example && <p className="text-sm text-ink-muted italic">« {v.example} »</p>}
+              {v.nuance && <p className="text-sm text-ink-subtle">{v.nuance}</p>}
             </div>
           ))}
         </div>

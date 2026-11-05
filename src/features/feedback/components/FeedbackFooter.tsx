@@ -12,17 +12,17 @@ export function FeedbackFooter({ onRetry, onComplete, modelAnswer }: Props) {
     <div className="space-y-2">
       {modelAnswer && (
         <details className="rounded-xl surface p-4">
-          <summary className="text-[10px] font-semibold text-ink-muted cursor-pointer select-none hover:text-ink-muted transition-colors">
+          <summary className="text-sm font-semibold text-ink-muted cursor-pointer select-none hover:text-ink-muted transition-colors">
             Show model answer
           </summary>
-          <p className="text-[11px] text-ink-muted mt-2 leading-relaxed italic">"{modelAnswer}"</p>
+          <p className="text-sm text-ink-muted mt-2 leading-relaxed italic">"{modelAnswer}"</p>
         </details>
       )}
 
       <div className="flex gap-2">
         <motion.button
           onClick={onRetry}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl surface-recessed text-white font-semibold text-xs"
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl surface-recessed text-white font-semibold text-sm"
           whileTap={{ scale: 0.97 }}
         >
           <RotateCcw size={12} /> Get new feedback

@@ -1,9 +1,11 @@
 import type { LucideIcon } from 'lucide-react';
 import {
-  Award, CalendarCheck, CalendarDays, ClipboardCheck, Compass, Crown, Dumbbell, Flame, Gem, Globe, GraduationCap,
-  Medal, MessageCircle, Mic, Microscope, SpellCheck, Star, Trophy, Wrench, Zap,
+  Award, BarChart3, CalendarCheck, CalendarDays, CalendarHeart, ClipboardCheck, Compass, Crown, Dumbbell, Flame, Gem, Globe,
+  GraduationCap, Hand, Medal, MessageCircle, MessagesSquare, Mic, Microscope, RotateCcw, SpellCheck, Star, TrendingUp, Trophy,
+  Wrench, Zap,
 } from 'lucide-react';
 import type { Achievement } from '../../types';
+import { DEVELOPED_ANSWER_WORDS } from '../../data/achievements';
 
 /**
  * Display for Profile's achievements (Design System v2): a lucide icon per
@@ -31,6 +33,13 @@ const ICONS: Record<string, LucideIcon> = {
   explorateur: Compass,
   causeur: MessageCircle,
   niveau_b2: Medal,
+  regulier: CalendarHeart,
+  fidele: CalendarCheck,
+  developpe: MessagesSquare,
+  autocorrection: RotateCcw,
+  en_progres: TrendingUp,
+  le_retour: Hand,
+  remontee: BarChart3,
 };
 
 export function achievementIcon(id: string): LucideIcon {
@@ -42,24 +51,40 @@ export interface AchievementCounts {
   streak: number;
   xp: number;
   topicsPractised: number;
+  rolePlaysPractised: number;
   bestScore: number | null;
   examsCompleted: number;
+  /** Counted (Exam Sim) attempts — Grand Oral's progress. */
+  countedExams: number;
+  daysPractised: number;
+  longestAnswerWords: number;
 }
 
-/** current/max for achievements the app can measure; null when there is no honest number (mastery, drills, hidden features). */
+/**
+ * current/max for achievements the app can measure; null when there is no
+ * honest number (mastery, drills, hidden features, and Fluent: its unlock
+ * reads the marked score of a counted answer, which the stored best score
+ * does not reflect, so a 1/1 bar could sit on a locked tile).
+ */
 export function achievementProgress(id: string, c: AchievementCounts): { current: number; max: number } | null {
   const of = (current: number, max: number) => ({ current: Math.min(current, max), max });
   switch (id) {
     case 'premier_pas': return of(c.sessions, 1);
-    case 'cinq_sessions': return of(c.sessions, 5);
+    case 'curieux': return of(c.topicsPractised, 3);
     case 'dix_sessions': return of(c.sessions, 10);
     case 'marathonien': return of(c.sessions, 50);
     case 'triple_jour': return of(c.streak, 3);
     case 'semaine_parfaite': return of(c.streak, 7);
-    case 'fluent': return of(c.bestScore !== null && c.bestScore >= 8 ? 1 : 0, 1);
+    case 'regulier': return of(c.daysPractised, 10);
+    case 'fidele': return of(c.daysPractised, 30);
+    case 'developpe': return of(c.longestAnswerWords, DEVELOPED_ANSWER_WORDS);
     case 'polyglotte': return of(c.topicsPractised, 8);
     case 'examinateur': return of(c.examsCompleted, 1);
+    case 'grand_oral': return of(c.countedExams, 1);
+    case 'explorateur': return of(c.rolePlaysPractised, 1);
+    case 'causeur': return of(c.rolePlaysPractised, 5);
     case 'expert': return of(c.xp, 1500);
+    case 'bete_de_mode': return of(c.xp, 7000);
     default: return null;
   }
 }

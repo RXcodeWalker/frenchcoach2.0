@@ -172,7 +172,7 @@ describe('Learn daily allowance (launch limit: 3 AI-marked answers a day)', () =
     fetchMock.mockReset();
     fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ limit: 3, used: 1, remaining: 2, resetsAt: '2026-10-26T00:00:00+00:00' }) });
     vi.stubGlobal('fetch', fetchMock);
-    expect(await getLearnAllowance()).toEqual({ limit: 3, used: 1, remaining: 2, resetsAt: '2026-10-26T00:00:00+00:00' });
+    expect(await getLearnAllowance()).toEqual({ limit: 3, used: 1, remaining: 2, resetsAt: '2026-10-26T00:00:00+00:00', premium: false });
     expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/api\/learn\/allowance$/);
     fetchMock.mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({}) });
     expect(await getLearnAllowance()).toBeNull();

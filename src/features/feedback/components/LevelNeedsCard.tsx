@@ -15,6 +15,8 @@ interface Props {
   feedback: FeedbackV2;
   /** The learner's marking level. Coach style only: the Examiner style is never given one. */
   markingLevel: MarkingLevel;
+  /** The answer the example was built from. A linking word swapped against it is not shown. */
+  transcript?: string;
 }
 
 // Items settle in one after another; under reduced motion they only fade (no travel).
@@ -30,9 +32,9 @@ const ITEM_FADE = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { du
  * Colour comes from role tokens only (Learn Batch 5 guard): action for the
  * to-do list, progress for a pass, never a raw palette colour.
  */
-export function LevelNeedsCard({ feedback, markingLevel }: Props) {
+export function LevelNeedsCard({ feedback, markingLevel, transcript }: Props) {
   const reduceMotion = useReducedMotion();
-  const view = buildLevelNeedsView(feedback, markingLevel);
+  const view = buildLevelNeedsView(feedback, markingLevel, transcript);
   if (view.kind === 'none') return null;
 
   if (view.kind === 'meets') {
@@ -47,7 +49,7 @@ export function LevelNeedsCard({ feedback, markingLevel }: Props) {
           <p className="text-sm font-bold text-progress-text">{meetsLine(view.level)}</p>
         </div>
         {view.level === 'exam' && (
-          <p className="text-[11px] text-ink-muted leading-snug pl-[26px]">{EXAM_STANDARD_NOTE}</p>
+          <p className="text-sm text-ink-muted leading-snug pl-[26px]">{EXAM_STANDARD_NOTE}</p>
         )}
       </motion.section>
     );
@@ -68,7 +70,7 @@ export function LevelNeedsCard({ feedback, markingLevel }: Props) {
         <div className="min-w-0 pt-0.5">
           <h3 className="text-sm font-bold text-ink leading-tight">{needsHeading(view.level)}</h3>
           {view.level === 'exam' && (
-            <p className="text-[11px] text-ink-muted leading-snug mt-1">{EXAM_STANDARD_NOTE}</p>
+            <p className="text-sm text-ink-muted leading-snug mt-1">{EXAM_STANDARD_NOTE}</p>
           )}
         </div>
       </header>
@@ -81,20 +83,20 @@ export function LevelNeedsCard({ feedback, markingLevel }: Props) {
             className={`border-l-2 pl-3 space-y-1.5 ${need.firstStep ? 'border-action' : 'border-hairline-strong'}`}
           >
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <span className="text-xs font-bold text-ink">{need.label}</span>
+              <span className="text-sm font-bold text-ink">{need.label}</span>
               {need.firstStep && (
                 <span className="text-eyebrow uppercase px-1.5 py-0.5 rounded bg-action-soft text-action-text">
                   {FIRST_STEP_LABEL}
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-ink-muted leading-relaxed">{need.text}</p>
+            <p className="text-sm text-ink-muted leading-relaxed">{need.text}</p>
             {need.example && (
               <p className="flex items-start gap-2 rounded-lg surface-recessed px-3 py-2">
                 <Quote size={11} className="text-action-text shrink-0 mt-[3px]" aria-hidden="true" />
                 <span className="min-w-0">
                   <span className="sr-only">For example: </span>
-                  <span lang="fr" className="text-xs text-ink leading-relaxed italic">{need.example}</span>
+                  <span lang="fr" className="text-sm text-ink leading-relaxed italic">{need.example}</span>
                 </span>
               </p>
             )}

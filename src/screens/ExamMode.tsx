@@ -3,6 +3,7 @@ import { track, captureError, type ExamPartReached, type ExamStep } from '../ser
 import { TrackView } from '../services/telemetry/TrackView';
 import confetti from 'canvas-confetti';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { shouldOpenGuideBeforeSim, type ExamGuideLocationState, type StartSimLocationState } from '../features/examGuide/guideSeen';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { SpeakingConsentGate } from '../components/SpeakingConsentGate';
@@ -62,6 +63,8 @@ import {
 import { pingInterpretServiceHealth } from '../services/exam/interpretUtterance';
 import { useExamCorrectionsRail } from '../services/exam/turnFeedback';
 import { countsTowardProgress, resolveCoachedMode } from '../services/exam/attemptStatus';
+import { homeworkIdFromSearch } from '../features/homework/homework';
+import { useMyHomework } from '../features/homework/useMyHomework';
 import { transcribeAudio } from '../services/api/apiClient';
 import { clearExamAudio } from '../services/exam/pronunciation/examAudioStore';
 import { captureTurnAudio } from '../services/exam/pronunciation/captureTurnAudio';
@@ -171,7 +174,25 @@ export function ExamMode() {
   const duelSessionId = duelState?.sessionId;
   const isDuelRun = Boolean(duelId && duelQuestionSetId && duelSessionId);
 
-  const [examState, setExamState] = useState<ExamState>('select');
+  // Homework (features/homework): `/exam?assignment=<id>` is a mock exam a teacher set.
+  // It counts only once the learner's own my_assignments() confirms it; it is always
+  // Exam Sim (like Daily Challenge / Duels) and has its own allowance on the server.
+  const requestedHomeworkId = homeworkIdFromSearch(location.search);
+  const { assignments: myHomework } = useMyHomework(Boolean(requestedHomeworkId));
+  const homework = requestedHomeworkId
+    ? myHomework?.find((a) => a.id === requestedHomeworkId && a.kind === 'mock_exam') ?? null
+    : null;
+  const homeworkId = homework?.id ?? null;
+  const isCompetitiveOrHomeworkRun = isDailyChallengeRun || isDuelRun || homeworkId !== null;
+
+  // The exam guide's "Start Exam Sim" (after the first-time guide) lands straight on the Exam Sim intro.
+  const startSim = (location.state as StartSimLocationState | null)?.startSim === true;
+  const [examState, setExamState] = useState<ExamState>(startSim ? 'intro' : 'select');
+  // Used once: drop it from history so a reload (or Back to /exam) shows the chooser again.
+  useEffect(() => {
+    if (startSim) navigate(location.pathname, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on arrival
+  }, []);
   useShowNavRail(examState === 'select' || examState === 'results');
   const [action, setAction] = useState<ExaminerAction | null>(null);
   const [voiceMuted, setVoiceMuted] = useState(isExaminerVoiceMuted());
@@ -259,7 +280,7 @@ export function ExamMode() {
   // Daily Challenge / Duel runs are always Exam Sim, whatever the toggle says
   // — those flows skip ExamSelect entirely, so this is defence-in-depth, not
   // the only place it's enforced (see startExam()).
-  const coached = sessionRef.current?.coached ?? resolveCoachedMode(coachedMode, isDailyChallengeRun || isDuelRun);
+  const coached = sessionRef.current?.coached ?? resolveCoachedMode(coachedMode, isCompetitiveOrHomeworkRun);
 
   // W6: lifted out of ExamRunner (which used to own this hook itself) so the
   // accumulated rail entries survive past 'running' into the /40 report —
@@ -629,7 +650,7 @@ export function ExamMode() {
     const session = new SimulationSession(sessionId, questionSet, clock.nowS, {
       beforeExaminerAction: announceIfPartChanged,
       onExaminerAction: (a) => setAction(a),
-    }, resolveCoachedMode(coachedMode, isDailyChallengeRun || isDuelRun));
+    }, resolveCoachedMode(coachedMode, isCompetitiveOrHomeworkRun));
     sessionRef.current = session;
     setExamState('running');
 
@@ -906,7 +927,16 @@ export function ExamMode() {
         void (async () => {
           let result: Awaited<ReturnType<typeof submitForScoring>>;
           try {
-            result = await submitForScoring(transcript);
+            result = await submitForScoring(transcript, {
+              coached,
+              countsTowardProgress: countsTowardProgress({
+                coached,
+                transcript,
+                earlyStart: earlyStartRef.current,
+                resumed: resumedRef.current,
+              }).countsTowardProgress,
+              assignmentId: homeworkId,
+            });
           } catch (err) {
             if (cancelled) return;
             captureError(err, { area: 'exam_scoring', stage: 'submitForScoring', sessionId: transcript.sessionId });
@@ -1074,6 +1104,7 @@ export function ExamMode() {
         practiceOnly: !attemptStatus.countsTowardProgress,
         examMarks: view ? examMarksFromView(view) : undefined,
         scoringSessionId: finalTranscript.sessionId,
+        ...(homeworkId ? { assignmentId: homeworkId } : {}),
       };
 
       persistSession(appSession);
@@ -1084,13 +1115,16 @@ export function ExamMode() {
       const { level: newLevel } = getProgressionState();
       const newUnlockedAchievementIds = checkAchievements(
         buildAchievementContext({
-          finalScore,
+          // Only an attempt that counts toward progress (ADR-0007) may unlock a
+          // score achievement or Grand Oral: Coached, typed, resumed and
+          // early-start attempts still unlock Examinateur ("any exam").
+          finalScore: attemptStatus.countsTowardProgress ? finalScore : null,
           streakDays: state.profile.streak_days,
           totalSessionsAfter: state.profile.sessions_count + 1,
           topicsUsed: [],
           beliefSnapshot: null,
           examCompleted: true,
-          examType: 'igcse',
+          examType: attemptStatus.countsTowardProgress ? 'igcse' : 'practice',
         }),
       );
 
@@ -1123,6 +1157,8 @@ export function ExamMode() {
         notice={resumeDiscardedMessage}
         onDismissNotice={() => setResumeDiscardedMessage(null)}
         onRolePlayDrill={() => navigate('/exam/role-play')}
+        onGuide={() => navigate('/exam/guide')}
+        homework={homework ? { assignmentId: homework.id, title: homework.title, teacherName: homework.teacherName } : null}
         onSelect={(set, coached) => {
           selectedQuestionSetIdRef.current = set.questionSetId;
           selectedAuthoredSetRef.current = set;
@@ -1130,6 +1166,11 @@ export function ExamMode() {
           setExamState('intro');
         }}
         onAutoFallback={(coached) => {
+          // A first Exam Sim opens the guide first, once (it can be skipped from there).
+          if (!coached && shouldOpenGuideBeforeSim()) {
+            navigate('/exam/guide', { state: { thenSim: true } satisfies ExamGuideLocationState });
+            return;
+          }
           selectedQuestionSetIdRef.current = undefined;
           selectedAuthoredSetRef.current = undefined;
           setCoachedMode(coached);

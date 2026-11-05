@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
-  AtSign, Bell, BellRing, Check, ChevronDown, ChevronRight, ChevronUp, Copy, Download, Flame, Globe, Loader2, LogIn, LogOut,
+  AtSign, Bell, BellRing, Check, ChevronDown, ChevronRight, ChevronUp, Copy, Download, Sparkles, Flame, Globe, Loader2, LogIn, LogOut,
   Mic, Minus, Moon, Plus, Shield, ShieldCheck, SlidersHorizontal, Trash2, TrendingUp, UserX, Users, Volume2, Zap,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -11,10 +11,11 @@ import { track } from '../services/telemetry/telemetryService';
 import { useApp, DAILY_GOAL_MIN, DAILY_GOAL_MAX } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { levelProgress } from '../services/progression/progressionService';
-import { ACHIEVEMENT_DEFINITIONS } from '../data/gameData';
+import { ACHIEVEMENT_DEFINITIONS } from '../data/achievements';
 import { enter, fadeUp, fill, slide } from '../components/motion/variants';
 import { PageShell } from '../components/layout/PageShell';
 import { TopContextBar } from '../components/TopContextBar';
+import { resolveFeatureStatus } from '../config/featureFlags';
 import { Button } from '../components/ui/Button';
 import { Segmented } from '../components/ui/Segmented';
 import { SettingGroup, SettingRow, SettingToggle, Toggle } from '../components/ui/SettingToggle';
@@ -39,16 +40,22 @@ import {
 } from '../services/notifications/notificationPreferences';
 import { requestAndSubscribe, unsubscribe, isPushSupported } from '../services/notifications/pushService';
 import { pushProfileSettingsToCloud } from '../services/sync/profileSettingsSync';
+import { WeeklyEmailSettings } from '../features/notifications/WeeklyEmailSettings';
 import { getActiveGoal, getCoachProfile, daysUntilExam } from '../services/coach/coachProfileService';
 import { achievementTiles, type AchievementCounts } from '../features/profile/achievementDisplay';
+import { achievementHistoryCounts } from '../services/coach/achievementContextBuilder';
 import { TrackSwitch } from '../features/junior/TrackSwitch';
+import { ParentLinksCard } from '../features/parentView/ParentLinksCard';
 import { CORE_ONLY, JUNIOR_TRACK_SELECTABLE } from '../config/launchScope';
 import { ReplayTourButton } from '../features/tour/ReplayTourButton';
+import { InstallAppRow } from '../features/install/InstallAppRow';
+import { SendFeedbackRow } from '../features/contact/SendFeedbackRow';
 import type { AIEngine } from '../types';
+import { ClassCard } from '../features/homework/ClassCard';
 import { playSfx, setSfxEnabled } from '../services/sound/sfx';
 
 const RENAME_REASON_COPY: Record<string, string> = {
-  invalid_format: 'Start with a letter, 3–20 characters, letters/numbers/underscore only.',
+  invalid_format: 'Start with a letter, 3–20 characters: letters, numbers, underscores or hyphens (not at the end).',
   reserved_client_side: 'That name is reserved. Try another.',
   already_set: 'You already have a username.',
   taken: 'That username is already taken.',
@@ -86,7 +93,14 @@ export function Profile() {
     track({ name: 'profile_viewed', props: {} });
   }, []);
   const stats = useMemo(() => getStats(), []);
-  const examsCompleted = useMemo(() => getSessionHistory().filter(s => s.mode === 'exam').length, []);
+  const { examsCompleted, countedExams, history } = useMemo(() => {
+    const sessions = getSessionHistory();
+    return {
+      examsCompleted: sessions.filter(s => s.mode === 'exam').length,
+      countedExams: sessions.filter(s => s.mode === 'exam' && !s.practiceOnly).length,
+      history: achievementHistoryCounts(sessions),
+    };
+  }, []);
   const coachProfile = useMemo(() => getCoachProfile(), []);
   const { user, signOut, isAdmin, ageBand, consentStatus, refreshConsentStatus } = useAuth();
   const { isGuest: guestFlag, exitGuestMode } = useGuestMode();
@@ -253,8 +267,12 @@ export function Profile() {
       await deleteMyAccount();
       await signOut();
       navigate('/', { replace: true });
-    } catch {
-      setDeleteError('Deletion failed. Try again, or contact us if this keeps happening.');
+    } catch (err) {
+      setDeleteError(
+        err instanceof AccountError && err.code === 'active_subscription'
+          ? "We couldn't cancel your Premium subscription, so your account wasn't deleted. Cancel it under Premium → Manage, then try again."
+          : 'Deletion failed. Try again, or contact us if this keeps happening.',
+      );
       setDeleting(false);
     }
   }
@@ -286,14 +304,21 @@ export function Profile() {
     sessions: profile.sessions_count,
     streak: profile.streak_days,
     xp: profile.total_xp,
-    topicsPractised: Object.values(state.topicMastery).filter(m => m.sessionsCompleted > 0).length,
+    topicsPractised: history.topicKeys.length,
+    rolePlaysPractised: history.rolePlayKeys.length,
     bestScore: stats.bestScore,
     examsCompleted,
+    countedExams,
+    daysPractised: history.daysPractised,
+    longestAnswerWords: history.longestAnswerWords,
   };
-  const hiddenIds = new Set(ACHIEVEMENT_DEFINITIONS.filter(d => d.hidden).map(d => d.id));
+  // Hidden (surprises) and retired achievements stay off the grid until unlocked;
+  // the header counts the current set only, so a retired badge never inflates it.
+  const hiddenIds = new Set(ACHIEVEMENT_DEFINITIONS.filter(d => d.hidden || d.retired).map(d => d.id));
+  const retiredIds = new Set(ACHIEVEMENT_DEFINITIONS.filter(d => d.retired).map(d => d.id));
   const tiles = achievementTiles(state.achievements, hiddenIds, counts);
-  const unlockedCount = state.achievements.filter(a => a.unlocked).length;
-  const totalAchievements = ACHIEVEMENT_DEFINITIONS.length;
+  const unlockedCount = state.achievements.filter(a => a.unlocked && !retiredIds.has(a.id)).length;
+  const totalAchievements = ACHIEVEMENT_DEFINITIONS.length - retiredIds.size;
   const nextUp = tiles.find(t => !t.achievement.unlocked) ?? null;
   const shownTiles = achievementsExpanded ? tiles : tiles.slice(0, ACHIEVEMENTS_COLLAPSED);
 
@@ -569,6 +594,8 @@ export function Profile() {
                 </span>
               </div>
             </motion.section>
+
+            {user && !isGuest && state.learnerTrack !== 'junior' && resolveFeatureStatus('parentView') === 'live' && <ParentLinksCard />}
           </div>
 
           {/* ── Right column: grouped settings ──────────────────────────── */}
@@ -586,6 +613,7 @@ export function Profile() {
                 }} />
                 <SettingToggle divided icon={<Moon size={16} />} label="Dark mode" description="Same colours by role, darker surfaces" enabled={state.darkMode} onToggle={() => dispatch({ type: 'TOGGLE_DARK_MODE' })} />
                 {state.learnerTrack !== 'junior' && <ReplayTourButton divided />}
+                <InstallAppRow divided />
               </SettingGroup>
             </motion.div>
 
@@ -593,8 +621,8 @@ export function Profile() {
               <motion.div variants={fadeUp}>
                 <SettingGroup title="Notifications">
                   {([
-                    { kind: 'streak' as const, on: notifyStreak, label: 'Streak reminders', description: 'A nudge before your streak resets', Icon: Bell },
-                    { kind: 'dailyGoal' as const, on: notifyDailyGoal, label: 'Daily goal reminders', description: "If you haven't hit today's goal", Icon: BellRing },
+                    { kind: 'streak' as const, on: notifyStreak, label: 'Streak reminders', description: 'A heads-up before your streak ends. One a day at most', Icon: Bell },
+                    { kind: 'dailyGoal' as const, on: notifyDailyGoal, label: 'Practice reminders', description: "Today's goal, and the mistake that keeps coming back", Icon: BellRing },
                   ]).map(({ kind, on, label, description, Icon }, i) => {
                     const blocked = on && notifPermission === 'denied';
                     const enabled = on && notifPermission === 'granted';
@@ -613,6 +641,12 @@ export function Profile() {
                     );
                   })}
                 </SettingGroup>
+              </motion.div>
+            )}
+
+            {user && state.learnerTrack !== 'junior' && (
+              <motion.div variants={fadeUp}>
+                <WeeklyEmailSettings userId={user.id} accountEmail={user.email ?? null} />
               </motion.div>
             )}
 
@@ -706,6 +740,10 @@ export function Profile() {
               </motion.div>
             )}
 
+            <motion.div variants={fadeUp}>
+              <ClassCard />
+            </motion.div>
+
             {/* Learner track — shown only while Junior is selectable, or so a learner already on it can switch back */}
             {(JUNIOR_TRACK_SELECTABLE || state.learnerTrack === 'junior') && (
               <motion.div variants={fadeUp}>
@@ -714,6 +752,12 @@ export function Profile() {
                 </SettingGroup>
               </motion.div>
             )}
+
+            <motion.div variants={fadeUp}>
+              <SettingGroup title="Help & feedback" testId="profile-help">
+                <SendFeedbackRow />
+              </SettingGroup>
+            </motion.div>
 
             <motion.div variants={fadeUp}>
               <SettingGroup title="Account & data" testId="profile-account">
@@ -793,8 +837,19 @@ export function Profile() {
                   </>
                 )}
 
+                {resolveFeatureStatus('premium') === 'live' && !isGuest && (
+                  <SettingRow
+                    divided={!!ageBand}
+                    icon={<Sparkles size={16} />}
+                    label="Premium"
+                    description="More marked answers and mock exams · manage your plan"
+                    onClick={() => navigate('/premium')}
+                    trailing={chevron}
+                    testId="profile-premium"
+                  />
+                )}
                 <SettingRow
-                  divided={!!ageBand}
+                  divided={!!ageBand || (resolveFeatureStatus('premium') === 'live' && !isGuest)}
                   icon={exportingData ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                   label="Export my data"
                   description={exportingData ? 'Preparing your file…' : exportError ?? 'Download sessions, transcripts and progress'}

@@ -79,6 +79,10 @@ export type LabAction =
   | { type: 'wordChecked'; verdict: DrillVerdict }
   | { type: 'checkFailed'; reason: CheckFailure }
   | { type: 'startFocus' }
+  /** The learner tapped one word to practise just that word (it joins the focus words if it isn't one). */
+  | { type: 'focusOn'; word: FocusWord }
+  /** Back from the focus words to the latest take's results. */
+  | { type: 'backToCompare' }
   | { type: 'nextFocus' }
   | { type: 'sayAgain' }
   | { type: 'dismissNotice' };
@@ -179,6 +183,22 @@ export function labPracticeReducer(state: LabPracticeState, action: LabAction): 
     case 'startFocus':
       if (isBusy(state) || state.focus.length === 0) return state;
       return { ...state, step: 'focus', focusIndex: 0, notice: null };
+    case 'focusOn': {
+      if (isBusy(state)) return state;
+      const existing = state.focus.findIndex((w) => w.tokenIndex === action.word.tokenIndex);
+      if (existing >= 0) return { ...state, step: 'focus', focusIndex: existing, notice: null };
+      return {
+        ...state,
+        step: 'focus',
+        focus: [...state.focus, action.word],
+        drills: [...state.drills, []],
+        focusIndex: state.focus.length,
+        notice: null,
+      };
+    }
+    case 'backToCompare':
+      if (isBusy(state) || state.takes.length === 0) return state;
+      return { ...state, step: 'compare', notice: null };
     case 'nextFocus':
       if (isBusy(state) || state.step !== 'focus') return state;
       return { ...state, focusIndex: Math.min(state.focusIndex + 1, state.focus.length), notice: null };

@@ -105,3 +105,31 @@ export async function transcribeLearnAnswer({
   // Numbers as words in both readings, so « 1er » / « premier » is never a question to confirm.
   return { primaryText: spellOutNumbers(text), secondaryText: spellOutNumbers(liveText), source: 'whisper', fallbackReason: null };
 }
+
+export type WordRetakeResult = { ok: true; text: string } | { ok: false; reason: TranscriptionFallbackReason };
+
+/**
+ * Re-hears ONE underlined word (or short phrase) the student re-recorded on its
+ * own on the confirm screen. Same endpoint, purpose and context prompt as the
+ * whole answer — the sentence around the word is never sent as context (that
+ * would push Whisper towards hearing what it already thought). The answer's
+ * other words are kept; only the span the student tapped is replaced.
+ */
+export async function transcribeLearnWord({
+  audio,
+  questionText,
+  earlierAnswers,
+  transcribe = transcribeAudio,
+}: Omit<TranscribeLearnAnswerInput, 'liveText' | 'audio'> & { audio: Blob }): Promise<WordRetakeResult> {
+  const prompt = buildTranscriptionPrompt(questionText, earlierAnswers);
+  let result: TranscribeAudioResult;
+  try {
+    result = await transcribe(audio, 'fr', { prompt, purpose: 'learn', timeoutMs: LEARN_TRANSCRIBE_TIMEOUT_MS });
+  } catch (err) {
+    return { ok: false, reason: reasonFor(err) };
+  }
+  if (result.source === 'transcription-unavailable') return { ok: false, reason: 'asr-failed' };
+  const text = result.text.trim().replace(/[.!?…]+$/u, '').trim();
+  if (!text || suspectTranscription(text, result.segments, prompt)) return { ok: false, reason: 'asr-rejected' };
+  return { ok: true, text: spellOutNumbers(text) };
+}

@@ -93,6 +93,14 @@ describe('coachFocusMatch', () => {
     expect(coachFocusMatch(args)).toBe(1);
   });
 
+  it('translates coach skill ids to question structures (tense_past → perfect, hypothetical → conditional)', () => {
+    const perfect = makeCandidate({ question: makeQuestion({ demands: makeDemands({ structures: ['perfect'] }) }) });
+    const conditional = makeCandidate({ question: makeQuestion({ demands: makeDemands({ structures: ['conditional'] }) }) });
+    expect(coachFocusMatch({ candidate: perfect, slot, focusSkillIds: ['tense_past'], activeDemandProblem: null })).toBe(1);
+    expect(coachFocusMatch({ candidate: conditional, slot, focusSkillIds: ['hypothetical'], activeDemandProblem: null })).toBe(1);
+    expect(coachFocusMatch({ candidate: perfect, slot, focusSkillIds: ['hypothetical'], activeDemandProblem: null })).toBe(0);
+  });
+
   it('matches when cognitiveDemand equals the active demand problem', () => {
     const args: ScoreCandidateArgs = {
       candidate: makeCandidate({ question: makeQuestion({ demands: makeDemands({ cognitiveDemand: 'compare' }) }) }),

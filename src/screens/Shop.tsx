@@ -29,7 +29,8 @@ import { getBeliefSnapshot } from '../services/coach/coachStorage';
 import { getProblems, getInterventions } from '../services/coach/interventionService';
 import { getDailyPlan } from '../services/coach/decisionEngine';
 import { getCoachProfile, daysUntilExam } from '../services/coach/coachProfileService';
-import { canRepairStreak, repairStreak, getStreakCount } from '../services/analytics/analyticsService';
+import { canRepairStreak, repairStreak, getStreakCount, getSessionHistory } from '../services/analytics/analyticsService';
+import { achievementHistoryCounts } from '../services/coach/achievementContextBuilder';
 import { hasStreakFreeze } from '../services/progression/progressionService';
 import { storageGet, STORAGE_KEYS } from '../services/persistence/storage';
 import { ShopError } from '../types/shop';
@@ -102,7 +103,10 @@ export function Shop() {
     const beliefSnapshot = getBeliefSnapshot();
     const problems = getProblems();
     const interventions = getInterventions();
-    const roleplayCount = storageGet<{ roleplayCount?: number }>(STORAGE_KEYS.progression, {}).roleplayCount ?? 0;
+    const roleplayCount = Math.max(
+      storageGet<{ roleplayCount?: number }>(STORAGE_KEYS.progression, {}).roleplayCount ?? 0,
+      achievementHistoryCounts(getSessionHistory()).rolePlayKeys.length,
+    );
     const requiredAchievementIds = new Set(
       catalogue.map(item => item.requirement.achievement).filter((id): id is string => !!id),
     );

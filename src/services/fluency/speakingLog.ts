@@ -3,10 +3,12 @@
  * (`domain/fluency/speechMetrics.ts`), kept so a future fluency view has history
  * to draw on. Nothing reads it in the UI yet.
  *
- * Local only, per account (the key is account-scoped, not device-scoped): no sync
- * module, request body, log line or analytics property may read it, and
- * `deleteMyAccount()` removes it (`speakingLogPrivacy.test.ts`). It holds numbers,
- * ids and enums — never audio or a transcript (the Session already has the text).
+ * Per account (the key is account-scoped, not device-scoped), with a cloud copy in
+ * Supabase `speaking_samples` (`services/sync/speakingLogSync.ts`, signed-in only).
+ * No request body to an AI provider, log line or analytics property may read it,
+ * and `deleteMyAccount()` removes it (`speakingLogPrivacy.test.ts`; the cloud rows
+ * cascade with the profile). It holds numbers, ids and enums — never audio or a
+ * transcript (the Session already has the text).
  * It writes no XP, Session, mastery, review or evidence, so it is outside
  * `AppContext` on purpose, like the Pronunciation Lab's history.
  */
@@ -50,11 +52,22 @@ export function getSpeakingLog(): SpeakingSample[] {
   return stored.samples;
 }
 
-export function appendSpeakingSample(sample: SpeakingSample): void {
-  const samples = getSpeakingLog().filter((s) => s.id !== sample.id);
-  samples.push(sample);
+function save(samples: SpeakingSample[]): void {
   storageSet(STORAGE_KEYS.speakingLog, {
     v: SPEAKING_LOG_VERSION,
     samples: samples.slice(-SPEAKING_LOG_MAX),
   } satisfies StoredLog);
+}
+
+export function appendSpeakingSample(sample: SpeakingSample): void {
+  const samples = getSpeakingLog().filter((s) => s.id !== sample.id);
+  samples.push(sample);
+  save(samples);
+}
+
+/** Adds samples the log doesn't have yet (by id), oldest first; a local sample always wins. */
+export function mergeSpeakingSamples(incoming: SpeakingSample[]): void {
+  const byId = new Map(getSpeakingLog().map((s) => [s.id, s]));
+  for (const s of incoming) if (!byId.has(s.id)) byId.set(s.id, s);
+  save([...byId.values()].sort((a, b) => a.at.localeCompare(b.at)));
 }

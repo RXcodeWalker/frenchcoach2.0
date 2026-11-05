@@ -16,7 +16,29 @@
     { "source": "/admin/scenarios/:id/edit", "destination": "/admin" },
     { "source": "/admin/scenarios/:id/history", "destination": "/admin" },
     { "source": "/junior/:themeId", "destination": "/" },
+    { "source": "/fix/:skillId", "destination": "/" },
     { "source": "/scenario/:scenarioId", "destination": "/" },
-    { "source": "/duel/:duelId", "destination": "/" }
+    { "source": "/duel/:duelId", "destination": "/" },
+    { "source": "/join/:code", "destination": "/" },
+    { "source": "/teach/class/:classId", "destination": "/" },
+    { "source": "/teach/class/:classId/student/:studentId", "destination": "/" },
+    { "source": "/teach/class/:classId/attempt/:attemptId", "destination": "/" }
+  ],
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+    },
+    {
+      "source": "/site.webmanifest",
+      "headers": [
+        { "key": "Content-Type", "value": "application/manifest+json" },
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    }
   ]
 }

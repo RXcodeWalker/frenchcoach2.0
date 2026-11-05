@@ -12,14 +12,18 @@
 
 import { familiesInTake } from './takeFamilies';
 import { LAB_THRESHOLDS } from './thresholds';
-import type { SoundFamilyId } from './types';
+import type { LabWordState, SoundFamilyId } from './types';
 import { takeWords, type LabTake, type LabWordItem } from './wordStates';
 
 export interface FocusWord {
   tokenIndex: number;
   /** As written in the target sentence. */
   text: string;
-  state: 'practise' | 'almost';
+  /**
+   * 'practise' / 'almost' for a chosen word; any measured state for a word the
+   * learner picked themselves by tapping it (`pickedFocusWord`).
+   */
+  state: Exclude<LabWordState, 'extra'>;
   /** The sound family most likely behind it, when one can be named. */
   family: SoundFamilyId | null;
 }
@@ -34,7 +38,7 @@ function letters(text: string): number {
   return [...text].filter((c) => /\p{L}/u.test(c)).length;
 }
 
-const STATE_ORDER = { practise: 0, almost: 1 } as const;
+const STATE_ORDER: Record<FocusWord['state'], number> = { practise: 0, almost: 1, missed: 2, clear: 3, unknown: 4 };
 
 export function chooseFocusWords(take: LabTake, maxWords: number = LAB_THRESHOLDS.focus.maxWords): FocusChoice {
   if (take.refused) return { words: [], emphasis: 'none' };
@@ -70,4 +74,16 @@ export function chooseFocusWords(take: LabTake, maxWords: number = LAB_THRESHOLD
   const nonClear = measured.filter((w) => w.state !== 'clear');
   const emphasis = nonClear.length === 1 && measured.length > 1 ? 'offer' : 'suggest';
   return { words: chosen, emphasis };
+}
+
+/**
+ * A word the learner tapped to practise on its own (not one the chooser
+ * picked): any word of the take, whatever its state. Null for an extra word or
+ * a token the take doesn't have.
+ */
+export function pickedFocusWord(take: LabTake, tokenIndex: number): FocusWord | null {
+  const item = takeWords(take).find((w) => w.tokenIndex === tokenIndex);
+  if (!item || item.state === 'extra') return null;
+  const family = take.refused ? null : familiesInTake(take).get(tokenIndex)?.weakest ?? null;
+  return { tokenIndex, text: item.text, state: item.state, family };
 }

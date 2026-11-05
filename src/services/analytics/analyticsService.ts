@@ -3,6 +3,7 @@ import type { Session, FeedbackV2, TopicMasteryEntry, ExamAreaMarks } from '../.
 
 import { hasStreakFreeze, consumeStreakFreeze, consumeItem } from '../progression/progressionService';
 import { STORAGE_KEYS, storageGet, storageSet, storageRemove } from '../persistence/storage';
+import { localDay, localDayBefore, localDayOf } from '../../lib/localDay';
 
 const STORAGE_KEY = STORAGE_KEYS.analytics;
 const MASTERY_KEY_CONST = STORAGE_KEYS.topicMastery;
@@ -62,8 +63,9 @@ interface AnalyticsData {
   challengeLog: Record<string, boolean>;
 }
 
+/** The learner's local calendar day (lib/localDay.ts) — streak and daily stats count days where the learner is. */
 function dateKey(date = new Date()): string {
-  return date.toISOString().slice(0, 10);
+  return localDay(date);
 }
 
 const emptyAnalytics = (): AnalyticsData => ({
@@ -109,10 +111,13 @@ function save(data: AnalyticsData) {
 
 function updateStreak(data: AnalyticsData) {
   const today = dateKey();
-  const yesterday = dateKey(new Date(Date.now() - 86400000));
+  const yesterday = localDayBefore(1);
   const last = data.streak.lastDate;
 
-  if (last === today) return data;
+  // `>=`: a lastDate stored as a UTC day (before 2026-11-04) can be one day
+  // ahead of the local day west of UTC — that is still "already counted today",
+  // never a break.
+  if (last && last >= today) return data;
 
   if (last === yesterday) {
     data.streak.count += 1;
@@ -120,7 +125,7 @@ function updateStreak(data: AnalyticsData) {
   } else if (last) {
     // There's a gap. Check if it's just 1 day gap and if we have a freeze.
     // If last was day-before-yesterday, and we have a freeze, we can save it.
-    const dayBeforeYesterday = dateKey(new Date(Date.now() - 172800000));
+    const dayBeforeYesterday = localDayBefore(2);
     if (last === dayBeforeYesterday && hasStreakFreeze()) {
       consumeStreakFreeze();
       data.streak.count += 1; // Preserve and increment as if yesterday was active
@@ -180,6 +185,12 @@ export function getStreakCount(): number {
   return load().streak.count;
 }
 
+/** The streak and its day key (a UTC date, see dateKey) — what the retention snapshot mirrors to the server. */
+export function getStreakState(): { count: number; lastDate: string | null } {
+  const { count, lastDate } = load().streak;
+  return { count, lastDate };
+}
+
 const REPAIR_WINDOW_MS = 48 * 3600 * 1000;
 
 /** Streak Repair (Shop plan §14.4): true only while a broken streak is still within the 48h repair window. */
@@ -225,9 +236,10 @@ export function getDailyStats(days = 7): DailyStats[] {
   const sessions = load().sessions;
   const result: DailyStats[] = [];
   for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(Date.now() - i * 86400000);
+    const now = new Date();
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i, 12);
     const key = dateKey(d);
-    const daySessions = sessions.filter(s => s.date.slice(0, 10) === key);
+    const daySessions = sessions.filter(s => localDayOf(s.date) === key);
     const scored = daySessions.map(s => s.score).filter((s): s is number => typeof s === 'number' && Number.isFinite(s));
     const avgScore = scored.length
       ? Math.round((scored.reduce((a, b) => a + b, 0) / scored.length) * 10) / 10

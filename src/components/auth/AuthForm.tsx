@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Eye, EyeOff, AlertCircle, MailCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -7,6 +7,7 @@ import { Button } from '../ui/Button';
 import { Segmented } from '../ui/Segmented';
 import { TextField } from './TextField';
 import { InlineAlert } from './InlineAlert';
+import { GoogleSignInButton } from './GoogleSignInButton';
 
 interface Props {
   onAuthenticated: () => void;
@@ -17,7 +18,10 @@ interface Props {
 
 export function AuthForm({ onAuthenticated, footer, page = false }: Props) {
   const reduced = useReducedMotion();
-  const { signIn, signUp, resetPasswordForEmail, signInWithOAuth, configError } = useAuth();
+  const { signIn, signUp, resetPasswordForEmail, signInWithOAuth, signInWithGoogleIdToken, configError } = useAuth();
+  // Google's own button (sign-in on our domain); the redirect button is the fallback if its script can't load.
+  const [googleButtonFailed, setGoogleButtonFailed] = useState(false);
+  const handleGoogleUnavailable = useCallback(() => setGoogleButtonFailed(true), []);
 
   const [tab, setTab] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
@@ -69,6 +73,20 @@ export function AuthForm({ onAuthenticated, footer, page = false }: Props) {
       await signInWithOAuth(provider);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+    }
+  }
+
+  async function handleGoogleCredential(idToken: string, nonce: string) {
+    setError(null);
+    if (tab === 'signup') track({ name: 'signup_started', props: { method: 'google' } });
+    setLoading(true);
+    try {
+      await signInWithGoogleIdToken(idToken, nonce);
+      onAuthenticated();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -204,6 +222,15 @@ export function AuthForm({ onAuthenticated, footer, page = false }: Props) {
       />
 
       <div className="space-y-2">
+        {!googleButtonFailed ? (
+          <GoogleSignInButton
+            // One wording for both tabs: a changed `text` makes Google re-render its
+            // button (cleared, then redrawn), which flashed on every tab switch.
+            text="continue_with"
+            onCredential={handleGoogleCredential}
+            onUnavailable={handleGoogleUnavailable}
+          />
+        ) : (
         <Button
           variant="secondary"
           size="lg"
@@ -219,6 +246,7 @@ export function AuthForm({ onAuthenticated, footer, page = false }: Props) {
           </svg>
           Continue with Google
         </Button>
+        )}
       </div>
 
       <div className="my-5 flex items-center gap-3" role="separator" aria-label="or use email">

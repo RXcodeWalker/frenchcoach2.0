@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronRight, MessagesSquare, X } from 'lucide-react';
+import { BookOpen, ChevronRight, MessagesSquare, X } from 'lucide-react';
 import { STORY_CARDS } from '../../data/storyCards';
 import { listPublishedQuestionSetsWithRetry, getOfflineAuthoredSets } from '../../data/exam/bank/loader';
 import type { AuthoredQuestionSet, Difficulty } from '../../data/exam/bank/types';
-import { getExamAllowance, weeklyExamLimitMessage, type ExamAllowance } from '../../services/exam/scoringApiClient';
+import { examLimitMessage, getExamAllowance, type ExamAllowance } from '../../services/exam/scoringApiClient';
+import { PremiumLink } from '../../features/premium/PremiumLink';
 
 const TOPIC_AREA_LABEL: Record<string, string> = {
   A: 'Everyday Activities',
@@ -41,6 +42,13 @@ interface Props {
   onDismissNotice?: () => void;
   /** Opens the Role-play drill (`/exam/role-play`); the entry is hidden without it. */
   onRolePlayDrill?: () => void;
+  /** Opens the exam guide (`/exam/guide`); the entry is hidden without it. */
+  onGuide?: () => void;
+  /**
+   * A mock exam a teacher set (features/homework). Locks the mode to Exam Sim and uses the
+   * homework's own allowance, so it is never blocked by the learner's weekly exam.
+   */
+  homework?: { assignmentId: string; title: string; teacherName: string } | null;
 }
 
 type ExamModeChoice = 'coached' | 'sim';
@@ -59,7 +67,7 @@ type RemoteState =
   | { phase: 'ready'; sets: AuthoredQuestionSet[] }
   | { phase: 'offline-only' };
 
-export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, onRolePlayDrill }: Props) {
+export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, onRolePlayDrill, onGuide, homework }: Props) {
   // Available synchronously — no network — so a card is on screen from the first paint.
   const offlineSets = useMemo(() => getOfflineAuthoredSets(), []);
   const [remote, setRemote] = useState<RemoteState>({ phase: 'loading' });
@@ -69,20 +77,22 @@ export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, 
   // submission) — see simulationSession.ts's `coached` flag. Step 5: defaults
   // to Exam Sim, so a candidate who doesn't notice the toggle still gets a
   // mark that counts.
-  const [mode, setMode] = useState<ExamModeChoice>('sim');
+  const [chosenMode, setMode] = useState<ExamModeChoice>('sim');
+  const mode: ExamModeChoice = homework ? 'sim' : chosenMode;
   const isSim = mode === 'sim';
+  const homeworkId = homework?.assignmentId ?? null;
   // Launch limit: one sample exam per rolling 7 days (server GET /exam/allowance). Unknown
   // (null) lets the learner start; POST /score enforces the same rule.
   const [allowance, setAllowance] = useState<ExamAllowance | null>(null);
   useEffect(() => {
     let cancelled = false;
-    void getExamAllowance().then((a) => {
+    void getExamAllowance(homeworkId).then((a) => {
       if (!cancelled) setAllowance(a);
     });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [homeworkId]);
   const weeklyLimitReached = allowance !== null && !allowance.allowed;
 
   // exam-conduct §4 (D4): Exam Sim never shows which sets exist before the
@@ -135,6 +145,16 @@ export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, 
           </div>
         )}
 
+        {homework && (
+          <div className="rounded-xl surface border border-hairline p-4" role="status" data-testid="exam-homework-banner">
+            <p className="text-eyebrow uppercase text-ink-subtle">Homework from {homework.teacherName}</p>
+            <p className="text-sm font-bold text-ink mt-1">{homework.title}</p>
+            <p className="text-[12px] text-ink-muted mt-1">
+              This mock exam runs as Exam Sim and your teacher will see the mark. It doesn't use up your own weekly exam.
+            </p>
+          </div>
+        )}
+
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-white">Choose an Exam</h1>
           <p className="text-sm text-ink-muted mt-1">
@@ -144,13 +164,17 @@ export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, 
           </p>
         </div>
 
+        {onGuide && <ExamGuideEntry onOpen={onGuide} />}
+
         {weeklyLimitReached ? (
           <div className="rounded-xl surface p-6 text-center space-y-1" role="status">
-            <p className="font-bold text-white text-sm">This week's sample exam is done</p>
-            <p className="text-[12px] text-ink-muted">{weeklyExamLimitMessage(allowance?.nextAvailableAt)}</p>
+            <p className="font-bold text-white text-sm">{allowance?.premium ? "Today's mock exams are done" : "This week's sample exam is done"}</p>
+            <p className="text-[12px] text-ink-muted">{examLimitMessage(allowance)}</p>
+            {!allowance?.premium && <PremiumLink>Take a mock exam every day with Premium</PremiumLink>}
           </div>
         ) : (
         <>
+        {!homework && (
         <div className="rounded-xl surface-recessed p-1.5 flex gap-1.5">
           {(Object.keys(MODE_COPY) as ExamModeChoice[]).map((m) => (
             <button
@@ -166,6 +190,7 @@ export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, 
             </button>
           ))}
         </div>
+        )}
 
         {isSim ? (
           <motion.button
@@ -277,6 +302,33 @@ export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, 
         {onRolePlayDrill && <RolePlayDrillEntry onOpen={onRolePlayDrill} limitReached={weeklyLimitReached} />}
       </motion.div>
     </div>
+  );
+}
+
+/**
+ * The way into the exam guide (`/exam/guide`): how the test runs, how it is
+ * marked and how to answer, before a first attempt. Shown in both modes.
+ */
+function ExamGuideEntry({ onOpen }: { onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      data-testid="exam-guide-entry"
+      className="flex w-full items-center gap-4 rounded-card border border-hairline bg-action-soft p-4 text-left
+        transition-[border-color,transform] duration-state ease-smooth hover:border-hairline-strong active:scale-[.97]"
+    >
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-action text-action-ink" aria-hidden="true">
+        <BookOpen size={20} />
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="text-section text-ink">New to the speaking exam? Start here</span>
+        <span className="text-body-s text-ink-muted">
+          How the exam works, how it’s marked and how to answer each part, in six short chapters with a quick check at the end.
+        </span>
+      </span>
+      <ChevronRight size={18} className="shrink-0 text-ink-subtle" aria-hidden="true" />
+    </button>
   );
 }
 

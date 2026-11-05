@@ -4,7 +4,7 @@ import { GraduationCap } from 'lucide-react';
 import { examTotalOutOf40 } from '../../features/progress/progressSummary';
 import { fadeUp } from '../../components/motion/variants';
 import { TopicChip } from '../../components/ui/TopicChip';
-import { TOPICS } from '../../data/gameData';
+import { TOPICS } from '../../data/topics';
 import type { Session } from '../../types/index';
 
 interface Props {

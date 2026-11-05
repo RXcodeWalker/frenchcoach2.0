@@ -76,6 +76,36 @@ describe('buildLevelNeedsView', () => {
     expect(buildLevelNeedsView(withNeeds('B1', [NEED({ text: '' })]), 'B1')).toEqual({ kind: 'none' });
   });
 
+  it('drops an example that rewrites the linking word the learner said, and keeps one that only adds one', () => {
+    const said = "Il est très passionné et il m'encourage toujours.";
+    const swapped = "Il est très passionné mais il m'encourage toujours";
+    const link = NEED({
+      ladder: 'L',
+      label: 'Linking your ideas',
+      nextRung: 'A2',
+      text: 'Use simple connectors like mais, parce que or car.',
+      example: swapped,
+    });
+    const view = buildLevelNeedsView(withNeeds('A2', [link]), 'A2', said);
+    expect(view.kind === 'needs' && view.items).toEqual([
+      expect.objectContaining({ ladder: 'L', text: link.text, example: null }),
+    ]);
+    // "parce qu'il" is the same replacement. Adding "et" between two sentences they said is not.
+    const parceQue = buildLevelNeedsView(
+      withNeeds('A2', [NEED({ ...link, example: "Il est très passionné parce qu'il m'encourage toujours" })]),
+      'A2',
+      said,
+    );
+    expect(parceQue.kind === 'needs' && parceQue.items[0].example).toBeNull();
+    const added = 'Mon père est grand et ma mère est très gentille.';
+    const joined = buildLevelNeedsView(
+      withNeeds('A2', [NEED({ ...link, example: added })]),
+      'A2',
+      'Mon père est grand. Ma mère est très gentille.',
+    );
+    expect(joined.kind === 'needs' && joined.items[0].example).toBe(added);
+  });
+
   it(`shows at most ${MAX_NEEDS_SHOWN} items`, () => {
     const many = (['T', 'O', 'F', 'L', 'A', 'R'] as const).map(ladder => NEED({ ladder }));
     const view = buildLevelNeedsView(withNeeds('B1', many), 'B1');

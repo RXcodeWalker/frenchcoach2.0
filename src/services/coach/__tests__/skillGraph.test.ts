@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import { getQuestionsPracticingSkill } from '../skillQuestions';
 import {
-  getQuestionsPracticingSkill,
   getSkillLabel,
   getPrerequisites,
   getConfusions,

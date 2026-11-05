@@ -34,21 +34,21 @@ export function CoachingPopover({ issue, onClose }: Props) {
         </div>
 
         <p
-          className={`text-[11px] font-mono px-2 py-1 rounded mb-2 ${SEVERITY_TEXT[issue.severity]} ${SEVERITY_SOFT[issue.severity]}`}
+          className={`text-sm font-mono px-2 py-1 rounded mb-2 ${SEVERITY_TEXT[issue.severity]} ${SEVERITY_SOFT[issue.severity]}`}
         >
           "{issue.quote}"
         </p>
 
-        <p className="text-[10px] text-ink-muted mb-2">{issue.diagnostic}</p>
+        <p className="text-sm text-ink-muted mb-2">{issue.diagnostic}</p>
 
-        <div className="flex items-center gap-1.5 text-[10px]">
-          <CheckCircle size={10} className="text-progress-text flex-shrink-0" />
+        <div className="flex items-center gap-1.5 text-sm">
+          <CheckCircle size={14} className="text-progress-text flex-shrink-0" />
           <span className="text-progress-text font-medium">{issue.correction}</span>
         </div>
 
         {issue.stronger && (
-          <div className="flex items-center gap-1.5 text-[10px] mt-1">
-            <ChevronRight size={10} className="text-action-text flex-shrink-0" />
+          <div className="flex items-center gap-1.5 text-sm mt-1">
+            <ChevronRight size={14} className="text-action-text flex-shrink-0" />
             <span className="text-action-text">{issue.stronger}</span>
           </div>
         )}

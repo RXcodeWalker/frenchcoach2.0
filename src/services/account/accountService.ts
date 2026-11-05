@@ -14,8 +14,11 @@
 import { supabase, supabaseConfigured } from '../../lib/supabase';
 import { exportData as exportLocalAnalytics } from '../analytics/analyticsService';
 import { STORAGE_KEYS, getStorageScope, storageRemove } from '../persistence/storage';
+import { deleteSavedAnswersFor } from '../offline/savedAnswers';
+import { cancelSubscriptionsForDeletion } from '../billing/billingClient';
 
-export type AccountErrorCode = 'not_authenticated' | 'network_error' | 'unknown';
+/** `active_subscription`: Premium could not be cancelled, so the database refused the delete. */
+export type AccountErrorCode = 'not_authenticated' | 'network_error' | 'active_subscription' | 'unknown';
 
 export class AccountError extends Error {
   code: AccountErrorCode;
@@ -29,6 +32,9 @@ export class AccountError extends Error {
 function mapRpcError(message: string): AccountError {
   if (message.includes('not_authenticated') || message.includes('28000')) {
     return new AccountError('not_authenticated', message);
+  }
+  if (message.includes('active_subscription')) {
+    return new AccountError('active_subscription', message);
   }
   return new AccountError('unknown', message);
 }
@@ -103,15 +109,32 @@ export async function exportMyData(): Promise<ExportedAccountData> {
  * call signOut() and navigate away.
  *
  * Once the cloud erase has succeeded it also removes this account's exam
- * notebook (Learn feedback Batch 6d), Pronunciation Lab history and speaking log from the
- * device: sign-out and the guest copy leave per-user keys behind, so the
+ * notebook (Learn feedback Batch 6d), Pronunciation Lab history, speaking log and saved
+ * offline answers (their recordings) from the device: sign-out and the guest copy leave per-user keys behind, so the
  * learner's own notes are removed here, before the caller signs out. A failed
  * erase leaves them alone.
  */
 export async function deleteMyAccount(): Promise<void> {
   if (!supabaseConfigured) throw new AccountError('network_error', 'offline');
+  let userId: string | null = null;
+  try {
+    userId = (await supabase.auth.getSession()).data.session?.user.id ?? null;
+  } catch {
+    // Unknown account: its saved offline answers stay until the device is cleared.
+  }
+  // Stop Premium billing first: the database refuses to delete an account that is
+  // still being charged (migration 20261104230000). If this call fails, the RPC
+  // below is still tried — it succeeds when there was nothing to cancel, and
+  // answers active_subscription when there was.
+  try {
+    await cancelSubscriptionsForDeletion();
+  } catch {
+    // fall through to the database's own check
+  }
   const { error } = await supabase.rpc('delete_my_account');
   if (error) throw mapRpcError(error.message);
+  // Answers recorded offline (audio, in IndexedDB) for this account.
+  if (userId) await deleteSavedAnswersFor(userId).catch(() => {});
   storageRemove(STORAGE_KEYS.notebook);
   storageRemove(STORAGE_KEYS.pronunciationLab);
   storageRemove(STORAGE_KEYS.speakingLog);

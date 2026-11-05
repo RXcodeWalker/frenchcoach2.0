@@ -26,6 +26,7 @@ import type { NewsSnippet } from '../../data/mocks/mockNews';
 import { getWarmupPhase, noteBackendReachable } from './backendWarmup';
 import { NoScoreInFeedbackError, computeOverall } from '../../domain/scoring';
 import type { LearnMarkingScheme } from '../../domain/learn/marking/markingLevel';
+import { homeworkRequestHeader } from '../../features/homework/homeworkContext';
 import { AuthRequiredError, GUEST_LIMIT_MESSAGE, checkGuestAttempt, guestAiEnabled, guestHasFreeAttempt, getAccessToken, isAuthRequiredError, requireAuthHeader } from '../../lib/authToken';
 
 /**
@@ -85,7 +86,10 @@ const POST_DEFAULT_TIMEOUT_MS = 40000;
  * message; see src/lib/authToken.ts.
  */
 async function authHeader(): Promise<Record<string, string>> {
-  return requireAuthHeader();
+  // Homework (features/homework): while Learn is on a teacher-set topic, the backend
+  // charges the assignment's own allowance instead of the daily answers — it reads
+  // this header only on Learn feedback, and its RPC decides whether it applies.
+  return { ...(await requireAuthHeader()), ...homeworkRequestHeader() };
 }
 
 /**
@@ -659,6 +663,8 @@ export interface LearnAllowance {
   limit: number;
   used: number;
   remaining: number;
+  /** True when the server applied the Premium limit (backend routers/billing.py). */
+  premium: boolean;
   /** ISO time the allowance resets (00:00 UTC). */
   resetsAt: string;
 }
@@ -674,7 +680,13 @@ export async function getLearnAllowance(): Promise<LearnAllowance | null> {
     if (!res.ok) return null;
     const data = (await res.json()) as Partial<LearnAllowance>;
     if (typeof data.limit !== 'number' || typeof data.remaining !== 'number') return null;
-    return { limit: data.limit, used: data.used ?? data.limit - data.remaining, remaining: data.remaining, resetsAt: String(data.resetsAt ?? '') };
+    return {
+      limit: data.limit,
+      used: data.used ?? data.limit - data.remaining,
+      remaining: data.remaining,
+      resetsAt: String(data.resetsAt ?? ''),
+      premium: data.premium === true,
+    };
   } catch {
     return null;
   }

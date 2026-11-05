@@ -9,7 +9,7 @@ interface UsernameSetupModalProps {
 }
 
 const REASON_COPY: Record<string, string> = {
-  invalid_format: 'Start with a letter, 3–20 characters, letters/numbers/underscore only.',
+  invalid_format: 'Start with a letter, 3–20 characters: letters, numbers, underscores or hyphens (not at the end).',
   reserved_client_side: 'That name is reserved. Try another.',
   already_set: 'You already have a username.',
   taken: 'That username is already taken.',

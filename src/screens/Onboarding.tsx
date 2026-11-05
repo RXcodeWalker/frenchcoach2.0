@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { localDay } from '../lib/localDay';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   GraduationCap, School, BookOpen, Globe, MessageCircle,
@@ -111,7 +112,7 @@ export function Onboarding() {
     if (!isEditMode) track({ name: 'onboarding_step_viewed', props: { step: STEP_NAMES[step] } });
   }, [step, isEditMode]);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDay();
 
   function advance() {
     if (step === 1) {

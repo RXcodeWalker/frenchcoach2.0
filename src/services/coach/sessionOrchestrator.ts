@@ -122,6 +122,7 @@ export function orchestrateAttempt(input: OrchestratorInput): OrchestratorResult
       beliefSnapshot,
       examCompleted: false,
       examType: null,
+      selfCorrected: (feedback.selfCorrections?.length ?? 0) > 0,
     }),
   );
 

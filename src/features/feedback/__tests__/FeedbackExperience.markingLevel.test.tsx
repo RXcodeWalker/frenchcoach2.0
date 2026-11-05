@@ -65,6 +65,38 @@ describe('needs card on the feedback screen', () => {
     expect(screen.queryByRole('heading', { name: 'What your answer needs for B1' })).toBeNull();
   });
 
+  it('does not show a linking example that swaps the word the learner said', () => {
+    const transcript = "Il est très passionné et il m'encourage toujours.";
+    const swapped = "Il est très passionné mais il m'encourage toujours";
+    const levelCheck: LevelCheck = {
+      ...(FEEDBACK.levelCheck as LevelCheck),
+      needsByLevel: {
+        ...(FEEDBACK.levelCheck as LevelCheck).needsByLevel,
+        A2: [{
+          ladder: 'L',
+          label: 'Linking your ideas',
+          nextRung: 'A2',
+          text: 'Use simple connectors like mais, parce que or car.',
+          firstStep: false,
+          example: swapped,
+        }],
+      },
+    };
+    render(
+      <MemoryRouter>
+        <FeedbackExperience
+          feedback={{ ...FEEDBACK, levelCheck }}
+          transcript={transcript}
+          onRetry={vi.fn()}
+          onComplete={vi.fn()}
+          markingLevel="A2"
+        />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Use simple connectors like mais, parce que or car.')).toBeTruthy();
+    expect(screen.queryByText(swapped)).toBeNull();
+  });
+
   it('is absent with the flag off (no marking level passed), even on a ladder reply', () => {
     renderFeedback(undefined);
     expect(screen.queryByText(/What your answer needs for/)).toBeNull();

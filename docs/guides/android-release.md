@@ -104,6 +104,6 @@ Install `app-release.apk` (from step 3) on an Android phone. The checklist is in
   should stay on.
 - **Speech recognition** — run a full Exam Sim; Chrome on Android cuts recognition off after
   short pauses more readily than desktop Chrome.
-- **Offline** — airplane mode, then open the app: the "You're offline" page, not a crash.
+- **Offline** — airplane mode, then open the app: it should still open (the offline banner shows, games and saved answers work), not a crash.
 - **Notifications** — allow them when asked; a streak reminder should open the app.
 - **Samsung phones whose default browser is Samsung Internet** — check the exam still hears you.

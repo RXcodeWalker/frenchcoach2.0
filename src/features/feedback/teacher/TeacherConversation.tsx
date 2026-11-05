@@ -71,7 +71,7 @@ function LearnerBubble({ text, quotes }: { text: string; quotes: string[] }) {
   const segments = markQuotes(text, quotes);
   return (
     <div className="flex justify-end">
-      <p className="max-w-[88%] rounded-2xl rounded-br-sm surface-recessed px-3.5 py-2.5 text-xs leading-relaxed text-ink-muted">
+      <p className="max-w-[88%] rounded-2xl rounded-br-sm surface-recessed px-3.5 py-2.5 text-sm leading-relaxed text-ink-muted">
         {segments.map((s, i) =>
           s.marked ? (
             <mark key={i} className="bg-transparent text-ink underline decoration-correction-text decoration-2 underline-offset-2">
@@ -165,7 +165,7 @@ export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderS
                   <p
                     aria-hidden="true"
                     data-role={line.role}
-                    className="rounded-2xl rounded-tl-sm surface-raised px-3.5 py-2.5 text-xs leading-relaxed text-ink"
+                    className="rounded-2xl rounded-tl-sm surface-raised px-3.5 py-2.5 text-sm leading-relaxed text-ink"
                   >
                     {text}
                   </p>
@@ -216,7 +216,7 @@ export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderS
             return (
               <div key={line.id} className="pl-9">
                 {line.section === 'say-it-better' && holdSayItBetter ? (
-                  <p className="text-[11px] text-ink-muted">
+                  <p className="text-sm text-ink-muted">
                     Your improved answer appears here once you've tried the fixes above, or tapped "Just show me".
                   </p>
                 ) : (
@@ -234,7 +234,7 @@ export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderS
           <button
             type="button"
             onClick={skip}
-            className="rounded-lg px-2 py-1 text-[11px] font-semibold text-ink-muted underline underline-offset-2"
+            className="rounded-lg px-2 py-1 text-sm font-semibold text-ink-muted underline underline-offset-2"
           >
             Show all
           </button>

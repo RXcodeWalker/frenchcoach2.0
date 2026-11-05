@@ -1,12 +1,12 @@
 /**
  * Renders every app icon from `iconArt.ts` (run: `npm run android:icons`).
  *
- *   public/icons/            web-manifest icons (192/512 "any", 512 maskable) + apple-touch-icon
  *   android/app/src/main/res legacy launcher PNGs (Android < 8) and the vector drawables
  *                            (adaptive foreground, themed icon, notification icon, splash)
  *   android/store/           the 512×512 Play Store listing icon
  *
- * PNGs are rendered by the pre-installed Chromium (Playwright). Commit the output;
+ * The website's own icons (public/icons/) belong to the offline/install work and are not
+ * written here. PNGs are rendered by the pre-installed Chromium (Playwright). Commit the output;
  * nothing renders icons at build time.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -122,10 +122,6 @@ async function main() {
   const rounded = roundedIconSvg();
   const maskable = maskableIconSvg();
 
-  write(join(ROOT, 'public/icons/icon-192.png'), await render(rounded, 192, false));
-  write(join(ROOT, 'public/icons/icon-512.png'), await render(rounded, 512, false));
-  write(join(ROOT, 'public/icons/icon-maskable-512.png'), await render(maskable, 512, true));
-  write(join(ROOT, 'public/icons/apple-touch-icon.png'), await render(maskable, 180, true));
   write(join(ROOT, 'android/store/play-icon-512.png'), await render(maskable, 512, true));
   for (const [density, size] of LEGACY_DENSITIES) {
     write(join(RES, `mipmap-${density}/ic_launcher.png`), await render(rounded, size, false));

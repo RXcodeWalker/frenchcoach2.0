@@ -88,6 +88,13 @@ function withTimeout<T>(promise: Promise<T>, ms: number, fallback: () => T): Pro
   });
 }
 
+/**
+ * SpeechRecognition errors after which restarting the recogniser can't help:
+ * 'network' (offline — Chrome's recogniser runs on Google's servers; the
+ * audio recording carries on and Learn saves it for later) and a blocked mic.
+ */
+const FATAL_STT_ERRORS = new Set(['network', 'not-allowed', 'service-not-allowed', 'audio-capture']);
+
 export function useRecording(blocked = false): RecordingState {
   const [isRecording, setIsRecording]   = useState(false);
   // No sound effect may play into an open mic (it would reach the transcript / the audio upload).
@@ -222,6 +229,10 @@ export function useRecording(blocked = false): RecordingState {
         setLastActivityAt(Date.now());
       };
 
+      // Set by onerror for an error a restart can't fix (offline, mic blocked):
+      // restarting would only fail again, in a tight loop, for the whole answer.
+      let fatalError = false;
+
       recog.onend = () => {
         if (myGeneration !== generationRef.current) return;
         // `recogRef.current` is cleared to null by stop() synchronously, BEFORE
@@ -233,7 +244,7 @@ export function useRecording(blocked = false): RecordingState {
         // generation guard (not call-site awaiting) is still what keeps this
         // safe if a caller has since moved on to a new start() (CLAUDE.md
         // Known Traps: useRecording's callbacks are generation-guarded).
-        if (recogRef.current === recog) {
+        if (recogRef.current === recog && !fatalError) {
           try {
             recog.start();
             return;
@@ -242,6 +253,9 @@ export function useRecording(blocked = false): RecordingState {
             // fall through and resolve with whatever was captured so far.
           }
         }
+        // Ended for good on its own: let a later stop() resolve straight away
+        // instead of waiting out STOP_TIMEOUT_MS for an onend that won't come.
+        if (recogRef.current === recog) recogRef.current = null;
         if (resolveRef.current) {
           resolveRef.current(finalTextRef.current.trim());
           resolveRef.current = null;
@@ -252,6 +266,7 @@ export function useRecording(blocked = false): RecordingState {
         if (myGeneration !== generationRef.current) return;
         // Waveform still animates; transcript stays whatever was captured so far.
         setSttError(e.error || 'unknown');
+        if (FATAL_STT_ERRORS.has(e.error)) fatalError = true;
       };
 
       recog.start();

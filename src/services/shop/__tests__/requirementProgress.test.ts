@@ -97,7 +97,7 @@ describe('computeRequirementProgress', () => {
   it('computes roleplay progress for causeur (5 roleplays)', () => {
     const result = computeRequirementProgress({ ...baseInput, achievementId: 'causeur', roleplayCount: 3 });
     expect(result.ratio).toBeCloseTo(0.6);
-    expect(result.label).toBe('3 / 5 roleplays');
+    expect(result.label).toBe('3 / 5 role plays');
   });
 
   it('resolves probleme_resolu from a resolved LearningProblem, not merely a present one', () => {
@@ -114,7 +114,7 @@ describe('computeRequirementProgress', () => {
     const interventions = [1, 2, 3].map(i => ({ id: `i${i}` }) as Intervention);
     const result = computeRequirementProgress({ ...baseInput, achievementId: 'drill_master', interventions });
     expect(result.ratio).toBeCloseTo(0.6);
-    expect(result.label).toBe('3 / 5 interventions');
+    expect(result.label).toBe('3 / 5 drills');
   });
 
   it('falls back to binary not-yet-unlocked for requirements with no partial metric (e.g. examinateur)', () => {

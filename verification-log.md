@@ -4771,3 +4771,101 @@ browser voice (the existing fallback).
 **L2-off window.** Frontend (JSON + manifest) and backend (byte copy) are separate commits on
 `claude/sleepy-cerf-pyau1k`; when merged, deploy back to back — between the two deploys the backend reports
 `demandsResolved: false` and L2 evidence is off.
+
+## 2026-11-03 — Teacher dashboard (all stages): classes, homework allowance, teacher marks
+
+**Changed (Assessment-Engine surface: `server/` only, no pipeline stage).** `POST /score` reads
+`?mode=examSim|coached&counts=1|0&assignment=<uuid>` (query params, never the transcript) and, after
+`saveOriginal`, writes `exam_attempt_meta` (best-effort, never fails the response) with the server's own
+"counts" verdict — the client claim lowered for Coached, `userCorrected` or any typed answer
+(`server/examAttemptMeta.ts`). A homework mock the `assignment_allowance` RPC accepts charges
+`assignment_exam` with key `asg:<id>:<sessionId>` and skips the weekly-exam check; a failure releases that
+grant. `GET /exam/allowance?assignment=` answers the same. `scoreAttempt()`, the transcript, the envelope,
+`evidence/`, `judgement/`, `guardrails/`, `envelope/` and `rubric.ts` are untouched; nothing under
+`src/domain/igcse/` or `scripts/scoring/` imports the teacher area (`teacherIsolation.test.ts`).
+`score:golden` was not re-run: no scoring code changed.
+
+**Backend (french-coach-backend).** Migration `20261103091000_teacher_dashboard.sql`; Learn feedback (JSON,
+stream and examiner routes) charges `assignment_learn_answer` for an accepted `X-Assignment-Id`
+(`lib/assignment_allowance.py`), else `learn_answer` as before. **Not applied to production** — the owner
+applies it (deploy order in `docs/systems/teacher-dashboard.md` §9).
+
+**Checked.** The migration applied to a plain local Postgres 16 with stubbed Supabase roles/auth and
+passed its behaviour spec (`supabase/tests/plain_pg/teacher_dashboard_test.sql`, `ALL PASSED`): invite
+redemption and reuse, own-class join refused, a second teacher reads nothing, the D7 join-date window,
+envelope/report/meta projection, unshared marks invisible to the student, assignment targeting, the
+homework caps and retry exclusion, `authenticated` cannot call `assignment_allowance`, leaving ends
+access, code rotation, direct table writes refused, archive. Backend pytest 1023 passed (+6 new). Frontend
+`typecheck`, `typecheck:server`, `lint` (0 errors) and the full `npm test` (536 files, 6034 tests) pass after fixing
+the 4 `vercel.json` rewrite tests the new dynamic routes raised. Not checked against the hosted project.
+
+## 2026-11-03 — Teacher dashboard migration applied to production
+
+`20261103091000_teacher_dashboard.sql` applied to the production Supabase project ("French Coach") via the
+Supabase connector, at the owner's request. Pre-checks: every dependency present (`sessions`, `profiles.username`,
+`scoring_envelopes.regraded_from`, `exam_feedback_reports`, `ai_quota_limits`, `ai_usage_grants`, `is_admin()`), no
+new table already existed. Post-checks on production: 8 new tables, 24 functions, the four new `sessions` columns,
+quota rows `assignment_exam=2` and `assignment_learn_answer=20`; `anon` cannot execute `join_class`;
+`authenticated` cannot execute `assignment_allowance` (service_role can); `authenticated` can execute
+`teacher_class_roster` but cannot insert into `classes`; `anon` cannot select `teacher_marks`. The behavioural spec
+was not run against production (it writes test rows); it passed on local Postgres earlier today. Not yet deployed:
+the FastAPI backend, the scoring service and the frontend from branch `claude/upbeat-rubin-nsginj`.
+
+## 2026-11-04 — Hyphenated usernames, first teacher invite, merge to main
+
+Owner request. Production: `claim_username`/`rename_username` now accept
+`^[A-Za-z][A-Za-z0-9_-]{1,18}[A-Za-z0-9_]$` (backend migration `20261104091000`; only the format check changed,
+bodies otherwise copied from the live `pg_get_functiondef`); the client rule in `usernameService.ts` matches.
+Teacher invite `PILOT-ONE` created with `max_uses = 3`. The owner's account username set to `the-creator`
+directly in `profiles` (with `username_changed_at` left NULL, so the 30-day rename throttle doesn't apply to this
+change). Teacher-dashboard migration renamed `20261103090000` → `20261103091000` because main's `speaking_samples`
+migration shares that version (both already applied; renaming a file doesn't reapply). Merged into main with
+conflicts resolved in `sessionSync.ts` (kept main's restore/repair rewrite, added `assignment_id` as a write-only
+exam column), `ExamMode.tsx`, `ExamSelect.tsx`, `types/index.ts`, `telemetryService.ts` and `CLAUDE.md`. On the
+merged tree: typecheck, `typecheck:server`, lint (0 errors), full `npm test` 551 files / 6278 tests, build; backend
+pytest 1023 passed.
+
+## 2026-11-03 — Premium subscriptions (Stripe): built, not yet switched on
+
+**What.** Stripe Premium subscription that raises the launch limits (ADR 0014, `docs/systems/payments.md`):
+backend `routers/billing.py` + migration `20261104090000`, `server/examAllowance.ts` Premium rule, `/premium`
+screen behind the `premium` flag (`coming-soon`). Billing stays off until the Stripe env vars are set.
+
+**Checked.** Migration applied to a throwaway Postgres 16 with stubbed Supabase roles/`auth.uid()`/profiles/quota
+tables and asserted: free stops at 3 / Premium at 30 on `learn_answer`, replay still granted, a feature without a
+Premium value keeps its limit, `past_due` keeps Premium, `canceled` and a period >3 days over drop it, deleting a
+profile with a live subscription raises `active_subscription` (allowed after cancel, rows cascade), clients cannot
+write `billing_*` or execute `has_premium`/`consume_ai_quota`, RLS shows a user only their own subscription. **Not
+run:** a `backend/supabase/tests/*.test.mjs` against a local Supabase stack (none written). Backend pytest 1049
+passed (31+ new billing tests: real HMAC webhook signature + 5-minute tolerance, forged/old events refused,
+subscription re-read from Stripe outranks the payload, duplicate events processed once, failed sync not marked
+seen). Frontend: typecheck, lint (0 errors), full `npm test`, `typecheck:server`; `/premium` rendered at 390px
+and 1280px with a mocked status. **Not done:** any call against real Stripe (no keys in this environment) — the
+owner's test-mode purchase in `payments.md` §3 step 7 is the first end-to-end check.
+
+## 2026-11-04 — Premium through Razorpay (second provider): built, not yet switched on
+
+**What.** Razorpay subscriptions beside Stripe (ADR 0014 amendment, `payments.md` §6): backend
+`routers/billing_razorpay.py` + migration `20261105090000` (`billing_razorpay_subscriptions`, `has_premium()` and the
+deletion trigger now read both providers), `/api/billing/status` lists `providers`; `/premium` offers "Pay with" when
+both are on and cancels a Razorpay subscription in-app. Off until the Razorpay env vars are set.
+
+**Checked.** Both migrations applied in order to the throwaway Postgres 16 stub: `created`/`authenticated`/`halted`
+and a period >3 days over are not Premium, `active`/`pending` are (30 Learn answers, then refused), Stripe Premium
+unchanged, deleting a profile is refused for `authenticated`/`active`/`pending`/`halted`/`paused` and allowed after
+`cancelled` (rows cascade), an unknown status is refused by the CHECK, clients cannot write the table or read the
+events table; the 2026-11-03 Stripe SQL checks pass again on top of the new migration. Backend pytest 1085 passed
+(36 new Razorpay tests: real HMAC webhook signature, forged/unsigned refused, re-read outranks the payload, our row
+outranks the notes, duplicate events once with or without the event-id header, failed sync not marked seen, sync
+only for this account's own subscription and a strict `sub_` id, cancel keeps Premium to the period end and its
+flag survives re-reads, deletion cancels at once, the httpx gateway via a mock transport). Frontend: typecheck,
+lint (0 errors), full `npm test` (6050). **Not done:** any call against real Razorpay or a real `checkout.js` window
+(no keys here) — the owner's test-mode purchase in `payments.md` §6 step 6 is the first end-to-end check; the
+`total_count` defaults (120 monthly / 10 yearly) are unverified against Razorpay's per-method limits.
+
+## 2026-11-04 — Premium migration renumbered before merge
+
+The Stripe Premium migration was renamed `20261104090000_premium_billing.sql` → `20261104230000_premium_billing.sql`
+when the branch was merged into `main`, because `main` already had `20261104090000_user_feedback.sql` (applied to
+production) and Supabase migration versions must be unique. Entries above that name `20261104090000` for Premium mean
+`20261104230000`. Neither Premium migration had been applied anywhere but the throwaway test Postgres.

@@ -481,13 +481,15 @@ score(q, slot) = 3.0·bandFit + 2.0·coachFocusMatch + 1.5·demandCoverageGap
 bandFit(s,[lo,hi]) = 1                        if lo ≤ s ≤ hi
                    = max(0, 1 − (lo−s)/2.0)   if s < lo
                    = max(0, 1 − (s−hi)/2.0)   if s > hi
-coachFocusMatch(q) = 1 if q.demands.structures ∩ focusSkillIds ≠ ∅, or q.cognitiveDemand
+coachFocusMatch(q) = 1 if q.demands.structures ∩ structuresForSkills(focusSkillIds) ≠ ∅, or q.cognitiveDemand
                        matches an active demand problem; else 0
 demandCoverageGap(q) = 1 − confidence(demand node of q.cognitiveDemand)    // absent → 1.0
 exposureFreshness(q) = 1.0 if unseen, else 0.2
 provenanceTrust(q)   = authored 1.0 · reviewed 0.7 · inferred 0.3
 sessionRepetition(q) = 1 if q.cognitiveDemand already used this session, else 0
 ```
+
+**`focusSkillIds` are coach skill ids, not structures.** The coach says `tense_past`, `hypothetical`, `comparative`; questions are tagged `perfect`, `conditional`, `comparison`. `structuresForSkills` (`domain/learn/selection/skillStructures.ts`) is the one translation table — intersecting the raw ids matched only `opinion` (no question is tagged `negation` or `subjunctive`), so a past-tense focus picked nothing (fixed 2026-11-04).
 
 **`exposureFreshness` is binary on purpose.** `TopicMasteryEntry.uniqueQuestionsAnswered`
 (`types/index.ts:645`) is a `string[]` with **no timestamps**, so "seen 7 days ago" vs "seen 6

@@ -20,7 +20,7 @@ export function IssueRow({ issue, isSelected, lessonDefaultOpen, lessonForceOpen
         <SeverityBadge level={issue.severity} />
         {/* themeLabel from backend — more readable than raw category */}
         {issue.themeLabel && (
-          <span className="text-[9px] text-ink-muted font-medium">{issue.themeLabel}</span>
+          <span className="text-xs text-ink-muted font-medium">{issue.themeLabel}</span>
         )}
         {issue.marksImpact > 0 && (
           <span
@@ -46,26 +46,26 @@ export function IssueRow({ issue, isSelected, lessonDefaultOpen, lessonForceOpen
 
       {issue.quote && (
         <p
-          className={`text-[10px] font-mono mb-1.5 px-1.5 py-0.5 rounded inline-block ${SEVERITY_TEXT[issue.severity]} ${SEVERITY_SOFT[issue.severity]}`}
+          className={`text-sm font-mono mb-1.5 px-1.5 py-0.5 rounded inline-block ${SEVERITY_TEXT[issue.severity]} ${SEVERITY_SOFT[issue.severity]}`}
         >
           "{issue.quote}"
         </p>
       )}
 
-      <p className="text-[10px] text-ink-muted mb-1.5">{issue.diagnostic}</p>
+      <p className="text-sm text-ink-muted mb-1.5">{issue.diagnostic}</p>
 
       {issue.isRecurring && issue.recurrenceNote && (
-        <p className="text-[9px] text-reward-text italic mb-1.5">{issue.recurrenceNote}</p>
+        <p className="text-xs text-reward-text italic mb-1.5">{issue.recurrenceNote}</p>
       )}
 
-      <div className="flex items-start gap-1.5 text-[10px] mb-1">
-        <CheckCircle size={10} className="text-progress-text flex-shrink-0 mt-0.5" />
+      <div className="flex items-start gap-1.5 text-sm mb-1">
+        <CheckCircle size={14} className="text-progress-text flex-shrink-0 mt-0.5" />
         <span className="text-progress-text font-medium">{issue.correction}</span>
       </div>
 
       {issue.stronger && (
-        <div className="flex items-start gap-1.5 text-[10px] mb-1">
-          <ChevronRight size={10} className="text-action-text flex-shrink-0 mt-0.5" />
+        <div className="flex items-start gap-1.5 text-sm mb-1">
+          <ChevronRight size={14} className="text-action-text flex-shrink-0 mt-0.5" />
           <span className="text-action-text">{issue.stronger}</span>
         </div>
       )}
@@ -74,7 +74,7 @@ export function IssueRow({ issue, isSelected, lessonDefaultOpen, lessonForceOpen
       {issue.masterTip && (
         <div className="flex items-start gap-1.5 mt-1.5 p-2 rounded-md bg-reward-soft border border-hairline">
           <Lightbulb size={9} className="text-reward-text flex-shrink-0 mt-0.5" />
-          <p className="text-[9px] text-reward-text">{issue.masterTip}</p>
+          <p className="text-xs text-reward-text">{issue.masterTip}</p>
         </div>
       )}
 

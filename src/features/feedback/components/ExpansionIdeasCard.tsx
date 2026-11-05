@@ -20,10 +20,10 @@ export function ExpansionIdeasCard({ ideas, defaultOpen = false }: Props) {
       <div className="space-y-2">
         {ideas.map((idea, i) => (
           <div key={i} className="flex items-start gap-2.5">
-            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-info-soft border border-hairline flex items-center justify-center text-[8px] font-bold text-info-text mt-0.5">
+            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-info-soft border border-hairline flex items-center justify-center text-xs font-bold text-info-text mt-0.5">
               {i + 1}
             </span>
-            <p className="text-[10px] text-ink-muted leading-relaxed pt-0.5">{idea}</p>
+            <p className="text-sm text-ink-muted leading-relaxed pt-0.5">{idea}</p>
           </div>
         ))}
       </div>

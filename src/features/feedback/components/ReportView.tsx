@@ -78,7 +78,7 @@ export function ReportView({ feedback, transcript, majorIssues, polishIssues, on
             </p>
             <button
               onClick={() => dispatch({ type: 'SET_EXPAND_ALL_LESSONS', value: !expandAll })}
-              className="flex items-center gap-1 text-[9px] font-medium text-action-text hover:text-action-text transition-colors"
+              className="flex items-center gap-1 text-xs font-medium text-action-text hover:text-action-text transition-colors"
             >
               {expandAll ? <ChevronsDownUp size={11} /> : <ChevronsUpDown size={11} />}
               {expandAll ? 'Collapse all' : 'Expand all'}

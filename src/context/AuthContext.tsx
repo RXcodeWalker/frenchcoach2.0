@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { Session, User } from '@supabase/supabase-js';
+import { isAuthRetryableFetchError, type Session, type User } from '@supabase/supabase-js';
 import { supabase, supabaseConfigured } from '../lib/supabase';
+import { storedSessionUser } from '../lib/offlineSession';
 import { captureError } from '../services/telemetry/telemetryService';
 import { isAdminUser } from '../lib/adminAccess';
 import { clearAllExamAudio } from '../services/exam/pronunciation/examAudioStore';
@@ -36,6 +37,7 @@ interface AuthContextValue {
   resetPasswordForEmail: (email: string) => Promise<void>;
   updateUserPassword: (newPassword: string) => Promise<void>;
   signInWithOAuth: (provider: 'google' | 'azure') => Promise<void>;
+  signInWithGoogleIdToken: (idToken: string, nonce: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -101,9 +103,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(({ data, error }) => {
+      // Offline with an expired token: keep the stored account (offlineSession.ts).
+      const held = !data.session && isAuthRetryableFetchError(error) ? storedSessionUser() : null;
       setSession(data.session);
-      setUser(data.session?.user ?? null);
+      setUser(data.session?.user ?? held);
       setLoading(false);
       if (data.session?.user) void loadConsentStatus(data.session.user.id);
     }).catch(err => {
@@ -114,7 +118,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      // Opened offline: supabase-js reports no initial session when it can't
+      // refresh an expired token, yet keeps it stored. Keep the account until
+      // it refreshes (TOKEN_REFRESHED) or is really signed out (SIGNED_OUT).
+      if (event === 'INITIAL_SESSION' && !newSession) {
+        const held = storedSessionUser();
+        if (held) {
+          setSession(null);
+          setUser(held);
+          return;
+        }
+      }
       setSession(newSession);
       setUser(newSession?.user ?? null);
       if (newSession?.user) {
@@ -182,10 +197,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw new Error(translateError(error));
   }
 
+  // Google Identity Services flow: the sign-in runs on our own domain, so Google's
+  // account picker names our site rather than the Supabase project URL.
+  async function signInWithGoogleIdToken(idToken: string, nonce: string) {
+    if (!supabaseConfigured) throw new Error('App is not configured.');
+    const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken, nonce });
+    if (error) throw new Error(translateError(error));
+  }
+
   const isAdmin = isAdminUser(user);
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, loading, configError: false, ageBand, consentStatus, inviteStatus, refreshConsentStatus, refreshInviteStatus, signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword, signInWithOAuth }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, loading, configError: false, ageBand, consentStatus, inviteStatus, refreshConsentStatus, refreshInviteStatus, signIn, signUp, signOut, resetPasswordForEmail, updateUserPassword, signInWithOAuth, signInWithGoogleIdToken }}>
       {children}
     </AuthContext.Provider>
   );

@@ -46,7 +46,7 @@ export function SaveToNotebook({ feedback, question, signedIn, offered, savedAns
   if (!signedIn) {
     if (!offered) return null;
     return (
-      <p className="rounded-xl surface-recessed p-3 text-xs text-ink-muted" data-testid="notebook-guest">
+      <p className="rounded-xl surface-recessed p-3 text-sm text-ink-muted" data-testid="notebook-guest">
         Sign in to keep your notes.{' '}
         <Link to="/login" className="font-semibold text-action-text underline underline-offset-2">
           Sign in
@@ -58,7 +58,7 @@ export function SaveToNotebook({ feedback, question, signedIn, offered, savedAns
   const alreadySaved = justSaved || (savedAnswer !== null && isSameAnswer(savedAnswer, answer));
   if (alreadySaved) {
     return (
-      <p className="flex items-center gap-1.5 rounded-xl surface-recessed p-3 text-xs text-progress-text" role="status" data-testid="notebook-saved">
+      <p className="flex items-center gap-1.5 rounded-xl surface-recessed p-3 text-sm text-progress-text" role="status" data-testid="notebook-saved">
         <BookMarked size={12} aria-hidden="true" />
         Saved to your notebook.
         <Link to="/notebook" className="ml-1 font-semibold text-action-text underline underline-offset-2">
@@ -82,7 +82,7 @@ export function SaveToNotebook({ feedback, question, signedIn, offered, savedAns
   if (offered && !dismissed) {
     return (
       <div className="space-y-2 rounded-xl surface-recessed p-3" data-testid="notebook-offer">
-        <p className="text-xs text-ink">
+        <p className="text-sm text-ink">
           Keep this version for your exam notes?
           <span className="text-ink-muted">
             {' '}
@@ -91,13 +91,13 @@ export function SaveToNotebook({ feedback, question, signedIn, offered, savedAns
           </span>
         </p>
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={save} className="rounded-lg bg-action px-3 py-1.5 text-[11px] font-bold text-action-ink">
+          <button type="button" onClick={save} className="rounded-lg bg-action px-3 py-1.5 text-sm font-bold text-action-ink">
             {saveLabel}
           </button>
           <button
             type="button"
             onClick={() => setDismissed(true)}
-            className="rounded-lg px-2 py-1.5 text-[11px] font-semibold text-ink-muted underline underline-offset-2"
+            className="rounded-lg px-2 py-1.5 text-sm font-semibold text-ink-muted underline underline-offset-2"
           >
             Not now
           </button>
@@ -111,7 +111,7 @@ export function SaveToNotebook({ feedback, question, signedIn, offered, savedAns
       type="button"
       onClick={save}
       data-testid="notebook-quiet"
-      className="inline-flex items-center gap-1.5 rounded-lg surface-recessed px-3 py-1.5 text-[11px] font-bold text-action-text"
+      className="inline-flex items-center gap-1.5 rounded-lg surface-recessed px-3 py-1.5 text-sm font-bold text-action-text"
     >
       <BookMarked size={11} aria-hidden="true" />
       {saveLabel}

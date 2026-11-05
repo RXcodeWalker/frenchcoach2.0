@@ -7,10 +7,9 @@
 // unseen/topic-based selection, that creates a brand-new item from scratch —
 // there is no "was this graduated before" lookup or permanent exclusion list.
 
-import { getQuestionById } from '../../data/gameData';
+import { QUESTION_IDS } from '../../data/questionIds';
 import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
 import { resolveFeatureStatus } from '../../config/featureFlags';
-import type { Question } from '../../types';
 
 const REVIEW_POOL_VERSION = 3;
 
@@ -19,7 +18,7 @@ export const MIN_EASE_FACTOR = 1.3;
 /** UNVALIDATED — no data yet on the right "stop resurfacing" point for this app. */
 export const GRADUATION_INTERVAL_DAYS = 30;
 
-interface ReviewPoolItem {
+export interface ReviewPoolItem {
   questionId: string;
   topicKey: string;
   easeFactor: number;
@@ -32,7 +31,7 @@ interface ReviewPoolItem {
   firstRecordedScore: number | null;
 }
 
-interface ReviewPoolState {
+export interface ReviewPoolState {
   version: number;
   items: Record<string, ReviewPoolItem>;
 }
@@ -41,7 +40,8 @@ function emptyState(): ReviewPoolState {
   return { version: REVIEW_POOL_VERSION, items: {} };
 }
 
-function readState(): ReviewPoolState {
+/** The pool as stored (an empty pool when missing or from another version). */
+export function readState(): ReviewPoolState {
   const stored = storageGet<ReviewPoolState>(STORAGE_KEYS.reviewPool, emptyState());
   // Corrupt shape or a future/older version — reset rather than trust partial data.
   // No migration attempted — acceptable for a derived, non-authoritative store
@@ -136,50 +136,16 @@ function intervalDaysFor(existing: ReviewPoolItem | undefined): number {
 }
 
 /**
- * Pure eligibility lookup: the most-overdue eligible question for `topicKey`
- * not already in `seenIds` this session, gated on `Date.now() >=
- * nextEligibleAt`. Returns null when the flag is off, the pool is empty, or
- * nothing qualifies — degrading to "empty pool" is always the fallback,
- * never a throw. `accept` (Learn overhaul Batch 2) lets the caller hold the
- * review slot to the learner's filters: a due item that fails it is skipped,
- * so a filtered session simply has no review slot (docs §8.3).
- */
-export function getEligibleReviewQuestion(
-  topicKey: string,
-  seenIds: Set<string>,
-  accept?: (question: Question) => boolean,
-): Question | null {
-  if (resolveFeatureStatus('learnSpacedReview') !== 'live') return null;
-
-  const state = readState();
-  const now = Date.now();
-
-  const candidates = Object.values(state.items)
-    .filter(item => item.topicKey === topicKey)
-    .filter(item => !seenIds.has(item.questionId))
-    .filter(item => now >= new Date(item.nextEligibleAt).getTime())
-    .sort((a, b) => new Date(a.nextEligibleAt).getTime() - new Date(b.nextEligibleAt).getTime());
-
-  if (candidates.length === 0) return null;
-
-  for (const candidate of candidates) {
-    const question = getQuestionById(candidate.questionId);
-    if (question && (!accept || accept(question))) return question;
-  }
-
-  return null;
-}
-
-/**
  * Read-only: how many pooled questions per topic are due now (same gate and
  * `nextEligibleAt` rule as getEligibleReviewQuestion). Empty when the flag is
- * off. Never writes the pool.
+ * off. Never writes the pool. Checks ids against `questionIds.ts`, not the
+ * bank, so Home and Progress open without downloading the bank.
  */
 export function getDueReviewCounts(now: number = Date.now()): Record<string, number> {
   if (resolveFeatureStatus('learnSpacedReview') !== 'live') return {};
   const counts: Record<string, number> = {};
   for (const item of Object.values(readState().items)) {
-    if (now >= new Date(item.nextEligibleAt).getTime() && getQuestionById(item.questionId)) {
+    if (now >= new Date(item.nextEligibleAt).getTime() && QUESTION_IDS.has(item.questionId)) {
       counts[item.topicKey] = (counts[item.topicKey] ?? 0) + 1;
     }
   }
@@ -195,4 +161,53 @@ export function getDueReviewCounts(now: number = Date.now()): Record<string, num
 export function getReviewItemFirstRecordedScore(questionId: string): number | null {
   const state = readState();
   return state.items[questionId]?.firstRecordedScore ?? null;
+}
+
+// ── Cloud copy (services/sync/learnerStateSync.ts) ───────────────────────────
+// The schedule used to live only on this device, so a new phone restarted every
+// SM-2 item. The sync module reads the whole pool to push it and hands back the
+// cloud's copy on sign-in; the merge rule lives here, next to the shape.
+
+/** The pool as stored (a fresh empty pool when nothing valid is stored). */
+export function readReviewPoolForSync(): { version: number; items: Record<string, unknown> } {
+  return readState();
+}
+
+function isReviewPoolItem(value: unknown): value is ReviewPoolItem {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  return typeof v.questionId === 'string'
+    && typeof v.topicKey === 'string'
+    && typeof v.easeFactor === 'number'
+    && typeof v.intervalDays === 'number'
+    && typeof v.repetitions === 'number'
+    && typeof v.nextEligibleAt === 'string'
+    && typeof v.lastAnsweredAt === 'string'
+    && typeof v.lastQuality === 'number'
+    && (v.firstRecordedScore === null || typeof v.firstRecordedScore === 'number');
+}
+
+/**
+ * Merge a cloud copy into this device's pool: per question, the item answered
+ * most recently wins (an item only one side has is kept). A cloud copy of
+ * another pool version is ignored, like a stored one. Known limit: a question
+ * that graduated (was deleted) on one device can come back from another
+ * device's older copy and be reviewed once more. Returns whether anything changed.
+ */
+export function mergeReviewPoolFromCloud(cloud: unknown): boolean {
+  if (!cloud || typeof cloud !== 'object') return false;
+  const c = cloud as { version?: unknown; items?: unknown };
+  if (c.version !== REVIEW_POOL_VERSION || !c.items || typeof c.items !== 'object') return false;
+  const local = readState();
+  let changed = false;
+  for (const [id, item] of Object.entries(c.items as Record<string, unknown>)) {
+    if (!isReviewPoolItem(item) || item.questionId !== id) continue;
+    const mine = local.items[id];
+    if (!mine || item.lastAnsweredAt > mine.lastAnsweredAt) {
+      local.items[id] = item;
+      changed = true;
+    }
+  }
+  if (changed) writeState(local);
+  return changed;
 }

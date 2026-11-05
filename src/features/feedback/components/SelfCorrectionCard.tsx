@@ -28,14 +28,14 @@ export function SelfCorrectionCard({ selfCorrections }: Props) {
       </p>
       <ul className="space-y-1.5">
         {selfCorrections.map((s) => (
-          <li key={s.quote} className="text-[12px] text-ink leading-relaxed">
+          <li key={s.quote} className="text-sm text-ink leading-relaxed">
             <span className="line-through decoration-correction-text text-ink-muted">« {s.quote} »</span>
             {' → '}
             <span className="font-medium text-progress-text">« {s.repair} »</span>
           </li>
         ))}
       </ul>
-      <p className="text-[12px] text-ink-muted leading-relaxed">
+      <p className="text-sm text-ink-muted leading-relaxed">
         Catching your own slip shows you know the rule, and an examiner doesn't hold a mistake you fix at once against
         you, so it isn't in your corrections. Next step: say it right first time.
       </p>

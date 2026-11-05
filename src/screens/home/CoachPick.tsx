@@ -15,6 +15,8 @@ interface Props {
   tag?: string | null;
   onOpen: () => void;
   compact?: boolean;
+  /** Shown instead of the topic name when the move has no topic (Exam Sim, role play). */
+  heading?: string | null;
 }
 
 /**
@@ -22,7 +24,7 @@ interface Props {
  * why, and the skills it targets; the whole card opens that topic. Compact:
  * the one-line "Focus:" strip Home passes as the mission card's footer.
  */
-export function CoachPick({ topicKey, topicLabel, body, short, skills, tag, onOpen, compact = false }: Props) {
+export function CoachPick({ topicKey, topicLabel, body, short, skills, tag, onOpen, compact = false, heading }: Props) {
   if (compact) {
     return (
       <button
@@ -33,7 +35,7 @@ export function CoachPick({ topicKey, topicLabel, body, short, skills, tag, onOp
       >
         <TopicChip topicKey={topicKey} size={20} />
         <span className="min-w-0 flex-1 text-[14px] leading-[1.45] text-ink-muted">
-          <strong className="font-semibold text-ink">Focus: {topicLabel ?? 'General practice'}</strong> — {short}
+          <strong className="font-semibold text-ink">Focus: {topicLabel ?? heading ?? 'General practice'}</strong> — {short}
         </span>
       </button>
     );
@@ -59,7 +61,7 @@ export function CoachPick({ topicKey, topicLabel, body, short, skills, tag, onOp
             </>
           )}
         </span>
-        <span className="text-[16px] font-semibold leading-[1.35]">{topicLabel ?? 'Complete a session to get a personalised topic'}</span>
+        <span className="text-[16px] font-semibold leading-[1.35]">{topicLabel ?? heading ?? 'Complete a session to get a personalised topic'}</span>
         <span className="text-body-s text-ink-muted [text-wrap:pretty]">{body}</span>
         {skills.length > 0 && (
           <span className="mt-1.5 flex flex-wrap gap-1.5">

@@ -69,7 +69,9 @@ export interface Achievement {
   xpReward: number;
   unlocked: boolean;
   unlockedAt?: string;
-  category: 'streak' | 'practice' | 'skill' | 'exam' | 'social';
+  category: import('../data/achievements').AchievementCategory;
+  hidden?: boolean;
+  retired?: boolean;
 }
 
 export interface Topic {
@@ -194,10 +196,12 @@ export interface Session {
   createdAt: string;
   /** True for an exam session run in Coached Practice (or otherwise not marked under real-exam conditions) — its /40 is shown but excluded from progress/averages. See ADR-0007. */
   practiceOnly?: boolean;
-  /** Exam sessions only: the envelope's marks by scored area. Local only (not synced); absent on attempts recorded before it existed and when scoring failed. */
+  /** Exam sessions only: the envelope's marks by scored area. Synced (sessions.exam_marks) and restored on sign-in; absent on attempts recorded before it existed and when scoring failed. */
   examMarks?: ExamAreaMarks;
-  /** Exam sessions only: the scoring session id (the transcript's `sessionId`), distinct from `id`. Local only. */
+  /** Exam sessions only: the scoring session id (the transcript's `sessionId`), distinct from `id`. Synced (sessions.scoring_session_id). */
   scoringSessionId?: string;
+  /** Homework a teacher set that this session answered (features/homework). Completion is derived from it, never stored. */
+  assignmentId?: string;
 }
 
 /** The three 0520 scored areas of one marked exam attempt, copied from its envelope. */

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { BookMarked } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { TOPICS } from '../data/gameData';
+import { TOPICS } from '../data/topics';
 import { subTopicsFor } from '../data/learnSubTopics';
 import { groupNotebook } from '../domain/learn/notebook/notebook';
 import { PageShell } from '../components/layout/PageShell';

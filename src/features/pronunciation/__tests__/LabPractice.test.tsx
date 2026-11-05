@@ -98,7 +98,7 @@ describe('LabPractice', () => {
     await recordTake(/Tap and say the sentence/);
     expect(loadLabHistory().observations).toEqual([]);
     assessMock.mockResolvedValueOnce(sentenceResult([95, 40, 95, 95, 95, 70]));
-    await click(screen.getByRole('button', { name: /Say it again/ }));
+    await click(screen.getByRole('button', { name: /Say the whole sentence again/ }));
     await recordTake(/Tap and say the sentence/);
     const days = loadLabHistory().observations.map((o) => `${o.family}`);
     expect(days.length).toBeGreaterThan(0);
@@ -148,6 +148,26 @@ describe('LabPractice', () => {
     const clip = (audio.playClip.mock.calls[0] as unknown as [Blob, { startS: number; endS: number }])[1];
     expect(clip.startS).toBeCloseTo(0.7 - 0.12, 5);
     expect(audio.playNative).toHaveBeenLastCalledWith(['les enfants', 'enfants'], expect.objectContaining({ speed: 1, synthesize: false }));
+  });
+
+  it('tapping a word offers practising just that word — the sentence take is kept, never re-recorded', async () => {
+    assessMock.mockResolvedValueOnce(sentenceResult([95, 40, 95, 95, 95, 70]));
+    renderLab();
+    await recordTake(/Tap and say the sentence/);
+    expect(screen.queryByTestId('lab-word-actions')).toBeNull();
+    await click(screen.getByRole('button', { name: /« jouent »: Clear/ }));
+    await click(screen.getByRole('button', { name: /Practise just this word/ }));
+
+    expect(screen.getByText('jouent')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Tap and say the sentence' })).toBeNull();
+    assessMock.mockResolvedValueOnce(scripted([azureWord('jouent', 92)]));
+    await recordTake(/Tap and say the word/);
+    expect(assessMock).toHaveBeenLastCalledWith(expect.objectContaining({ targetText: 'jouent', mode: 'scripted' }));
+    expect(assessMock).toHaveBeenCalledTimes(2);
+
+    await click(screen.getByRole('button', { name: 'Back to the sentence' }));
+    await click(screen.getByRole('button', { name: 'Back to your take' }));
+    expect(screen.getByText('4 of 6 words clear')).toBeTruthy();
   });
 
   it('Play both: your whole take, then the native sentence', async () => {

@@ -11,15 +11,22 @@ export interface FeatureCard {
   badge?: string;
   screen?: Screen;
   tab?: string;
+  /**
+   * Offline support: true when the mode can't work without a connection (live
+   * speech recognition, AI, or server-side data). Everything else runs from
+   * the app's own code and this device's data, so it works offline once the
+   * app has been opened online. Explore greys these out while offline.
+   */
+  needsConnection?: true;
 }
 
 export const FEATURES: FeatureCard[] = [
-  { id: 'speaking', title: 'Speaking Arena', description: 'Timed speaking challenges', icon: '🎤', category: 'Speak & Listen', color: '#EF4444', locked: false, screen: 'speaking-arena' },
-  { id: 'speed', title: 'Speed Speaking', description: 'Race against the clock', icon: '⏱', category: 'Speak & Listen', color: '#06B6D4', locked: false, screen: 'speed-speaking' },
-  { id: 'scenario_arch', title: 'Scenario Architect', description: 'Build custom AI roleplays on the fly', icon: '🏗️', category: 'Speak & Listen', color: '#7C3AED', locked: false, screen: 'scenario-architect', badge: 'AI' },
-  { id: 'daily_news', title: 'Daily News Flash', description: 'Listen to news and report back', icon: '📻', category: 'Speak & Listen', color: '#7C3AED', locked: false, badge: 'New', screen: 'daily-news' },
+  { id: 'speaking', title: 'Speaking Arena', description: 'Timed speaking challenges', icon: '🎤', category: 'Speak & Listen', color: '#EF4444', locked: false, screen: 'speaking-arena', needsConnection: true },
+  { id: 'speed', title: 'Speed Speaking', description: 'Race against the clock', icon: '⏱', category: 'Speak & Listen', color: '#06B6D4', locked: false, screen: 'speed-speaking', needsConnection: true },
+  { id: 'scenario_arch', title: 'Scenario Architect', description: 'Build custom AI roleplays on the fly', icon: '🏗️', category: 'Speak & Listen', color: '#7C3AED', locked: false, screen: 'scenario-architect', badge: 'AI', needsConnection: true },
+  { id: 'daily_news', title: 'Daily News Flash', description: 'Listen to news and report back', icon: '📻', category: 'Speak & Listen', color: '#7C3AED', locked: false, badge: 'New', screen: 'daily-news', needsConnection: true },
   { id: 'listening', title: 'Listening Mode', description: 'Train your ear with native audio', icon: '🎧', category: 'Speak & Listen', color: '#EC4899', locked: false, screen: 'listening-mode' },
-  { id: 'accent', title: 'Accent Analyzer', description: 'AI-powered accent scoring', icon: '🎯', category: 'Speak & Listen', color: '#06B6D4', locked: false, screen: 'accent-analyzer' },
+  { id: 'accent', title: 'Accent Analyzer', description: 'AI-powered accent scoring', icon: '🎯', category: 'Speak & Listen', color: '#06B6D4', locked: false, screen: 'accent-analyzer', needsConnection: true },
   { id: 'ai_chat', title: 'AI Conversations', description: 'Chat with an AI tutor in French', icon: '🤖', category: 'Speak & Listen', color: '#06B6D4', locked: true, badge: 'New' },
   { id: 'sentence_rebuild', title: 'Sentence Rebuilder', description: 'Put scrambled French words back in order', icon: '🧩', category: 'Words & Grammar', color: '#10B981', locked: false, screen: 'sentence-rebuilder', badge: 'New' },
   { id: 'rapid_fire', title: 'Rapid Fire', description: 'Translate as fast as you can', icon: '⚡', category: 'Words & Grammar', color: '#F59E0B', locked: false, screen: 'rapid-fire' },
@@ -32,10 +39,10 @@ export const FEATURES: FeatureCard[] = [
   { id: 'roadmap', title: 'French Roadmap', description: 'Your personalized learning path', icon: '🗺', category: 'Insights & Plan', color: '#7C3AED', locked: false, screen: 'roadmap' },
   { id: 'mastery', title: 'Mastery Journey', description: 'Track your path to fluency', icon: '🚀', category: 'Insights & Plan', color: '#F59E0B', locked: false, screen: 'mastery' },
   { id: 'challenges', title: 'Challenges', description: 'Weekly competitive events', icon: '⚔', category: 'Compete & Rewards', color: '#EF4444', locked: false, screen: 'challenges' },
-  { id: 'friends', title: 'Friend Challenges', description: 'Challenge friends to duels', icon: '🤝', category: 'Compete & Rewards', color: '#7C3AED', locked: false, screen: 'friend-challenges' },
-  { id: 'rankings', title: 'Rankings', description: 'See where you stand', icon: '🥇', category: 'Compete & Rewards', color: '#F59E0B', locked: false, screen: 'rankings' },
-  { id: 'xp_shop', title: 'Shop', description: 'Spend gems on streak safety and your look', icon: '🛍', category: 'Compete & Rewards', color: '#F59E0B', locked: false, screen: 'shop' },
-  { id: 'mystery_box', title: 'Mystery Box', description: 'Open a daily box for rewards', icon: '🎁', category: 'Compete & Rewards', color: '#EC4899', locked: false, screen: 'mystery-box' },
+  { id: 'friends', title: 'Friend Challenges', description: 'Challenge friends to duels', icon: '🤝', category: 'Compete & Rewards', color: '#7C3AED', locked: false, screen: 'friend-challenges', needsConnection: true },
+  { id: 'rankings', title: 'Rankings', description: 'See where you stand', icon: '🥇', category: 'Compete & Rewards', color: '#F59E0B', locked: false, screen: 'rankings', needsConnection: true },
+  { id: 'xp_shop', title: 'Shop', description: 'Spend gems on streak safety and your look', icon: '🛍', category: 'Compete & Rewards', color: '#F59E0B', locked: false, screen: 'shop', needsConnection: true },
+  { id: 'mystery_box', title: 'Mystery Box', description: 'Open a daily box for rewards', icon: '🎁', category: 'Compete & Rewards', color: '#EC4899', locked: false, screen: 'mystery-box', needsConnection: true },
   { id: 'survival', title: 'Survival Mode', description: 'How long can you keep going?', icon: '🏝', category: 'Compete & Rewards', color: '#F97316', locked: false, screen: 'survival' },
   { id: 'missions', title: 'Daily Missions', description: 'Complete 3 challenges for bonus XP', icon: '🎯', category: 'Compete & Rewards', color: '#7C3AED', locked: true },
   { id: 'seasonal', title: 'Seasonal Events', description: 'Limited-time themed challenges', icon: '🎄', category: 'Compete & Rewards', color: '#EC4899', locked: true },

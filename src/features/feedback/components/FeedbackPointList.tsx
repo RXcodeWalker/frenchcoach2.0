@@ -50,8 +50,8 @@ const TONE_HEADING: Record<PointTone, string> = {
 export function PointSection({ heading, tone, compact, children }: { heading: string; tone: PointTone; compact: boolean; children: ReactNode }) {
   return (
     <div className={`rounded-xl border ${compact ? 'p-3 space-y-2' : 'p-4 space-y-2.5'} ${TONE_CLASS[tone]}`}>
-      <p className={`fb-heading flex items-center gap-1 text-eyebrow uppercase ${TONE_HEADING[tone]}`}>
-        {tone === 'good' ? <Check size={11} aria-hidden="true" /> : <X size={11} aria-hidden="true" />}
+      <p className={`fb-heading flex items-center gap-1.5 uppercase ${compact ? 'text-eyebrow' : 'text-sm font-semibold tracking-wide'} ${TONE_HEADING[tone]}`}>
+        {tone === 'good' ? <Check size={compact ? 11 : 14} aria-hidden="true" /> : <X size={compact ? 11 : 14} aria-hidden="true" />}
         {heading}
       </p>
       {children}
@@ -76,11 +76,11 @@ function Anchor({ quote, active, children }: { quote?: string | null; active: bo
 export function ClaimRow({ point, compact, hl }: { point: Extract<FeedbackPoint, { kind: 'claim' }>; compact: boolean; hl?: string | null }) {
   return (
     <Anchor quote={point.quote} active={!!hl && hl === point.quote}>
-      <p className={compact ? 'text-[11px] text-ink leading-relaxed' : 'text-xs text-ink leading-relaxed'}>{point.claim}</p>
+      <p className={compact ? 'text-[11px] text-ink leading-relaxed' : 'text-sm text-ink leading-relaxed'}>{point.claim}</p>
       {point.quote && (
-        <p className={compact ? `text-[10px] ${QUOTE_CLASS}` : `text-[11px] ${QUOTE_CLASS}`}>« {point.quote} »</p>
+        <p className={compact ? `text-[10px] ${QUOTE_CLASS}` : `text-sm ${QUOTE_CLASS}`}>« {point.quote} »</p>
       )}
-      {point.note && <p className="text-[10px] text-ink-muted">{point.note}</p>}
+      {point.note && <p className={compact ? 'text-[10px] text-ink-muted' : 'text-sm text-ink-muted'}>{point.note}</p>}
     </Anchor>
   );
 }
@@ -99,7 +99,7 @@ export function FixRow({
 }) {
   return (
     <Anchor quote={point.quote} active={!!hl && hl === point.quote}>
-      <p className={compact ? 'text-[11px] leading-relaxed' : 'text-xs leading-relaxed'}>
+      <p className={compact ? 'text-[11px] leading-relaxed' : 'text-sm leading-relaxed'}>
         <span className={`${QUOTE_CLASS} line-through decoration-correction-text`}>« {point.quote} »</span>
         <span className="text-ink-muted mx-1.5" aria-hidden="true">
           →
@@ -107,9 +107,9 @@ export function FixRow({
         <span className="text-ink font-semibold">{point.correction}</span>
         {action && <span className="ml-1.5 align-middle">{action}</span>}
       </p>
-      {point.why && <p className={compact ? 'text-[10px] text-ink-muted' : 'text-[11px] text-ink-muted'}>{point.why}</p>}
+      {point.why && <p className={compact ? 'text-[10px] text-ink-muted' : 'text-sm text-ink-muted'}>{point.why}</p>}
       {point.tag && (
-        <span className="inline-block rounded-full surface-recessed px-2 py-0.5 text-[9px] font-bold text-ink-muted">
+        <span className={`inline-block rounded-full surface-recessed px-2 py-0.5 font-bold text-ink-muted ${compact ? 'text-[9px]' : 'text-xs'}`}>
           {point.tag}
         </span>
       )}

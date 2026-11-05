@@ -32,7 +32,7 @@ export function PredictCard({ checks, answers, onAnswer, phase, elapsedMs, regis
           <p className="text-eyebrow uppercase text-ink-muted">Predict your feedback</p>
           {checks.map((check) => (
             <div key={check.id} role="group" aria-label={check.prompt} className="flex items-center justify-between gap-3">
-              <p className="text-xs text-ink">{check.prompt}</p>
+              <p className="text-sm text-ink">{check.prompt}</p>
               <div className="flex shrink-0 gap-1.5">
                 {(['yes', 'no'] as const).map((answer) => (
                   <button
@@ -40,7 +40,7 @@ export function PredictCard({ checks, answers, onAnswer, phase, elapsedMs, regis
                     type="button"
                     aria-pressed={answers[check.id] === answer}
                     onClick={() => onAnswer(check.id, answer)}
-                    className={`rounded-lg px-3 py-1.5 text-[11px] font-bold transition-colors ${
+                    className={`rounded-lg px-3 py-1.5 text-sm font-bold transition-colors ${
                       answers[check.id] === answer ? 'bg-action text-action-ink' : 'surface-recessed text-ink-muted'
                     }`}
                   >
@@ -54,7 +54,7 @@ export function PredictCard({ checks, answers, onAnswer, phase, elapsedMs, regis
       )}
       <div className="flex items-center gap-2.5">
         <Loader2 size={14} className="text-action-text animate-spin shrink-0" aria-hidden="true" />
-        <p className="text-xs text-ink-muted" role="status" aria-live="polite">
+        <p className="text-sm text-ink-muted" role="status" aria-live="polite">
           {line}
         </p>
       </div>

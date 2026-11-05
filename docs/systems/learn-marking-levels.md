@@ -266,7 +266,10 @@ list shows:
 
 The order is T, O, F, L, A, R, with at most 3 shown (UNVALIDATED). The list is empty when the answer
 meets the level. Model-written text passes a **drop-only** filter: an over-long, empty or copied
-example is dropped, never rewritten.
+example is dropped, never rewritten. So is an example that is the student's own words with a linking
+word replaced by a different one (*et* rewritten as *mais*): that changes what they said, so it is
+not an example built from their words. The card drops it again from the same rule
+(`exampleGrounding.ts`), so a reply from an older checker cannot show the swapped sentence.
 
 ## §7 What the model returns (ladder scheme only, level-blind)
 
@@ -562,4 +565,13 @@ ordering) changes; these sections change as follows.
   checklist still fails, §8.3's "Level marking unavailable" applies.
 - **Capacity (free tiers).** About 8,000 Groq tokens per AI-marked Learn answer, against ~5,000 without the ladder,
   so about 25 marked answers a day on the 200k tier instead of ~40; Gemini's free fallback allows 20 requests a day.
+
+## Amendment: a swapped linking word is not an example (2026-11-05)
+
+`ladder-check-v4`. The "next" example under "Linking your ideas" was the student's sentence with *et*
+rewritten as *mais* ("Il est très passionné mais il m'encourage toujours"). That changes "and" into
+"but", so it is not an example built from their words. The checklist now tells the model to add to
+their words and never replace a linking word. The drop-only filter (§6.1) discards an example that is
+a span of the transcript with a linking word replaced, and the needs card applies that drop again.
+Adding a linking word, without replacing one, is still shown. Nothing is rewritten.
 
