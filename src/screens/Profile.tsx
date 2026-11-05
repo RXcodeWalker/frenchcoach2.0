@@ -93,9 +93,13 @@ export function Profile() {
     track({ name: 'profile_viewed', props: {} });
   }, []);
   const stats = useMemo(() => getStats(), []);
-  const { examsCompleted, history } = useMemo(() => {
+  const { examsCompleted, countedExams, history } = useMemo(() => {
     const sessions = getSessionHistory();
-    return { examsCompleted: sessions.filter(s => s.mode === 'exam').length, history: achievementHistoryCounts(sessions) };
+    return {
+      examsCompleted: sessions.filter(s => s.mode === 'exam').length,
+      countedExams: sessions.filter(s => s.mode === 'exam' && !s.practiceOnly).length,
+      history: achievementHistoryCounts(sessions),
+    };
   }, []);
   const coachProfile = useMemo(() => getCoachProfile(), []);
   const { user, signOut, isAdmin, ageBand, consentStatus, refreshConsentStatus } = useAuth();
@@ -304,11 +308,17 @@ export function Profile() {
     rolePlaysPractised: history.rolePlayKeys.length,
     bestScore: stats.bestScore,
     examsCompleted,
+    countedExams,
+    daysPractised: history.daysPractised,
+    longestAnswerWords: history.longestAnswerWords,
   };
-  const hiddenIds = new Set(ACHIEVEMENT_DEFINITIONS.filter(d => d.hidden).map(d => d.id));
+  // Hidden (surprises) and retired achievements stay off the grid until unlocked;
+  // the header counts the current set only, so a retired badge never inflates it.
+  const hiddenIds = new Set(ACHIEVEMENT_DEFINITIONS.filter(d => d.hidden || d.retired).map(d => d.id));
+  const retiredIds = new Set(ACHIEVEMENT_DEFINITIONS.filter(d => d.retired).map(d => d.id));
   const tiles = achievementTiles(state.achievements, hiddenIds, counts);
-  const unlockedCount = state.achievements.filter(a => a.unlocked).length;
-  const totalAchievements = ACHIEVEMENT_DEFINITIONS.length;
+  const unlockedCount = state.achievements.filter(a => a.unlocked && !retiredIds.has(a.id)).length;
+  const totalAchievements = ACHIEVEMENT_DEFINITIONS.length - retiredIds.size;
   const nextUp = tiles.find(t => !t.achievement.unlocked) ?? null;
   const shownTiles = achievementsExpanded ? tiles : tiles.slice(0, ACHIEVEMENTS_COLLAPSED);
 

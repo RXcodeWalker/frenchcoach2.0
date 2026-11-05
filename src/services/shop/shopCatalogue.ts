@@ -69,28 +69,28 @@ export const SHOP_CATALOGUE: Record<string, ShopCatalogueEntry> = {
     name: 'Le Micro',
     icon: '🎙️',
     description: 'Signals 5 completed roleplays.',
-    requirementLabel: '5 roleplays',
+    requirementLabel: '5 different role plays',
   },
   avatar_plume: {
     id: 'avatar_plume',
     name: 'La Plume',
     icon: '🖋️',
     description: 'Signals a grammar skill at mastery ≥0.8.',
-    requirementLabel: 'Grammar mastery ≥0.8',
+    requirementLabel: 'A grammar point at 80% mastery',
   },
   avatar_phenix: {
     id: 'avatar_phenix',
     name: 'Le Phénix',
     icon: '🔥',
     description: 'Signals a fixed recurring grammar problem.',
-    requirementLabel: 'Fixed a recurring grammar problem',
+    requirementLabel: 'Stopped a repeated mistake',
   },
   avatar_hibou: {
     id: 'avatar_hibou',
     name: 'Le Hibou',
     icon: '🦉',
     description: 'Signals average mastery ≥0.6.',
-    requirementLabel: 'Average mastery ≥0.6',
+    requirementLabel: 'Average grammar mastery 60%',
   },
   avatar_couronne: {
     id: 'avatar_couronne',
@@ -127,7 +127,7 @@ export const SHOP_CATALOGUE: Record<string, ShopCatalogueEntry> = {
     name: 'Or',
     icon: '',
     description: 'Signals an IGCSE mock completed.',
-    requirementLabel: 'Completed an IGCSE mock',
+    requirementLabel: 'Completed an Exam Sim',
   },
 
   // ── Identity — nameplates ─────────────────────────────────────────────
@@ -157,7 +157,7 @@ export const SHOP_CATALOGUE: Record<string, ShopCatalogueEntry> = {
     name: 'Tricolore',
     icon: '',
     description: 'Signals 5 completed interventions.',
-    requirementLabel: '5 interventions',
+    requirementLabel: '5 grammar drills',
   },
 };
 

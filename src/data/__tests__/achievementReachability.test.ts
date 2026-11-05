@@ -3,7 +3,7 @@ import { join, relative, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { ACHIEVEMENT_DEFINITIONS, evaluateAchievements, type AchievementContext } from '../achievements';
 import type { EvidenceBeliefSnapshot } from '../../types/beliefs';
-import type { LearningProblem } from '../../types/intervention';
+import type { Intervention, LearningProblem } from '../../types/intervention';
 
 /**
  * Every visible achievement must be reachable from real app data.
@@ -20,9 +20,9 @@ import type { LearningProblem } from '../../types/intervention';
  *     source that actually writes that signal. A predicate reading a field
  *     nothing produces fails here.
  *
- * A hidden achievement is exempt (it stays off Profile until unlocked), which
- * is why Curieux is hidden while nothing counts Grammar Coach uses. To make a
- * new achievement visible, give it a witness and make sure its producer exists.
+ * Hidden and retired achievements are exempt from the witness rule (they stay
+ * off Profile until unlocked), but every producer listed must still be live.
+ * To make a new achievement visible, give it a witness and a producer.
  */
 
 const SRC = resolve(__dirname, '../..');
@@ -56,40 +56,60 @@ const all = (...checks: (() => string | null)[]) => () => checks.map(c => c()).f
 
 type Field = keyof AchievementContext;
 
+const BUILDER = 'services/coach/achievementContextBuilder.ts';
+const ORCHESTRATOR = 'services/coach/sessionOrchestrator.ts';
+/** The builder reads cross-session counts from the stored history. */
+const fromHistory = (field: string) => inFile(BUILDER, new RegExp(`history\\.${field}`));
+const historyIsRead = inFile(BUILDER, /achievementHistoryCounts\(getSessionHistory\(\)\)/);
+const sessionsAreStored = inFile('services/analytics/analyticsService.ts', /date:\s*session\.createdAt/);
+
 /** Where each context field really comes from. A field missing here has no known producer. */
 const PRODUCERS: Partial<Record<Field, () => string | null>> = {
-  totalSessions: inFile('services/coach/sessionOrchestrator.ts', /totalSessionsAfter:\s*totalSessionsBefore \+ 1/),
-  streak: inFile('services/coach/sessionOrchestrator.ts', /buildAchievementContext\(\{[\s\S]*?streakDays/),
-  score: inFile('services/coach/sessionOrchestrator.ts', /buildAchievementContext\(\{[\s\S]*?finalScore:/),
-  xp: all(
-    inFile('services/coach/achievementContextBuilder.ts', /getProgressionState\(\)/),
-    inFile('services/coach/sessionOrchestrator.ts', /awardXP\(/),
-  ),
-  // Distinct Learn topics, read from stored history: Learn must record practice sessions with a topic.
-  topicsUsed: all(
-    inFile('services/coach/achievementContextBuilder.ts', /achievementHistoryCounts\(getSessionHistory\(\)\)/),
-    inFile('screens/Learn.tsx', /mode: 'practice',\s*topicKey:/),
-  ),
-  // Distinct role plays, read from stored history: the routed Role-play drill must record 'story' sessions.
+  totalSessions: inFile(ORCHESTRATOR, /totalSessionsAfter:\s*totalSessionsBefore \+ 1/),
+  streak: inFile(ORCHESTRATOR, /buildAchievementContext\(\{[\s\S]*?streakDays/),
+  score: inFile(ORCHESTRATOR, /buildAchievementContext\(\{[\s\S]*?finalScore:/),
+  xp: all(inFile(BUILDER, /getProgressionState\(\)/), inFile(ORCHESTRATOR, /awardXP\(/)),
+  // Distinct Learn topics: Learn must record practice sessions with a topic.
+  topicsUsed: all(historyIsRead, inFile('screens/Learn.tsx', /mode: 'practice',\s*topicKey:/)),
+  // Distinct role plays: the routed Role-play drill must record 'story' sessions.
   roleplayCount: all(
-    inFile('services/coach/achievementContextBuilder.ts', /history\.rolePlayKeys\.length/),
+    fromHistory('rolePlayKeys'),
     inFile('screens/rolePlayDrill/RolePlayDrill.tsx', /orchestrateAttempt\(\{[\s\S]*?mode: 'story'/),
     inFile('App.tsx', /path="\/exam\/role-play"/),
   ),
-  grammarCoachUses: calledOutside('recordGrammarCoachUse', 'services/progression/progressionService.ts'),
   examCompleted: inFile('screens/ExamMode.tsx', /examCompleted: true/),
   examType: inFile('screens/ExamMode.tsx', /examType: attemptStatus\.countsTowardProgress \? 'igcse'/),
-  beliefSnapshot: inFile('services/coach/sessionOrchestrator.ts', /const beliefSnapshot = updateFromFeedback\(\)[\s\S]*?buildAchievementContext\(\{[\s\S]*?beliefSnapshot,/),
+  beliefSnapshot: inFile(ORCHESTRATOR, /const beliefSnapshot = updateFromFeedback\(\)[\s\S]*?buildAchievementContext\(\{[\s\S]*?beliefSnapshot,/),
   problems: all(
     inFile('services/coach/interventionService.ts', /status: 'resolved'/),
     calledOutside('refreshDemandProblems', 'services/coach/interventionService.ts'),
   ),
   interventions: calledOutside('recordIntervention', 'services/coach/interventionService.ts'),
+  daysPractised: all(fromHistory('daysPractised'), historyIsRead, sessionsAreStored),
+  longestAnswerWords: all(fromHistory('longestAnswerWords'), historyIsRead, inFile('screens/Learn.tsx', /wordCount: fb\.wordCount/)),
+  improvedOnRepeat: all(
+    fromHistory('improvedOnRepeat'),
+    historyIsRead,
+    inFile('screens/Learn.tsx', /questionText: currentQuestion\.text/),
+    inFile('services/analytics/analyticsService.ts', /questionText: \(session\.questionText/),
+  ),
+  examImproved: all(
+    fromHistory('examImproved'),
+    inFile(BUILDER, /examSummary\(/),
+    inFile('screens/ExamMode.tsx', /practiceOnly: !attemptStatus\.countsTowardProgress/),
+  ),
+  selfCorrected: all(
+    inFile(ORCHESTRATOR, /selfCorrected: \(feedback\.selfCorrections/),
+    inFile('services/coaching/coachService.ts', /\{ selfCorrections \}/),
+  ),
+  returnedAfterBreak: all(fromHistory('returnedAfterBreak'), historyIsRead, sessionsAreStored),
 };
 
 const BASE: AchievementContext = {
   score: null, streak: 0, totalSessions: 0, topicsUsed: [], beliefSnapshot: null, problems: [],
-  interventions: [], xp: 0, grammarCoachUses: 0, roleplayCount: 0, examCompleted: false, examType: null,
+  interventions: [], xp: 0, roleplayCount: 0, examCompleted: false, examType: null,
+  daysPractised: 0, longestAnswerWords: 0, improvedOnRepeat: false, examImproved: false,
+  selfCorrected: false, returnedAfterBreak: false,
 };
 
 const snapshot = (mastery: number) =>
@@ -99,22 +119,31 @@ const EIGHT_TOPICS = ['school', 'hobbies', 'family', 'holidays', 'home', 'future
 /** The smallest context that unlocks each visible achievement. */
 const WITNESSES: Record<string, Partial<AchievementContext>> = {
   premier_pas: { totalSessions: 1 },
-  cinq_sessions: { totalSessions: 5 },
-  dix_sessions: { totalSessions: 10 },
-  marathonien: { totalSessions: 50 },
+  curieux: { topicsUsed: EIGHT_TOPICS.slice(0, 3) },
   triple_jour: { streak: 3 },
   semaine_parfaite: { streak: 7 },
-  fluent: { score: 8 },
-  polyglotte: { topicsUsed: EIGHT_TOPICS },
-  examinateur: { examCompleted: true, examType: 'practice' },
+  regulier: { daysPractised: 10 },
+  fidele: { daysPractised: 30 },
+  dix_sessions: { totalSessions: 10 },
+  marathonien: { totalSessions: 50 },
   expert: { xp: 1500 },
-  grammaire_maitrisee: { beliefSnapshot: snapshot(0.8) },
+  bete_de_mode: { xp: 7000 },
+  developpe: { longestAnswerWords: 40 },
+  fluent: { score: 8 },
+  en_progres: { improvedOnRepeat: true },
   probleme_resolu: { problems: [{ status: 'resolved' } as LearningProblem] },
+  drill_master: { interventions: Array.from({ length: 5 }, () => ({}) as Intervention) },
+  grammaire_maitrisee: { beliefSnapshot: snapshot(0.8) },
+  niveau_b2: { beliefSnapshot: snapshot(0.6) },
+  examinateur: { examCompleted: true, examType: 'practice' },
+  grand_oral: { examCompleted: true, examType: 'igcse' },
+  remontee: { examCompleted: true, examType: 'igcse', examImproved: true },
   explorateur: { roleplayCount: 1 },
   causeur: { roleplayCount: 5 },
+  polyglotte: { topicsUsed: EIGHT_TOPICS },
 };
 
-const visible = ACHIEVEMENT_DEFINITIONS.filter(d => !d.hidden);
+const visible = ACHIEVEMENT_DEFINITIONS.filter(d => !d.hidden && !d.retired);
 
 describe('every visible achievement is reachable from real app data', () => {
   it('there are visible achievements to check', () => {
@@ -123,7 +152,6 @@ describe('every visible achievement is reachable from real app data', () => {
 
   it('every producer check is itself live (no stale pattern)', () => {
     const broken = Object.entries(PRODUCERS)
-      .filter(([field]) => field !== 'grammarCoachUses') // known missing: Curieux is hidden for it
       .map(([field, check]) => [field, check!()] as const)
       .filter(([, problem]) => problem !== null);
     expect(broken).toEqual([]);

@@ -69,7 +69,9 @@ export interface Achievement {
   xpReward: number;
   unlocked: boolean;
   unlockedAt?: string;
-  category: 'streak' | 'practice' | 'skill' | 'exam' | 'social';
+  category: import('../data/achievements').AchievementCategory;
+  hidden?: boolean;
+  retired?: boolean;
 }
 
 export interface Topic {

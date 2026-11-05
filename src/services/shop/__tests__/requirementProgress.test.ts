@@ -114,7 +114,7 @@ describe('computeRequirementProgress', () => {
     const interventions = [1, 2, 3].map(i => ({ id: `i${i}` }) as Intervention);
     const result = computeRequirementProgress({ ...baseInput, achievementId: 'drill_master', interventions });
     expect(result.ratio).toBeCloseTo(0.6);
-    expect(result.label).toBe('3 / 5 interventions');
+    expect(result.label).toBe('3 / 5 drills');
   });
 
   it('falls back to binary not-yet-unlocked for requirements with no partial metric (e.g. examinateur)', () => {
