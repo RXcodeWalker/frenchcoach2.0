@@ -49,7 +49,7 @@ import { TopicGrid } from './learn/TopicGrid';
 import { QuestionCard } from './learn/QuestionCard';
 import { RecordingPanel, type ProcessingStep } from './learn/RecordingPanel';
 import { TranscriptConfirmPanel, type TranscriptConfirmation } from './learn/TranscriptConfirmPanel';
-import { transcribeLearnAnswer, type AnswerTranscription } from '../features/learn/answerTranscription';
+import { transcribeLearnAnswer, transcribeLearnWord, type AnswerTranscription } from '../features/learn/answerTranscription';
 import { FeedbackExperience } from '../features/feedback';
 import type { PronunciationStatus } from '../features/feedback/FeedbackExperience';
 import { TopContextBar } from '../components/TopContextBar';
@@ -1862,6 +1862,13 @@ export function Learn() {
                   transcription={pendingAnswer}
                   onConfirm={handleConfirmTranscript}
                   onRerecord={handleRerecordTranscript}
+                  transcribeWord={(audio) =>
+                    transcribeLearnWord({
+                      audio,
+                      questionText: currentQuestion?.text ?? '',
+                      earlierAnswers: confirmedAnswersRef.current,
+                    })
+                  }
                 />
               )}
 

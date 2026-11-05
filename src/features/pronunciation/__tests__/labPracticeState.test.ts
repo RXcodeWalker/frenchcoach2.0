@@ -173,3 +173,22 @@ describe('labPracticeReducer', () => {
     });
   });
 });
+
+describe('focusOn / backToCompare (a word the learner tapped)', () => {
+  it('adds a tapped word to the focus words and drills it; back to compare keeps the take', () => {
+    const reduce = labPracticeReducer;
+    let st = reduce(initialLabPracticeState, { type: 'recordStarted', target: { kind: 'sentence' } });
+    st = reduce(st, { type: 'checking' });
+    st = reduce(st, { type: 'sentenceChecked', take: buildLabTake('Les enfants jouent dans le jardin.', scripted(['Les', 'enfants', 'jouent', 'dans', 'le', 'jardin'].map((w) => azureWord(w, 95)))) });
+    const before = st.takes.length;
+    st = reduce(st, { type: 'focusOn', word: { tokenIndex: 3, text: 'dans', state: 'clear', family: null } });
+    expect(st.step).toBe('focus');
+    expect(st.focus[st.focusIndex].text).toBe('dans');
+    expect(st.takes.length).toBe(before);
+    const again = reduce(st, { type: 'focusOn', word: { tokenIndex: 3, text: 'dans', state: 'clear', family: null } });
+    expect(again.focus.filter((w) => w.tokenIndex === 3)).toHaveLength(1);
+    st = reduce(st, { type: 'backToCompare' });
+    expect(st.step).toBe('compare');
+    expect(st.takes.length).toBe(before);
+  });
+});

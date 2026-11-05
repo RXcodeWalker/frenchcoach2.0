@@ -7,6 +7,7 @@ import { SpeakingConsentGate } from '../../components/SpeakingConsentGate';
 import { useSpaceToRecord } from '../../lib/useSpaceToRecord';
 import { correct, enter, enterReduced, fill } from '../../components/motion/variants';
 import { clipWindow } from '../../domain/pronunciation/lab/clipWindows';
+import { pickedFocusWord } from '../../domain/pronunciation/lab/focusWords';
 import { tokenizeSentence, watchOutFor, wordPlayTexts, type SentenceToken } from '../../domain/pronunciation/lab/textFeatures';
 import { SOUND_TIPS, tipFor } from '../../domain/pronunciation/lab/tips';
 import { buildLabTake, drillVerdict, takeWords, type LabTake, type LabWordItem } from '../../domain/pronunciation/lab/wordStates';
@@ -437,6 +438,8 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
   const latestBlob = takeBlobs.current[state.takes.length - 1];
   const focusItem = focusWord && take ? takeWords(take).find((w) => w.tokenIndex === focusWord.tokenIndex) : undefined;
   const hasYourWord = Boolean(latestBlob && focusItem && clipWindow(focusItem.source));
+  /** The word tapped in Compare, offered as a one-word drill (never a whole-sentence re-take). */
+  const pickedWord = showCompare && take && selected !== null ? pickedFocusWord(take, selected) : null;
 
   return (
     <motion.section
@@ -500,14 +503,31 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
             onWord={(item) => void playWord(item)}
           />
           {take.refused === null && <Legend hasExtra={take.counts.extra > 0} />}
-          <p className="text-caption text-ink-muted">Tap a word to hear you, then the native speaker.</p>
+          <p className="text-caption text-ink-muted">Tap a word to hear you, then the native speaker — and to practise just that word.</p>
+          {pickedWord && (
+            <div className="flex flex-wrap items-center gap-2 rounded-control bg-surface-recessed p-3" data-testid="lab-word-actions">
+              <p className="text-body-s text-ink">
+                <span lang="fr">« {pickedWord.text} »</span>
+              </p>
+              <Button
+                size="sm"
+                disabled={busy || outOfChecks}
+                onClick={() => {
+                  stopAudio();
+                  dispatch({ type: 'focusOn', word: pickedWord });
+                }}
+              >
+                <Mic size={16} aria-hidden="true" /> Practise just this word
+              </Button>
+            </div>
+          )}
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" size="sm" onClick={() => void playBoth()}>
               <Play size={16} aria-hidden="true" /> Play both
             </Button>
             {canRecordSentence(state) && (
               <Button variant="secondary" size="sm" onClick={() => dispatch({ type: 'sayAgain' })}>
-                <Mic size={16} aria-hidden="true" /> Say it again
+                <Mic size={16} aria-hidden="true" /> Say the whole sentence again
               </Button>
             )}
           </div>
@@ -594,6 +614,11 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
             </Button>
           )}
           {comparisonLine(comparison) && <p className="text-body-s text-progress-text">{comparisonLine(comparison)}</p>}
+          {take && (
+            <Button variant="quiet" size="sm" onClick={() => { setSelected(null); dispatch({ type: 'backToCompare' }); }}>
+              Back to your take
+            </Button>
+          )}
         </div>
       )}
 
