@@ -235,7 +235,7 @@ async function navigation(event: FetchEvent): Promise<Response> {
 function offlinePage(): Response {
   const html = '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
     + '<title>Offline</title><body style="font-family:system-ui,sans-serif;padding:32px;color:#1b1b1f;background:#f6f5f1">'
-    + '<h1 style="font-size:20px">You’re offline</h1><p>Open Français AI once with a connection and it will work offline after that.</p></body>';
+    + '<h1 style="font-size:20px">You’re offline</h1><p>Open French Coach once with a connection and it will work offline after that.</p></body>';
   return new Response(html, { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } });
 }
 
@@ -330,7 +330,7 @@ sw.addEventListener('push', (event) => {
     data: { url: data.url ?? '/' },
   };
   if (data.tag) options.tag = data.tag;
-  event.waitUntil(sw.registration.showNotification(data.title ?? 'Français AI', options));
+  event.waitUntil(sw.registration.showNotification(data.title ?? 'French Coach', options));
 });
 
 sw.addEventListener('notificationclick', (event) => {

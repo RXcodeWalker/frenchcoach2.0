@@ -30,7 +30,7 @@ export function AuthSplit({ children, below }: { children: ReactNode; below?: Re
       <aside className="hidden border-r border-hairline bg-surface-recessed lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:justify-between lg:gap-8 lg:overflow-y-auto lg:px-14 lg:py-12 xl:px-20">
         <div className="flex items-center gap-3">
           <BrandMark small />
-          <span className="text-section text-ink">Français AI</span>
+          <span className="text-section text-ink">French Coach</span>
         </div>
 
         <motion.div variants={v} initial="hidden" animate="show" className="max-w-[460px]">
@@ -75,7 +75,7 @@ export function AuthSplit({ children, below }: { children: ReactNode; below?: Re
         <motion.div variants={v} initial="hidden" animate="show" className="w-full max-w-[400px]">
           <div className="mb-8 flex items-center gap-3 lg:hidden">
             <BrandMark small />
-            <span className="text-section text-ink">Français AI</span>
+            <span className="text-section text-ink">French Coach</span>
           </div>
           {children}
           {below != null && <div className="mt-6">{below}</div>}

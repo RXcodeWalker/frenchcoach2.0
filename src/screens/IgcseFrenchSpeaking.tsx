@@ -32,7 +32,7 @@ export function IgcseFrenchSpeaking() {
               The IGCSE French Speaking Exam
             </h1>
             <p className="text-lg leading-relaxed mb-10" style={{ color: 'var(--mk-ink-muted)' }}>
-              What Paper 3 actually covers, and how Français AI is built to help you practise it.
+              What Paper 3 actually covers, and how French Coach is built to help you practise it.
             </p>
 
             <h2 className="font-display text-2xl mb-4">What the exam is</h2>
@@ -65,7 +65,7 @@ export function IgcseFrenchSpeaking() {
               <strong style={{ color: 'var(--mk-ink)' }}>CEFR A2 with elements of B1</strong>.
             </p>
 
-            <h2 className="font-display text-2xl mb-4">What Français AI does</h2>
+            <h2 className="font-display text-2xl mb-4">What French Coach does</h2>
             <p className="text-base leading-relaxed mb-2" style={{ color: 'var(--mk-ink-muted)' }}>
               You record spoken answers to role-play and topic-conversation questions and get
               feedback generated from your own transcript. Practise at your own pace in{' '}
@@ -74,7 +74,7 @@ export function IgcseFrenchSpeaking() {
               categories is tracked over time, so you can see which structures still need work.
             </p>
             <p className="text-sm leading-relaxed mb-10" style={{ color: 'var(--mk-ink-faint)' }}>
-              Français AI is not affiliated with or endorsed by Cambridge Assessment International
+              French Coach is not affiliated with or endorsed by Cambridge Assessment International
               Education. It is an independent practice tool, not an official Cambridge product.
             </p>
 
@@ -98,7 +98,7 @@ export function IgcseFrenchSpeaking() {
               </p>
               <div className="flex flex-col gap-2.5 text-sm">
                 <a href="#" className="pl-3 border-l-2 font-semibold" style={{ borderColor: 'var(--mk-accent)' }}>What the exam is</a>
-                <a href="#" className="pl-3 border-l-2 mk-link" style={{ borderColor: 'var(--mk-hairline)', color: 'var(--mk-ink-muted)' }}>What Français AI does</a>
+                <a href="#" className="pl-3 border-l-2 mk-link" style={{ borderColor: 'var(--mk-hairline)', color: 'var(--mk-ink-muted)' }}>What French Coach does</a>
               </div>
             </div>
             <div className="rounded-xl border mk-hairline p-5">

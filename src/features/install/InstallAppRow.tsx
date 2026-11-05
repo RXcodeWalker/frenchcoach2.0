@@ -3,7 +3,7 @@ import { SettingRow } from '../../components/ui/SettingToggle';
 import { promptInstall, useInstallState } from '../../pwa/installPrompt';
 
 /**
- * Profile → Preferences: install Français AI as an app (home screen, full
+ * Profile → Preferences: install French Coach as an app (home screen, full
  * screen, opens offline). Hidden where the browser can't install it.
  */
 export function InstallAppRow({ divided = false }: { divided?: boolean }) {

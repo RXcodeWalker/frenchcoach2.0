@@ -1,7 +1,7 @@
-# Handoff: Français AI v2 redesign (Home, Learn, Progress, Profile)
+# Handoff: French Coach v2 redesign (Home, Learn, Progress, Profile)
 
 ## Overview
-This is a redesign of the FrenchCoach / Français AI app (repo `RXcodeWalker/frenchcoach2.0`, branch `main`) on Design System v2. It covers:
+This is a redesign of the FrenchCoach app (repo `RXcodeWalker/frenchcoach2.0`, branch `main`) on Design System v2. It covers:
 - Home
 - the Learn flow, from topics to setup to the recording session (feedback is designed separately)
 - Progress

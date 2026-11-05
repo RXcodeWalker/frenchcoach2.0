@@ -31,7 +31,7 @@ export interface TourStep {
 export const TOUR_STEPS: TourStep[] = [
   {
     id: 'welcome',
-    title: 'Welcome to Français AI',
+    title: 'Welcome to French Coach',
     body:
       'Answer questions out loud in French and get a teacher’s feedback in seconds. Here’s a look around: it takes 30 seconds.',
   },

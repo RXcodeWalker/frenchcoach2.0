@@ -48,7 +48,7 @@ export function ParentView() {
 
   useEffect(() => {
     const prev = document.title;
-    document.title = 'Parent view · Français AI';
+    document.title = 'Parent view · French Coach';
     const meta = document.createElement('meta');
     meta.name = 'robots';
     meta.content = 'noindex';
@@ -86,7 +86,7 @@ export function ParentView() {
       <div className="mx-auto flex max-w-[880px] flex-col gap-4 px-4 pb-16 pt-6 sm:px-6">
         <header className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="font-numeral text-[15px] text-ink">Français AI</span>
+            <span className="font-numeral text-[15px] text-ink">French Coach</span>
             <span className="text-[13px] text-ink-subtle">· Parent view</span>
           </div>
           {load.state === 'ready' && (
@@ -117,9 +117,9 @@ function LoadingState() {
 
 function ErrorState({ code, onRetry }: { code: 'missing' | 'invalid' | 'unavailable' | 'network'; onRetry: () => void }) {
   const copy = {
-    missing: { title: 'This page needs a link', body: 'Open the full link your child shared with you. They can make one in Français AI under Profile → Parent view.' },
+    missing: { title: 'This page needs a link', body: 'Open the full link your child shared with you. They can make one in French Coach under Profile → Parent view.' },
     invalid: { title: 'This link isn’t working', body: 'It may have been turned off, or part of it is missing. Ask your child for a new link from Profile → Parent view.' },
-    unavailable: { title: 'Parent view isn’t switched on yet', body: 'This part of Français AI isn’t available yet. Please try again later.' },
+    unavailable: { title: 'Parent view isn’t switched on yet', body: 'This part of French Coach isn’t available yet. Please try again later.' },
     network: { title: 'Couldn’t load progress', body: 'Check your connection and try again.' },
   }[code];
   return (

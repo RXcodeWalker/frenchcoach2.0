@@ -14,7 +14,7 @@ export function About() {
     <div className="flex flex-col min-h-screen">
       <Seo route="/about" />
       <TopContextBar
-        title="About Français AI"
+        title="About French Coach"
         subtitle="The Elite Speaking Coach for IGCSE French"
       />
 

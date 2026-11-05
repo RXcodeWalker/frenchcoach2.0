@@ -60,6 +60,6 @@ export const LANDING_FAQ: FaqEntry[] = [
   {
     question: 'Is it made by Cambridge?',
     answer:
-      'No. Français AI is an independent practice tool. It is not affiliated with or endorsed by Cambridge Assessment International Education.',
+      'No. French Coach is an independent practice tool. It is not affiliated with or endorsed by Cambridge Assessment International Education.',
   },
 ];

@@ -25,7 +25,7 @@ function build404(): string {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>Page not found | Français AI</title>
+    <title>Page not found | French Coach</title>
   </head>
   <body>
     <h1>Page not found</h1>

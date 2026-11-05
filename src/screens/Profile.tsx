@@ -939,7 +939,7 @@ export function Profile() {
               </SettingGroup>
             </motion.div>
 
-            <p className="text-center text-caption text-ink-subtle">Français AI · v3.0</p>
+            <p className="text-center text-caption text-ink-subtle">French Coach · v3.0</p>
           </div>
         </div>
       </PageShell>

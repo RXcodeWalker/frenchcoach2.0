@@ -17,14 +17,14 @@ export interface PageSeo {
   jsonLd?: { '@context': 'https://schema.org'; '@type': string }[];
 }
 
-const SITE_NAME = 'Français AI';
+const SITE_NAME = 'French Coach';
 
 // Keyed by path — every key must exist in src/config/routes.ts (enforced by
 // src/config/__tests__/seo.test.ts). Populated lazily as pages are built;
 // an app route with no entry here falls back to noindex via SEO.tsx.
 export const PAGE_SEO: Record<string, PageSeo> = {
   '/': {
-    title: 'Français AI — Practise IGCSE French Speaking Out Loud',
+    title: 'French Coach — Practise IGCSE French Speaking Out Loud',
     description:
       'Practise the IGCSE French speaking exam out loud. Get clear feedback on every answer and sit mock exams marked against the Cambridge 0520 speaking criteria.',
     canonicalPath: '/',
@@ -40,9 +40,9 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     ],
   },
   '/about': {
-    title: 'About Français AI | AI-Powered IGCSE French Speaking Coach',
+    title: 'About French Coach | AI-Powered IGCSE French Speaking Coach',
     description:
-      'Français AI is a speaking-practice coach for IGCSE French learners: record answers, get structured feedback, and track skill mastery over time.',
+      'French Coach is a speaking-practice coach for IGCSE French learners: record answers, get structured feedback, and track skill mastery over time.',
     canonicalPath: '/about',
     robots: 'index, follow',
     // Mirrors the visible breadcrumb rendered by MarketingLayout on this route.
@@ -56,7 +56,7 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   '/igcse-french-speaking': {
     title: 'IGCSE French Speaking Exam (Paper 3) — What It Covers & How to Practise',
     description:
-      'A guide to Cambridge IGCSE French 0520 Paper 3 Speaking: role play, topic conversations, and marks — plus how to practise it with Français AI.',
+      'A guide to Cambridge IGCSE French 0520 Paper 3 Speaking: role play, topic conversations, and marks — plus how to practise it with French Coach.',
     canonicalPath: '/igcse-french-speaking',
     robots: 'index, follow',
     // No FAQPage: the page has no visible Q&A section (two prose sections
@@ -82,9 +82,9 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     ],
   },
   '/story': {
-    title: 'The Story Behind Français AI | Why I Built a Speaking Coach',
+    title: 'The Story Behind French Coach | Why I Built a Speaking Coach',
     description:
-      'Ten years of French class taught grammar, never speaking. The founder story behind Français AI — the gap between reading French and being able to speak it.',
+      'Ten years of French class taught grammar, never speaking. The founder story behind French Coach — the gap between reading French and being able to speak it.',
     canonicalPath: '/story',
     robots: 'index, follow',
     jsonLd: [

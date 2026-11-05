@@ -41,7 +41,7 @@ export function MarketingLayout({ children, breadcrumb, route, sections }: Props
       <footer className="border-t mk-hairline mt-12">
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-12 grid grid-cols-1 sm:grid-cols-4 gap-8 text-sm">
           <div>
-            <p className="font-semibold mb-2 font-display text-lg">Français AI</p>
+            <p className="font-semibold mb-2 font-display text-lg">French Coach</p>
             <p className="text-xs leading-relaxed" style={{ color: 'var(--mk-ink-faint)' }}>
               Speaking-practice coach for IGCSE French learners.
             </p>
@@ -54,7 +54,7 @@ export function MarketingLayout({ children, breadcrumb, route, sections }: Props
               French roleplay practice scenarios
             </a>
             <a href="/about" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
-              About Français AI
+              About French Coach
             </a>
           </div>
           <div className="flex flex-col items-start">
@@ -70,7 +70,7 @@ export function MarketingLayout({ children, breadcrumb, route, sections }: Props
           </div>
           <div className="flex flex-col gap-2">
             <p className="text-xs leading-relaxed" style={{ color: 'var(--mk-ink-faint)' }}>
-              Français AI is an independent practice tool, not affiliated with or endorsed by
+              French Coach is an independent practice tool, not affiliated with or endorsed by
               Cambridge Assessment International Education.
             </p>
           </div>

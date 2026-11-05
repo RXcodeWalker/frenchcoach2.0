@@ -49,7 +49,7 @@ export function GuardianConsent() {
           <AlertCircle className="mx-auto mb-3" size={28} style={{ color: 'var(--mk-ink-faint)' }} />
           <h1 className="font-display text-2xl mb-2">Missing confirmation link</h1>
           <p className="text-sm" style={{ color: 'var(--mk-ink-muted)' }}>
-            This page needs the link from your child's Français AI account — open the one they
+            This page needs the link from your child's French Coach account — open the one they
             sent you, or ask them to send it again.
           </p>
         </div>
@@ -64,7 +64,7 @@ export function GuardianConsent() {
           <ShieldCheck className="mx-auto mb-3" size={28} style={{ color: 'var(--mk-accent)' }} />
           <h1 className="font-display text-2xl mb-2">Speaking practice is on</h1>
           <p className="text-sm" style={{ color: 'var(--mk-ink-muted)' }}>
-            Thanks for confirming. Your child can now use speaking practice on Français AI. You
+            Thanks for confirming. Your child can now use speaking practice on French Coach. You
             can withdraw this at any time by contacting us — see our{' '}
             <a href="/privacy" className="mk-link">
               Privacy Policy
@@ -81,7 +81,7 @@ export function GuardianConsent() {
       <div className="max-w-[560px] mx-auto px-4 md:px-6 py-16">
         <h1 className="font-display text-2xl md:text-3xl mb-3">A learner has asked for your OK</h1>
         <p className="text-[15px] leading-relaxed mb-8" style={{ color: 'var(--mk-ink-muted)' }}>
-          Your child (or someone in your care) started an account on Français AI, a French
+          Your child (or someone in your care) started an account on French Coach, a French
           speaking-practice app, and told us they're under 13. Before speaking practice turns on
           for their account, we need you to confirm you're okay with what that involves.
         </p>

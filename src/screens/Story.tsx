@@ -70,7 +70,7 @@ export function Story() {
           className="text-[11px] font-semibold uppercase tracking-[0.14em] mb-6"
           style={{ color: 'var(--mk-accent)' }}
         >
-          The story behind Français AI
+          The story behind French Coach
         </p>
         <h1 className="font-display text-4xl md:text-6xl leading-[1.12] mb-7">
           I didn&rsquo;t set out to build an app.
@@ -82,7 +82,7 @@ export function Story() {
           style={{ color: 'var(--mk-ink-muted)' }}
         >
           Ten years of French class taught me plenty about grammar. It never once taught me how to
-          speak. This is the story of the gap between the two — and how it became Français AI.
+          speak. This is the story of the gap between the two — and how it became French Coach.
         </p>
         <div
           className="flex items-center flex-wrap gap-3 text-sm"
@@ -97,7 +97,7 @@ export function Story() {
           <span className="font-semibold" style={{ color: 'var(--mk-ink)' }}>
             Om Jhamvar
           </span>
-          <span>Founder, Français AI</span>
+          <span>Founder, French Coach</span>
           <span aria-hidden="true">·</span>
           <span>8 min read</span>
         </div>
@@ -225,7 +225,7 @@ export function Story() {
           >
             <p>
               Most language tools treat every session like you&rsquo;re a stranger: open the app, do
-              an exercise, close it, forgotten. Français AI is built to remember you the way a real
+              an exercise, close it, forgotten. French Coach is built to remember you the way a real
               tutor would — tracking recurring pronunciation habits, the grammar slips you repeat
               when you&rsquo;re tired, the vocabulary gaps that keep resurfacing.
             </p>
@@ -244,7 +244,7 @@ export function Story() {
                 className="text-[11px] font-semibold uppercase tracking-[0.08em] mb-3"
                 style={{ color: 'var(--mk-accent)' }}
               >
-                Français AI says
+                French Coach says
               </p>
               <p className="leading-relaxed" style={{ color: 'var(--mk-ink)' }}>
                 &ldquo;Your use of the subjunctive is getting much more natural — but you&rsquo;re
@@ -273,7 +273,7 @@ export function Story() {
             <p>
               What made me comfortable speaking French all those years ago wasn&rsquo;t memorising
               more words on a page. It was being forced to use the language — to make mistakes, and
-              to talk to real people. Français AI is my attempt to give that same experience to
+              to talk to real people. French Coach is my attempt to give that same experience to
               every learner, anywhere.
             </p>
           </Chapter>
@@ -291,7 +291,7 @@ export function Story() {
           <div className="flex flex-wrap items-center justify-center gap-4 mb-4">
             <CtaButton onClick={() => startPractisingFree('story_page_start')}>Start practising free</CtaButton>
             <CtaButton href="/" variant="secondary">
-              Back to Français AI
+              Back to French Coach
             </CtaButton>
           </div>
           <p className="text-xs" style={{ color: 'var(--mk-ink-faint)' }}>

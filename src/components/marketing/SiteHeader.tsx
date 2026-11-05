@@ -99,9 +99,9 @@ export function SiteHeader({ sections, links, breadcrumb }: Props) {
   return (
     <header className="mk-header sticky top-0 z-50 border-b mk-hairline">
       <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-3">
-        <a href="/" className="mk-focus flex items-center gap-2 shrink-0 rounded-md min-h-[44px]" aria-label="Français AI home">
+        <a href="/" className="mk-focus flex items-center gap-2 shrink-0 rounded-md min-h-[44px]" aria-label="French Coach home">
           <span aria-hidden="true" className="mk-logo-mark">F</span>
-          <span className="font-display text-[17px] leading-none">Français AI</span>
+          <span className="font-display text-[17px] leading-none">French Coach</span>
         </a>
 
         <nav aria-label={sections ? 'Page sections' : 'Primary'} className="hidden md:flex items-center gap-1">

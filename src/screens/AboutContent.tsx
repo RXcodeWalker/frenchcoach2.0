@@ -16,7 +16,7 @@ export function AboutContent() {
     {
       icon: <Brain size={20} className="text-violet-400" />,
       title: "Cambridge-Aligned Scoring",
-      desc: "Your answers are marked against the published Cambridge 0520 mark scheme. Français AI is not affiliated with or endorsed by Cambridge Assessment International Education."
+      desc: "Your answers are marked against the published Cambridge 0520 mark scheme. French Coach is not affiliated with or endorsed by Cambridge Assessment International Education."
     },
     {
       icon: <Zap size={20} className="text-amber-400" />,
@@ -95,7 +95,7 @@ export function AboutContent() {
           <h3 className="text-2xl font-bold text-white mb-4">The Solution</h3>
           <div className="space-y-4 text-ink-muted leading-relaxed">
             <p>
-              <strong className="text-white font-bold">Français AI</strong> is a speaking coach built specifically for the IGCSE French syllabus.
+              <strong className="text-white font-bold">French Coach</strong> is a speaking coach built specifically for the IGCSE French syllabus.
             </p>
             <p>
               It simulates Cambridge-style exam scenarios turn-by-turn. This is not a chatbot—this is an <span className="text-blue-400 font-bold italic">Exam Simulator</span>.

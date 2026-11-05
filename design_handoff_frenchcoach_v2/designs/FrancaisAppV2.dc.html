@@ -704,7 +704,7 @@ a:hover { color: #5B21B6; text-decoration: underline; }
         <button onClick="{{ pf.askDelete }}" style="width: 100%; min-height: 60px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; border: none; background: transparent; color: var(--ink); font-family: inherit; text-align: left; cursor: pointer; box-sizing: border-box; transition: background-color 120ms; border-top: 1px solid var(--hairline);" style-hover="background: var(--correction-soft);"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--surface-recessed); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--correction-soft); color: var(--correction-text);"><l-icon name="trash-2" size="16"></l-icon></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600; line-height: 1.35; color: var(--correction-text);">Delete my account</span><span style="font-size: 13px; font-weight: 400; color: var(--ink-subtle); line-height: 1.4;">Permanently erase your account and data</span></span></button>
       </div>
     </div>
-    <span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle); text-align: center;">Français AI · v3.0</span>
+    <span style="font-size: 12px; font-weight: 400; color: var(--ink-subtle); text-align: center;">French Coach · v3.0</span>
   </div>
 </div>
 </sc-if>
@@ -1221,7 +1221,7 @@ class Component extends DCLogic {
         dot: { width: 8, height: 8, borderRadius: 999, background: 'var(--action)', transform: on ? 'scale(1)' : 'scale(0)', transition: SL } }; }),
       replayTour: () => this.note('App tour', 'The walkthrough starts from Home.'),
       exportIcon: s.exporting ? 'loader' : 'download', exportIconWrap: { display: 'flex', animation: 'none' }, exportDesc: s.exporting ? 'Preparing your file…' : 'Download sessions, transcripts and progress',
-      exportData: () => { if (s.exporting) return; this.setState({ exporting: true }); clearTimeout(this.expT); this.expT = setTimeout(() => { this.setState({ exporting: false }); this.note('Data exported', 'francais-ai-export.json is in your downloads.'); }, 1100); },
+      exportData: () => { if (s.exporting) return; this.setState({ exporting: true }); clearTimeout(this.expT); this.expT = setTimeout(() => { this.setState({ exporting: false }); this.note('Data exported', 'french-coach-export.json is in your downloads.'); }, 1100); },
       privacy: () => this.note('Privacy policy', 'Opens in a new tab.'),
       blockedOpen: s.blockedOpen, toggleBlocked: () => this.setState(x => ({ blockedOpen: !x.blockedOpen, navKey: x.navKey + 1 })),
       blockedChev: { display: 'flex', color: 'var(--ink-subtle)', transform: s.blockedOpen ? 'rotate(180deg)' : 'none', transition: SL },

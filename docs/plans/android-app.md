@@ -49,7 +49,7 @@ These have lead times longer than the build, so they go first.
    study group) now. An organisation account (needs a D-U-N-S number) skips this rule.
 3. **D2 — package name**, e.g. `french.beyondthebasics.me`. Permanent: it can never change after the
    first upload.
-4. **D3 — app name: decided — "French Coach"** (owner, 2026-11-05) for the Android app. The website still says "Français AI".
+4. **D3 — app name: decided — "French Coach"** (owner, 2026-11-05) for the Android app.
 5. **Store gates that are not optional** (these are Play requirements, not the deferred legal work —
    the owner directive defers privacy *engineering*, but Play will not accept a listing without them):
    - a privacy-policy URL;

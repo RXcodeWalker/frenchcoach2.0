@@ -21,7 +21,7 @@ export function Founder() {
             <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--mk-ink-muted)' }}>
               I ended up scoring 97% (A*) in IGCSE French, with DELF A2 and B1 distinctions, mostly
               by finding ways to practise speaking that my classroom couldn't give me thirty
-              students at a time. Français AI is that practice, built for anyone else stuck in the
+              students at a time. French Coach is that practice, built for anyone else stuck in the
               same gap.
             </p>
             <p className="text-sm font-semibold mb-1">Om Jhamvar</p>

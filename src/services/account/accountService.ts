@@ -92,7 +92,7 @@ export async function exportMyData(): Promise<ExportedAccountData> {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `francais-ai-export-${payload.exportedAt.slice(0, 10)}.json`;
+    a.download = `french-coach-export-${payload.exportedAt.slice(0, 10)}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
