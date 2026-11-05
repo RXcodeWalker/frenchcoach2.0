@@ -33,6 +33,7 @@ import {
   RolePlayMarker,
   TopicAreaList,
 } from './GuideWidgets';
+import { AnswerTheQuestion, ModePicker, OrderTheExam, SortTheMarks, SpotTheTimeFrame, StuckWalkthrough } from './GuidePractice';
 
 /**
  * The exam guide (`/exam/guide`), opened from the exam chooser: a six-chapter
@@ -251,6 +252,9 @@ function ExamChapter() {
         preparation it lasts about 10 minutes, in three parts. Tap each part to see what happens.
       </p>
       <PartsTimeline />
+      <Block title="Check: put it in order" intro="Can you remember the running order without looking?">
+        <OrderTheExam />
+      </Block>
       <Block
         title="Where the topics come from"
         intro="The syllabus groups topics into five areas. Conversation 1 comes from Area A or B, conversation 2 from C, D or E. You find out the exact topic only when the examiner introduces it."
@@ -278,6 +282,12 @@ function MarksChapter() {
         intro="Communication and Quality of Language are each marked with five bands. Slide the mark to read the official description an examiner checks you against."
       >
         <BandExplorer />
+      </Block>
+      <Block
+        title="Which mark is it?"
+        intro="Students often mix up Communication and Quality of Language. Sort each thing an examiner listens for into the right one."
+      >
+        <SortTheMarks />
       </Block>
       <Block title="What level is expected?">
         <p className="text-body-base text-ink-muted">
@@ -314,6 +324,9 @@ function RolePlayChapter() {
       <Block title="Mark it like an examiner" intro="Four answers to four role-play questions. Decide the mark, then see why.">
         <RolePlayMarker />
       </Block>
+      <Block title="Which reply answers it?" intro="The most common way to lose a role-play mark is answering a different question. Pick the reply that does the job.">
+        <AnswerTheQuestion />
+      </Block>
       <Block title="How to get 2 every time">
         <Tips
           items={[
@@ -339,7 +352,12 @@ function ConversationsChapter() {
       <Block title="Build a better answer" intro="Start with a simple answer and level it up one step at a time. Watch what each step adds.">
         <AnswerLadder />
       </Block>
-      <Block title="When you get stuck" intro="Here is what the examiner does if you can’t answer, and what it means for your mark.">
+      <Block title="Spot the time frame" intro="Using several time frames shows range. First, make sure you can recognise them instantly.">
+        <SpotTheTimeFrame />
+      </Block>
+      <Block title="When you get stuck" intro="Pick a question and tap through what the examiner does if you can’t answer.">
+        <StuckWalkthrough />
+        <h4 className="pt-2 text-section text-ink">What it means for your mark</h4>
         <ol className="flex flex-col gap-2">
           {HELP_LADDER.map((h, i) => (
             <li key={h.step} className="flex gap-3 rounded-card border border-hairline bg-surface p-4">
@@ -359,7 +377,7 @@ function ConversationsChapter() {
           to develop your idea.
         </p>
       </Block>
-      <Block title="Phrases worth knowing">
+      <Block title="Phrases worth knowing" intro="Learn them, then switch on “Test yourself” and say each one before you reveal it.">
         <PhraseList />
       </Block>
       <KeyPoint>
@@ -377,6 +395,9 @@ function AppChapter() {
       <p className="text-body-l text-ink-muted">
         FrenchCoach runs the same exam with Henri as your examiner. Pick the mode that fits what you need today.
       </p>
+      <Block title="What should I do today?" intro="Tap what you want, and see where to go.">
+        <ModePicker />
+      </Block>
       <Block title="Exam Sim or Coached Practice?">
         <div className="overflow-hidden rounded-card border border-hairline">
           <div className="grid grid-cols-[1fr_1fr_1fr] gap-px bg-hairline text-body-s">

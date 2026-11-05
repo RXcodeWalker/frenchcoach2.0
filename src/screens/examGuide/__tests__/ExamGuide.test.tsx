@@ -143,6 +143,28 @@ describe('ExamGuide', () => {
     expect(trackMock).toHaveBeenCalledWith({ name: 'exam_guide_quiz_done', props: { correct: QUIZ.length, total: QUIZ.length } });
   });
 
+  it('phrases: test-yourself hides the French until revealed', () => {
+    renderGuide();
+    fireEvent.click(screen.getByTestId('guide-tab-conversations'));
+    expect(screen.queryAllByTestId('guide-phrase-reveal')).toHaveLength(0);
+    fireEvent.click(screen.getByTestId('guide-phrase-mode-test'));
+    const hidden = screen.getAllByTestId('guide-phrase-reveal');
+    expect(hidden.length).toBeGreaterThan(0);
+    fireEvent.click(hidden[0]);
+    expect(screen.getAllByTestId('guide-phrase-reveal')).toHaveLength(hidden.length - 1);
+  });
+
+  it('every chapter carries its practice exercise', () => {
+    renderGuide();
+    const expected: Record<string, string> = {
+      exam: 'guide-order', marks: 'guide-sort', rolePlay: 'guide-fit', conversations: 'guide-tense', app: 'guide-mode-picker',
+    };
+    for (const [tab, id] of Object.entries(expected)) {
+      fireEvent.click(screen.getByTestId(`guide-tab-${tab}`));
+      expect(screen.getByTestId(id)).toBeTruthy();
+    }
+  });
+
   it('the plan links into the app', () => {
     renderGuide();
     fireEvent.click(screen.getByTestId('guide-tab-app'));

@@ -434,3 +434,159 @@ export const QUIZ: readonly QuizQuestion[] = [
     explain: 'Only Exam Sim runs under real conditions, so only its marks count. Coached marks are for practice.',
   },
 ];
+
+// ── More practice (interactive exercises inside the chapters) ───────────────
+
+/** Chapter 1: the parts, scrambled, to tap back into exam order. Ids are EXAM_PARTS ids. */
+export const ORDER_SCRAMBLE: readonly string[] = ['topic2', 'greeting', 'rolePlay', 'prep', 'topic1'];
+
+export type MarkArea = 'communication' | 'qualityOfLanguage';
+
+export interface SortItem {
+  id: string;
+  text: string;
+  area: MarkArea;
+  why: string;
+}
+
+/** Chapter 2: which of the two conversation marks a behaviour earns (each tied to a TN p.11–12 descriptor). */
+export const SORT_ITEMS: readonly SortItem[] = [
+  { id: 'reasons', text: 'Gives reasons for opinions', area: 'communication', why: 'Communication’s bands ask whether you give reasons or explanations, and justify your answers.' },
+  { id: 'tenses', text: 'Uses the perfect and future tenses correctly', area: 'qualityOfLanguage', why: 'Quality of Language rewards a range of structures used accurately. Tenses are structures.' },
+  { id: 'relevant', text: 'Stays relevant to each question', area: 'communication', why: 'Communication’s bands describe how relevant the information is to the questions.' },
+  { id: 'vocab', text: 'Uses a wide range of vocabulary', area: 'qualityOfLanguage', why: 'Range and accuracy of vocabulary is a Quality of Language line in every band.' },
+  { id: 'pronunciation', text: 'Pronounces words clearly, with natural intonation', area: 'qualityOfLanguage', why: 'Pronunciation, fluency, intonation and expression are all marked under Quality of Language.' },
+  { id: 'alternative', text: 'Rarely needs the simpler alternative question', area: 'communication', why: 'How often you need repeats or alternative questions separates the Communication bands.' },
+  { id: 'develop', text: 'Develops ideas instead of giving one-word answers', area: 'communication', why: 'Developing ideas and opinions is what lifts Communication into the top bands.' },
+  { id: 'accuracy', text: 'Makes few grammar mistakes', area: 'qualityOfLanguage', why: 'Accuracy, with only occasional errors, is what the top Quality of Language band describes.' },
+];
+
+export interface ChoiceItem {
+  id: string;
+  prompt: string;
+  promptEn: string;
+  options: readonly string[];
+  answer: number;
+  why: string;
+}
+
+/** Chapter 3: which reply actually answers the role-play question (question word and time frame). */
+export const ANSWER_FIT: readonly ChoiceItem[] = [
+  {
+    id: 'ou',
+    prompt: 'Où allez-vous ce soir ?',
+    promptEn: 'Where are you going this evening?',
+    options: ['Ce soir.', 'Au cinéma avec mon frère.', 'J’aime le cinéma.'],
+    answer: 1,
+    why: '« Où » asks where. Only this reply gives a place.',
+  },
+  {
+    id: 'quand',
+    prompt: 'Quand est-ce que vous partez ?',
+    promptEn: 'When are you leaving?',
+    options: ['En train.', 'Samedi matin.', 'Je pars.'],
+    answer: 1,
+    why: '« Quand » asks when. « En train » answers how, which is a different question.',
+  },
+  {
+    id: 'combien',
+    prompt: 'Vous êtes combien de personnes ?',
+    promptEn: 'How many of you are there?',
+    options: ['Nous sommes quatre.', 'Nous sommes contents.', 'Avec ma famille.'],
+    answer: 0,
+    why: '« Combien » asks how many, so the answer needs a number.',
+  },
+  {
+    id: 'passe',
+    prompt: 'Qu’est-ce que vous avez mangé hier soir ?',
+    promptEn: 'What did you eat last night?',
+    options: ['Je mange une pizza.', 'J’ai mangé une pizza.', 'Je vais manger une pizza.'],
+    answer: 1,
+    why: 'The question is in the past (« avez mangé », « hier soir »), so the answer must be too.',
+  },
+  {
+    id: 'futur',
+    prompt: 'Qu’est-ce que vous allez faire demain ?',
+    promptEn: 'What are you going to do tomorrow?',
+    options: ['Je vais visiter le château.', 'J’ai visité le château.', 'Le château est beau.'],
+    answer: 0,
+    why: '« Allez faire » and « demain » point to the future: answer with « je vais » + infinitive.',
+  },
+  {
+    id: 'pourquoi',
+    prompt: 'Pourquoi voulez-vous changer de chambre ?',
+    promptEn: 'Why do you want to change rooms?',
+    options: ['Parce qu’elle est trop bruyante.', 'Oui, je veux changer.', 'La chambre numéro douze.'],
+    answer: 0,
+    why: '« Pourquoi » asks why. Start with « parce que » and give the reason.',
+  },
+];
+
+export type TimeFrame = 'past' | 'present' | 'future' | 'conditional';
+
+export const TIME_FRAME_LABEL: Record<TimeFrame, string> = {
+  past: 'Past',
+  present: 'Present',
+  future: 'Future',
+  conditional: 'Would (conditional)',
+};
+
+/** Chapter 4: spot the time frame, so switching tenses in a conversation becomes automatic. */
+export const TIME_FRAME_ITEMS: readonly { id: string; fr: string; en: string; frame: TimeFrame; clue: string }[] = [
+  { id: 'espagne', fr: 'Je vais aller en Espagne cet été.', en: 'I’m going to go to Spain this summer.', frame: 'future', clue: '« je vais » + infinitive: the near future.' },
+  { id: 'petit', fr: 'Quand j’étais petit, j’habitais à la campagne.', en: 'When I was little, I lived in the country.', frame: 'past', clue: '« j’étais », « j’habitais »: the imperfect, for how things used to be.' },
+  { id: 'moto', fr: 'Si j’avais de l’argent, j’achèterais une moto.', en: 'If I had money, I would buy a motorbike.', frame: 'conditional', clue: '« j’achèterais »: the conditional (-rais), after « si » + imperfect.' },
+  { id: 'tennis', fr: 'Le week-end dernier, j’ai joué au tennis.', en: 'Last weekend, I played tennis.', frame: 'past', clue: '« j’ai joué »: the perfect tense, for one finished event.' },
+  { id: 'bus', fr: 'D’habitude, je prends le bus.', en: 'Usually, I take the bus.', frame: 'present', clue: '« je prends » with « d’habitude »: what you normally do.' },
+  { id: 'sciences', fr: 'L’année prochaine, j’étudierai les sciences.', en: 'Next year, I will study science.', frame: 'future', clue: '« j’étudierai »: the simple future (-rai).' },
+];
+
+/** Chapter 5: what the learner wants today → where to go. */
+export const MODE_GOALS: readonly { id: string; goal: string; pick: string; why: string; path: string; action: string }[] = [
+  {
+    id: 'learn-format',
+    goal: 'Learn how the exam works, with help',
+    pick: 'Coached Practice',
+    why: 'Henri comments after every answer, and you can type or fix your transcript. Choose “Coached Practice” on the exam screen.',
+    path: '/exam',
+    action: 'Go to exams',
+  },
+  {
+    id: 'real-mark',
+    goal: 'Find out the mark I’d really get',
+    pick: 'Exam Sim',
+    why: `Real conditions, no help, and the mark counts on Progress. You get one full exam every ${EXAM_WINDOW_DAYS} days, so save it for when you’re ready.`,
+    path: '/exam',
+    action: 'Go to exams',
+  },
+  {
+    id: 'role-play',
+    goal: 'Practise just the role play',
+    pick: 'Role-play drill',
+    why: 'One card, five exchanges, coaching on each answer. It doesn’t use your weekly exam.',
+    path: '/exam/role-play',
+    action: 'Open the drill',
+  },
+  {
+    id: 'few-answers',
+    goal: 'Answer a few questions in ten minutes',
+    pick: 'Learn',
+    why: `Up to ${LEARN_ANSWERS_PER_DAY} AI-marked answers a day, each with feedback. Ideal daily practice for the conversations.`,
+    path: '/learn',
+    action: 'Open Learn',
+  },
+];
+
+/** Chapter 4: what the examiner does when you're stuck, by question (exam-conduct §12–§13). */
+export const STUCK_STEPS: Record<'early' | 'later', readonly string[]> = {
+  early: [
+    'You don’t answer. The examiner repeats the question, word for word.',
+    'Still nothing. Questions 1 and 2 have no alternative, so the examiner moves on to the next question.',
+  ],
+  later: [
+    'You don’t answer. The examiner repeats the question, word for word.',
+    'Still nothing. The examiner asks the alternative: a simpler question on the same idea.',
+    'Still nothing. The alternative can be repeated once.',
+    'Still nothing. The examiner moves on to the next question.',
+  ],
+};

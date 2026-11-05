@@ -410,6 +410,8 @@ export function AnswerLadder() {
 /** Useful phrases, with a listen button when a French voice is available. */
 export function PhraseList() {
   const [canListen, setCanListen] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [revealed, setRevealed] = useState<Set<string>>(() => new Set());
   useEffect(() => {
     setCanListen(hasFrenchVoice() && !isExaminerVoiceMuted());
     return () => stopExaminerVoice();
@@ -418,33 +420,64 @@ export function PhraseList() {
     stopExaminerVoice();
     void speakExaminerText(text, getExaminerVoiceGeneration());
   };
+  const reveal = (fr: string) => setRevealed((r) => new Set(r).add(fr));
   return (
-    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-      {PHRASES.map((g) => (
-        <section key={g.group} className="flex flex-col gap-2 rounded-card border border-hairline bg-surface p-4">
-          <h4 className="text-label text-ink">{g.group}</h4>
-          <ul className="flex flex-col gap-2.5">
-            {g.phrases.map((p) => (
-              <li key={p.fr} className="flex items-start gap-2">
-                <span className="flex min-w-0 flex-1 flex-col">
-                  <span lang="fr" className="text-body-s text-ink">{p.fr}</span>
-                  <span className="text-caption text-ink-subtle">{p.en}</span>
-                </span>
-                {canListen && (
-                  <button
-                    type="button"
-                    onClick={() => listen(p.fr)}
-                    aria-label={`Listen: ${p.fr}`}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control text-ink-muted transition-colors duration-state ease-smooth hover:bg-track hover:text-ink"
-                  >
-                    <Volume2 size={16} aria-hidden="true" />
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+    <div className="flex flex-col gap-3">
+      <Segmented<'learn' | 'test'>
+        label="Phrase mode"
+        value={testing ? 'test' : 'learn'}
+        onChange={(m) => {
+          setTesting(m === 'test');
+          setRevealed(new Set());
+        }}
+        options={[
+          { id: 'learn', label: 'Learn' },
+          { id: 'test', label: 'Test yourself' },
+        ]}
+        testIdPrefix="guide-phrase-mode"
+      />
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        {PHRASES.map((g) => (
+          <section key={g.group} className="flex flex-col gap-2 rounded-card border border-hairline bg-surface p-4">
+            <h4 className="text-label text-ink">{g.group}</h4>
+            <ul className="flex flex-col gap-2.5">
+              {g.phrases.map((p) => {
+                const hidden = testing && !revealed.has(p.fr);
+                return (
+                  <li key={p.fr} className="flex items-start gap-2">
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      {testing && <span className="text-body-s text-ink">{p.en}</span>}
+                      {hidden ? (
+                        <button
+                          type="button"
+                          onClick={() => reveal(p.fr)}
+                          data-testid="guide-phrase-reveal"
+                          className="self-start text-left text-caption font-semibold text-action-text underline-offset-2 hover:underline"
+                        >
+                          Say it in French, then tap to check
+                        </button>
+                      ) : (
+                        <span lang="fr" className={testing ? 'text-caption text-ink-muted' : 'text-body-s text-ink'}>{p.fr}</span>
+                      )}
+                      {!testing && <span className="text-caption text-ink-subtle">{p.en}</span>}
+                    </span>
+                    {canListen && !hidden && (
+                      <button
+                        type="button"
+                        onClick={() => listen(p.fr)}
+                        aria-label={`Listen: ${p.fr}`}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control text-ink-muted transition-colors duration-state ease-smooth hover:bg-track hover:text-ink"
+                      >
+                        <Volume2 size={16} aria-hidden="true" />
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))}
+      </div>
     </div>
   );
 }
