@@ -21,7 +21,7 @@ export function PredictionResults({ lines }: { lines: readonly CalibrationLine[]
     <motion.section variants={fadeUp} initial="hidden" animate="show" aria-label="Your predictions" className="rounded-xl surface p-4 space-y-2.5">
       <div className="flex items-baseline justify-between gap-2">
         <p className="text-eyebrow uppercase text-ink-subtle">Your predictions</p>
-        <p className="text-[12px] text-ink-muted font-numeral">
+        <p className="text-sm text-ink-muted font-numeral">
           {right} of {lines.length} right
         </p>
       </div>
@@ -32,7 +32,7 @@ export function PredictionResults({ lines }: { lines: readonly CalibrationLine[]
           return (
             <li key={line.id} className="flex items-start gap-2">
               <Icon size={14} className={`${v.tone} shrink-0 mt-0.5`} aria-label={v.label} />
-              <p className="text-[12px] text-ink leading-relaxed">{line.text}</p>
+              <p className="text-sm text-ink leading-relaxed">{line.text}</p>
             </li>
           );
         })}

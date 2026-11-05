@@ -38,7 +38,7 @@ export function SnapshotCard({ feedback, variant = 'full', markingLevel }: Props
   const scoreEntries = levelCheck ? ladderScoreGrid(levelCheck.subScoresByLevel[marked.level]) : coachScoreGrid(scores);
   // §8.3 — say which ladder the score was read against, or that no level was applied.
   const markingNote = !markingLevel ? null : (
-    <p className="inline-flex items-center rounded-full surface-recessed px-2.5 py-0.5 text-[11px] text-ink-muted mt-1.5">
+    <p className="inline-flex items-center rounded-full surface-recessed px-2.5 py-0.5 text-sm text-ink-muted mt-1.5">
       {unscored ? LEVEL_MARKING_NOT_GRADED : marked.levelMarked ? checkedAgainstLine(marked.level) : LEVEL_MARKING_UNAVAILABLE}
     </p>
   );
@@ -53,10 +53,10 @@ export function SnapshotCard({ feedback, variant = 'full', markingLevel }: Props
       >
         <div className="flex items-start justify-between mb-2">
           <h3 className="font-bold text-white text-sm">Results</h3>
-          <span className="text-[9px] text-ink-subtle">{wordCount}w</span>
+          <span className="text-xs text-ink-subtle">{wordCount}w</span>
         </div>
         <p className="text-sm text-ink-muted font-semibold">Practiced offline — not graded</p>
-        <p className="text-[11px] text-ink-muted mt-1 leading-snug">
+        <p className="text-sm text-ink-muted mt-1 leading-snug">
           No AI grader was reachable for this attempt, so no score was assigned. Your evidence and coaching tips below are still real.
         </p>
         {markingNote}
@@ -77,7 +77,7 @@ export function SnapshotCard({ feedback, variant = 'full', markingLevel }: Props
         <div className="flex items-baseline gap-2">
           <span className="text-2xl font-black" style={{ color: scoreTone(overall) }}>{overall.toFixed(1)}</span>
           <span className="text-eyebrow text-ink-subtle uppercase">Overall</span>
-          <span className="text-[10px] text-ink-subtle ml-auto">{meta}</span>
+          <span className="text-xs text-ink-subtle ml-auto">{meta}</span>
         </div>
         {markingNote}
       </motion.div>
@@ -95,12 +95,12 @@ export function SnapshotCard({ feedback, variant = 'full', markingLevel }: Props
         <div>
           <h3 className="font-bold text-white text-sm">Results</h3>
           {examiner?.oneLiner && (
-            <p className="text-[11px] text-ink-muted italic mt-0.5 max-w-xs leading-snug">
+            <p className="text-sm text-ink-muted italic mt-0.5 max-w-xs leading-snug">
               "{examiner.oneLiner}"
             </p>
           )}
         </div>
-        <span className="text-[9px] text-ink-subtle">{meta}</span>
+        <span className="text-xs text-ink-subtle">{meta}</span>
       </div>
 
       <div className="flex items-baseline gap-2 mb-3">
@@ -121,7 +121,7 @@ export function SnapshotCard({ feedback, variant = 'full', markingLevel }: Props
             >
               {val.toFixed(1)}
             </motion.div>
-            <div className="text-[9px] text-ink-subtle">{label}</div>
+            <div className="text-xs text-ink-subtle">{label}</div>
             <div className="mt-1.5 h-1 bg-track rounded-full overflow-hidden">
               <motion.div
                 className="h-full rounded-full"

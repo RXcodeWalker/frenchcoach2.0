@@ -43,7 +43,7 @@ function DiffChip({ op }: { op: AnnotatedDiffOp }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="block mt-1 mb-1 text-[9px] text-action-text bg-action-soft border border-hairline rounded-md px-2 py-1"
+            className="block mt-1 mb-1 text-xs text-action-text bg-action-soft border border-hairline rounded-md px-2 py-1"
           >
             {op.annotation!.explanation}
           </motion.span>
@@ -58,8 +58,8 @@ function SafeCorrectionsList({ issues }: { issues: CoachingIssue[] }) {
   return (
     <div className="space-y-1.5">
       {issues.map(issue => (
-        <div key={issue.id} className="flex items-start gap-1.5 text-[10px] p-2 rounded-lg surface-recessed">
-          <CheckCircle size={10} className="text-progress-text flex-shrink-0 mt-0.5" />
+        <div key={issue.id} className="flex items-start gap-1.5 text-sm p-2 rounded-lg surface-recessed">
+          <CheckCircle size={14} className="text-progress-text flex-shrink-0 mt-0.5" />
           <div>
             {issue.quote && <span className="font-mono text-ink-muted line-through mr-1">{issue.quote}</span>}
             <span className="text-progress-text font-medium">{issue.correction}</span>
@@ -96,14 +96,14 @@ export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = 
       <div className="space-y-2">
         <div className="p-3 rounded-lg surface-recessed">
           <p className="text-eyebrow text-ink-subtle uppercase mb-1.5">Your answer</p>
-          <p className="text-[10px] text-ink-muted leading-relaxed italic">{transcript}</p>
+          <p className="text-sm text-ink-muted leading-relaxed italic">{transcript}</p>
         </div>
         <div className="flex justify-center">
           <ArrowDown size={14} className="text-info-text" />
         </div>
         <div className="p-3 rounded-lg bg-info-soft border border-hairline">
           <p className="text-eyebrow text-info-text uppercase mb-1.5">What changed</p>
-          <p className="text-[11px] text-ink leading-relaxed">
+          <p className="text-sm text-ink leading-relaxed">
             {annotated.map((op, i) => op.type === 'equal'
               ? <span key={i}>{op.afterText}</span>
               : <DiffChip key={i} op={op} />
@@ -111,7 +111,7 @@ export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = 
           </p>
         </div>
         {annotated.some(op => op.annotation) && (
-          <p className="text-[8px] text-ink-subtle flex items-center gap-1">
+          <p className="text-xs text-ink-subtle flex items-center gap-1">
             <ChevronDown size={9} /> Tap a highlighted word for why it changed
           </p>
         )}

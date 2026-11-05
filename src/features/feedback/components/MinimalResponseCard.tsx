@@ -25,7 +25,7 @@ function Tier0Card({ onRetry, onComplete, modelAnswer }: { onRetry: () => void; 
         </div>
         <div>
           <p className="text-sm font-semibold text-ink">Je n'ai pas entendu de réponse.</p>
-          <p className="text-[11px] text-ink-muted mt-1">No audio was detected or the transcription was empty.</p>
+          <p className="text-sm text-ink-muted mt-1">No audio was detected or the transcription was empty.</p>
         </div>
       </div>
       <FeedbackFooter onRetry={onRetry} onComplete={onComplete} modelAnswer={modelAnswer} />
@@ -52,8 +52,8 @@ function Tier1Card({ feedback, transcript, onRetry, onComplete, modelAnswer }: P
             <GraduationCap size={14} className="text-reward-text" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-reward-text mb-0.5">Réponse minimale</p>
-            <p className="text-[11px] text-ink-muted leading-relaxed">
+            <p className="text-sm font-semibold text-reward-text mb-0.5">Réponse minimale</p>
+            <p className="text-sm text-ink-muted leading-relaxed">
               Tu as donné une réponse de {wordCount === 1 ? 'un seul mot' : `${wordCount} mots`}. Je comprends le sujet, mais je ne peux pas évaluer ta grammaire, ta structure ou ta fluidité.
             </p>
           </div>
@@ -77,7 +77,7 @@ function Tier1Card({ feedback, transcript, onRetry, onComplete, modelAnswer }: P
             </div>
             <div>
               <p className="text-eyebrow text-progress-text uppercase mb-0.5">Teacher</p>
-              <p className="text-[10px] text-ink-muted leading-relaxed">{layer.teacher}</p>
+              <p className="text-sm text-ink-muted leading-relaxed">{layer.teacher}</p>
             </div>
           </div>
 
@@ -87,7 +87,7 @@ function Tier1Card({ feedback, transcript, onRetry, onComplete, modelAnswer }: P
             </div>
             <div>
               <p className="text-eyebrow text-reward-text uppercase mb-0.5">Examiner</p>
-              <p className="text-[10px] text-ink-muted leading-relaxed italic">{layer.examiner}</p>
+              <p className="text-sm text-ink-muted leading-relaxed italic">{layer.examiner}</p>
             </div>
           </div>
 
@@ -97,7 +97,7 @@ function Tier1Card({ feedback, transcript, onRetry, onComplete, modelAnswer }: P
             </div>
             <div>
               <p className="text-eyebrow text-action-text uppercase mb-0.5">Coach</p>
-              <p className="text-[10px] text-ink-muted leading-relaxed">{layer.coach}</p>
+              <p className="text-sm text-ink-muted leading-relaxed">{layer.coach}</p>
             </div>
           </div>
         </div>
@@ -110,7 +110,7 @@ function Tier1Card({ feedback, transcript, onRetry, onComplete, modelAnswer }: P
       {feedback.examiner?.examinerInsight && (
         <div className="rounded-xl surface-raised p-3.5 border border-amber-500/15">
           <p className="text-eyebrow text-reward-text uppercase mb-1">Key improvement</p>
-          <p className="text-[10px] text-reward-text leading-relaxed">{feedback.examiner.examinerInsight}</p>
+          <p className="text-sm text-reward-text leading-relaxed">{feedback.examiner.examinerInsight}</p>
         </div>
       )}
 

@@ -67,7 +67,7 @@ function FixMicButton({
       onClick={toggle}
       disabled={locked && !recording.isRecording}
       aria-label={recording.isRecording ? 'Stop and check what you said' : 'Say your fix'}
-      className="inline-flex items-center gap-1 rounded-lg surface-recessed px-2.5 py-1.5 text-[11px] font-bold text-action-text disabled:opacity-40"
+      className="inline-flex items-center gap-1 rounded-lg surface-recessed px-2.5 py-1.5 text-sm font-bold text-action-text disabled:opacity-40"
     >
       {recording.isRecording ? <Square size={11} aria-hidden="true" /> : <Mic size={11} aria-hidden="true" />}
       {recording.isRecording ? 'Stop' : 'Say it'}
@@ -94,7 +94,7 @@ export function TryItFirst({ fix, highlightedQuote, micLocked = false, onMicActi
     return (
       <div className="space-y-1.5">
         {revealed !== 'shown' && (
-          <p className="text-[11px] font-semibold text-progress-text" role="status">
+          <p className="text-sm font-semibold text-progress-text" role="status">
             {revealed === 'match' ? "Yes, that's it." : "Here's how I'd say it:"}
           </p>
         )}
@@ -105,7 +105,7 @@ export function TryItFirst({ fix, highlightedQuote, micLocked = false, onMicActi
 
   return (
     <div className="space-y-2" data-testid="try-it-first">
-      <p className="text-xs text-ink leading-relaxed">{tryItHint(fix.quote, fix.tag)}</p>
+      <p className="text-sm text-ink leading-relaxed">{tryItHint(fix.quote, fix.tag)}</p>
       <input
         type="text"
         lang="fr"
@@ -116,14 +116,14 @@ export function TryItFirst({ fix, highlightedQuote, micLocked = false, onMicActi
         }}
         aria-label={`Your fix for « ${fix.quote} »`}
         placeholder="Type your fix…"
-        className="w-full rounded-lg surface-recessed px-3 py-1.5 text-xs text-ink placeholder:text-ink-muted"
+        className="w-full rounded-lg surface-recessed px-3 py-1.5 text-sm text-ink placeholder:text-ink-muted"
       />
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={() => check(attempt, 'text')}
           disabled={!attempt.trim()}
-          className="rounded-lg bg-action px-3 py-1.5 text-[11px] font-bold text-action-ink disabled:opacity-40"
+          className="rounded-lg bg-action px-3 py-1.5 text-sm font-bold text-action-ink disabled:opacity-40"
         >
           Check
         </button>
@@ -133,7 +133,7 @@ export function TryItFirst({ fix, highlightedQuote, micLocked = false, onMicActi
         <button
           type="button"
           onClick={() => reveal('shown')}
-          className="rounded-lg px-2 py-1.5 text-[11px] font-semibold text-ink-muted underline underline-offset-2"
+          className="rounded-lg px-2 py-1.5 text-sm font-semibold text-ink-muted underline underline-offset-2"
         >
           Just show me
         </button>

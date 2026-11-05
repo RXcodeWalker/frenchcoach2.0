@@ -68,7 +68,7 @@ export function MarkedUpScript({ transcript, feedback, onIssueClick }: Props) {
       <p className="text-eyebrow text-ink-subtle uppercase mb-2.5">Your Response — Marked Up</p>
 
       <div>
-        <p className="text-[12px] text-ink-muted leading-relaxed">
+        <p className="text-sm text-ink-muted leading-relaxed">
           {segments.map((seg, i) => {
             if (!seg.span) return <span key={i}>{seg.text}</span>;
 
@@ -112,7 +112,7 @@ export function MarkedUpScript({ transcript, feedback, onIssueClick }: Props) {
       {legend.length > 0 && (
         <div className="flex items-center gap-3 mt-3 pt-3 border-t border-hairline">
           {legend.map(l => (
-            <span key={l.severity} className="flex items-center gap-1 text-[12px] text-ink-subtle">
+            <span key={l.severity} className="flex items-center gap-1 text-sm text-ink-subtle">
               <span className={`inline-block w-3 h-0.5 rounded ${l.swatch}`} />
               {l.label}
             </span>

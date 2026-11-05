@@ -10,12 +10,12 @@ export function ExpansionLevelRow({ lvl, isLast }: { lvl: ExpansionLevel; isLast
 
   return (
     <div className={`flex items-start gap-2.5 p-2.5 rounded-lg ${colors.bg}`}>
-      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0 mt-0.5 ${colors.num}`}>
+      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${colors.num}`}>
         {lvl.level}
       </div>
       <div className="flex-1 min-w-0">
-        <p className={`text-[10px] font-medium font-mono break-words ${colors.text}`}>{lvl.sentence}</p>
-        <p className="text-[8px] text-ink-muted mt-0.5">+ {lvl.addedWhat}</p>
+        <p className={`text-sm font-medium font-mono break-words ${colors.text}`}>{lvl.sentence}</p>
+        <p className="text-xs text-ink-muted mt-0.5">+ {lvl.addedWhat}</p>
       </div>
       {!isLast && <ArrowRight size={9} className="text-ink-subtle mt-1 shrink-0" />}
     </div>

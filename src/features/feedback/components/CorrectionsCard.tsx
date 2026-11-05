@@ -57,9 +57,9 @@ export function CorrectionsCard({ issues, polishIssues = [], feedback, lessonsDe
               ))
             : legacyCritical.map((err, i) => (
                 <div key={i} className="p-2.5 rounded-lg bg-correction-soft border border-hairline mb-1.5">
-                  <p className="text-[10px] font-semibold text-correction-text">{err.theme}</p>
-                  <p className="text-[10px] text-ink-muted mt-0.5">{err.diagnostic}</p>
-                  <p className="text-[10px] text-progress-text mt-0.5">{err.correction}</p>
+                  <p className="text-sm font-semibold text-correction-text">{err.theme}</p>
+                  <p className="text-sm text-ink-muted mt-0.5">{err.diagnostic}</p>
+                  <p className="text-sm text-progress-text mt-0.5">{err.correction}</p>
                 </div>
               ))
           }
@@ -81,9 +81,9 @@ export function CorrectionsCard({ issues, polishIssues = [], feedback, lessonsDe
               ))
             : legacyPolish.map((err, i) => (
                 <div key={i} className="p-2.5 rounded-lg bg-action-soft border border-hairline mb-1.5">
-                  <p className="text-[10px] font-semibold text-action-text">{err.theme}</p>
-                  <p className="text-[10px] text-ink-muted mt-0.5">{err.diagnostic}</p>
-                  <p className="text-[10px] text-progress-text mt-0.5">{err.correction}</p>
+                  <p className="text-sm font-semibold text-action-text">{err.theme}</p>
+                  <p className="text-sm text-ink-muted mt-0.5">{err.diagnostic}</p>
+                  <p className="text-sm text-progress-text mt-0.5">{err.correction}</p>
                 </div>
               ))
           }
