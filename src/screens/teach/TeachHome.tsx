@@ -9,6 +9,7 @@ import { InlineAlert } from '../../components/auth/InlineAlert';
 import {
   createClass,
   getMyTeacherProfile,
+  joinClassAsTeacher,
   listMyClasses,
   redeemTeacherInvite,
   teacherErrorMessage,
@@ -78,7 +79,7 @@ export function TeachHome() {
               key={c.id}
               interactive
               onClick={() => navigate(`/teach/class/${c.id}`)}
-              eyebrow={c.examYear ? `Exam ${c.examYear}` : 'Class'}
+              eyebrow={[c.examYear ? `Exam ${c.examYear}` : 'Class', c.myRole === 'co_teacher' ? `Co-teacher with ${c.ownerName ?? 'the owner'}` : null].filter(Boolean).join(' · ')}
               title={c.name}
               meta={<span className="font-numeral tracking-[0.12em]">{c.codeActive ? c.joinCode : 'Code off'}</span>}
             />
@@ -90,7 +91,67 @@ export function TeachHome() {
         firstClass={!classes || classes.length === 0}
         onCreated={(id) => navigate(`/teach/class/${id}?tab=students`)}
       />
+      <JoinAsCoTeacherCard onJoined={(id) => navigate(`/teach/class/${id}`)} />
     </div>
+  );
+}
+
+/** A teacher joins a colleague's class with the class's co-teacher code ("T-" + 6 characters). */
+function JoinAsCoTeacherCard({ onJoined }: { onJoined: (classId: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [code, setCode] = useState('T-');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  if (!open) {
+    return (
+      <div>
+        <Button variant="quiet" onClick={() => setOpen(true)}>
+          <Users size={16} aria-hidden="true" /> Join a colleague's class as co-teacher
+        </Button>
+      </div>
+    );
+  }
+  const valid = /^T-[A-Z0-9]{6}$/.test(code);
+  return (
+    <Card eyebrow="Co-teaching" title="Join a colleague's class">
+      <form
+        className="mt-3 flex flex-col gap-4"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          setError(null);
+          try {
+            const classId = await joinClassAsTeacher(code);
+            track({ name: 'co_teacher_joined', props: {} });
+            onJoined(classId);
+          } catch (err) {
+            setError(teacherErrorMessage(err));
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        <TextField
+          label="Co-teacher code"
+          hint="Your colleague finds it in their class under Students & code → Teachers. It starts with T-."
+          value={code}
+          onChange={(e) => {
+            const raw = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+            setCode(raw.startsWith('T-') ? raw.slice(0, 8) : `T-${raw.replace(/^T-?/, '').replace(/-/g, '')}`.slice(0, 8));
+          }}
+          autoComplete="off"
+        />
+        {error && <InlineAlert>{error}</InlineAlert>}
+        <div className="flex items-center gap-3">
+          <Button type="submit" loading={busy} disabled={!valid}>Join as co-teacher</Button>
+          <Button variant="quiet" onClick={() => setOpen(false)}>Cancel</Button>
+        </div>
+        <p className="text-caption text-ink-subtle">
+          You'll see the class's students and practice, set homework and mark attempts, just like its owner. Only the owner
+          can archive the class or add and remove teachers.
+        </p>
+      </form>
+    </Card>
   );
 }
 

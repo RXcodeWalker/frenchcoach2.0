@@ -35,3 +35,19 @@ policy/grant gaps (data-model.md §4) away from cross-user access.
 - **Writing teacher marks into the envelope** — would break ADR 0009's "nothing after marking changes a mark".
 
 Spec: `docs/systems/teacher-dashboard.md`.
+
+## Amendment (2026-11-05): co-teachers and several classes per student
+
+Owner request. Two changes, the rest stands:
+
+1. **A class can have co-teachers** (up to 5 teachers in all). The second grant path is the class owner
+   sharing a co-teacher code; it can only be redeemed by an account that is already a teacher (invite-only
+   still holds), and the owner can revoke it or remove the co-teacher at any time. The student's grant is
+   unchanged: joining a class gives *that class's teachers* access, from the join date. Archiving and
+   managing teachers stay with the owner. Marks remain per teacher.
+2. **A student may be in up to 5 classes.** Joining one no longer leaves another. Each class's teachers see
+   only that class's window; leaving is per class.
+
+Rejected: a shared "school" account that sees every class (no such need yet), and silent co-teacher access
+granted by an admin (the owner should decide who sees their students).
+

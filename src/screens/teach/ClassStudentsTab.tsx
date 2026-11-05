@@ -19,6 +19,7 @@ import {
 import { track } from '../../services/telemetry/telemetryService';
 import { type ClassData } from './useClassData';
 import { EYEBROW, joinLink, shortDate } from './teachUtils';
+import { ClassTeachersSection } from './ClassTeachersSection';
 
 /** The class itself: its join code, who is in it, its settings and the export. */
 export function ClassStudentsTab({ data, onChanged }: { data: ClassData; onChanged: () => void }) {
@@ -148,6 +149,8 @@ export function ClassStudentsTab({ data, onChanged }: { data: ClassData; onChang
         </p>
       </section>
 
+      <ClassTeachersSection classId={klass.id} className={klass.name} />
+
       <section className="flex flex-col gap-4 rounded-card border border-hairline bg-surface p-5" aria-labelledby="settings-h">
         <h2 id="settings-h" className="text-section text-ink">Class settings</h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -173,13 +176,15 @@ export function ClassStudentsTab({ data, onChanged }: { data: ClassData; onChang
         </div>
       </section>
 
-      <section className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-hairline bg-surface-recessed p-5">
-        <div>
-          <p className="text-label text-ink">Archive this class</p>
-          <p className="text-caption text-ink-muted">Ends every membership and turns off the code. Your marks stay with you.</p>
-        </div>
-        <Button variant="destructive" onClick={() => setArchiving(true)}>Archive class</Button>
-      </section>
+      {klass.myRole === 'owner' && (
+        <section className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-hairline bg-surface-recessed p-5">
+          <div>
+            <p className="text-label text-ink">Archive this class</p>
+            <p className="text-caption text-ink-muted">Ends every membership and every co-teacher's access, and turns off the codes. Marks stay saved.</p>
+          </div>
+          <Button variant="destructive" onClick={() => setArchiving(true)}>Archive class</Button>
+        </section>
+      )}
 
       <Modal
         open={removing !== null}

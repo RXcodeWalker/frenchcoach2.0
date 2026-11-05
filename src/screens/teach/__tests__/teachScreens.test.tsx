@@ -6,7 +6,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
-vi.mock('../../../context/AuthContext', () => ({ useAuth: () => ({ user: { id: 'teacher-1' } }) }));
+const auth = vi.hoisted(() => ({ user: { id: 'teacher-1' } }));
+vi.mock('../../../context/AuthContext', () => ({ useAuth: () => auth }));
 vi.mock('../../../services/telemetry/telemetryService', () => ({ track: vi.fn(), captureError: vi.fn() }));
 // The fixture envelope below is a minimal subset; the real schema is covered by its own tests.
 vi.mock('../../../domain/igcse/envelope/schema', () => ({ parseScoringEnvelope: (e: unknown) => e }));
@@ -21,6 +22,7 @@ const api = vi.hoisted(() => ({
   getExamAttempt: vi.fn(),
   saveTeacherMark: vi.fn(),
   getStudentSessions: vi.fn(),
+  getClassTeachers: vi.fn(),
 }));
 vi.mock('../../../services/teacher/teacherApi', async (orig) => ({ ...(await orig<object>()), ...api }));
 
@@ -33,7 +35,7 @@ afterEach(() => {
 });
 
 const now = new Date().toISOString();
-const klass = { id: 'k1', name: 'Year 11 French', examYear: 'June 2027', joinCode: 'ABC234', codeActive: true, timezone: 'Europe/London', digestEnabled: true, createdAt: now };
+const klass = { id: 'k1', name: 'Year 11 French', examYear: 'June 2027', joinCode: 'ABC234', codeActive: true, timezone: 'Europe/London', digestEnabled: true, createdAt: now, myRole: 'owner' as const, ownerName: 'Ms D' };
 const roster = [
   { studentId: 'a', displayName: 'Aisha', status: 'active', joinedAt: '2026-01-01T00:00:00Z', endedAt: null },
   { studentId: 'b', displayName: 'Ben', status: 'active', joinedAt: '2026-01-01T00:00:00Z', endedAt: null },
@@ -51,6 +53,7 @@ function loadClass() {
   ]);
   api.listAssignments.mockResolvedValue([]);
   api.getAssignmentProgress.mockResolvedValue([]);
+  api.getClassTeachers.mockResolvedValue({ myRole: 'owner', coTeacherCode: null, teachers: [{ teacherId: 'teacher-1', displayName: 'Ms D', role: 'owner', addedAt: now }] });
 }
 
 function renderAt(path: string) {
@@ -84,10 +87,31 @@ describe('TeachClass', () => {
     expect(screen.getByText(/From 1 of 2 marked mock exams/)).toBeTruthy();
   });
 
-  it('Students & code shows the join code', async () => {
+  it('Students & code shows the join code, the teachers and (for the owner) archiving', async () => {
     loadClass();
     renderAt('/teach/class/k1?tab=students');
     expect((await screen.findByTestId('class-join-code')).textContent).toBe('ABC234');
+    await screen.findByText('Invite a co-teacher');
+    expect(screen.getByText('Archive class')).toBeTruthy();
+  });
+
+  it('a co-teacher sees the class but cannot archive it or manage teachers', async () => {
+    loadClass();
+    api.getClass.mockResolvedValue({ ...klass, myRole: 'co_teacher' });
+    api.getClassTeachers.mockResolvedValue({
+      myRole: 'co_teacher', coTeacherCode: null,
+      teachers: [
+        { teacherId: 'owner-1', displayName: 'Ms D', role: 'owner', addedAt: now },
+        { teacherId: 'teacher-1', displayName: 'Mr Co', role: 'co_teacher', addedAt: now },
+      ],
+    });
+    renderAt('/teach/class/k1?tab=students');
+    await screen.findByText('Stop co-teaching Year 11 French');
+    expect(screen.getByText(/Co-teacher with Ms D/)).toBeTruthy();
+    expect(screen.queryByText('Archive class')).toBeNull();
+    expect(screen.queryByText('Invite a co-teacher')).toBeNull();
+    const teachers = screen.getByTestId('class-teachers');
+    expect(teachers.textContent).not.toContain('Remove');
   });
 
   it('a class that is not the teacher’s shows an error, not data', async () => {

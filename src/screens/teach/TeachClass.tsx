@@ -57,7 +57,7 @@ export function TeachClass() {
         <Link to="/teach" className="inline-flex items-center gap-1 text-label text-ink-muted hover:text-ink">
           <ChevronLeft size={16} aria-hidden="true" /> Classes
         </Link>
-        <p className={`${EYEBROW} mt-3`}>{data.klass.examYear ? `Exam ${data.klass.examYear}` : 'Class'} · {activeCount} {activeCount === 1 ? 'student' : 'students'}</p>
+        <p className={`${EYEBROW} mt-3`}>{data.klass.examYear ? `Exam ${data.klass.examYear}` : 'Class'} · {activeCount} {activeCount === 1 ? 'student' : 'students'}{data.klass.myRole === 'co_teacher' ? ` · Co-teacher with ${data.klass.ownerName ?? 'the owner'}` : ''}</p>
         <h1 className="text-title text-ink mt-1">{data.klass.name}</h1>
       </div>
       <Tabs

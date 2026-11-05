@@ -28,18 +28,28 @@ judge or a calibration set without a new owner decision (D8).
 
 - **Joining is the only grant.** A student joins with the class's 6-character code (`join_class`), sees
   exactly what the teacher will see, and can leave at any time (`leave_class`). Access ends the moment
-  they leave or are removed. One active class per student.
+  they leave or are removed. A student may be in up to **5** classes at once (one per teacher or subject;
+  `leave_class(p_class_id)` leaves one); each class's teachers see only activity from the day the student
+  joined *that* class (backend migration `20261105120000`).
+- **Co-teachers (2026-11-05).** A class has one owner (its creator, `classes.teacher_id`) and up to 4
+  co-teachers, all listed in `class_teachers`. A co-teacher joins with the class's **co-teacher code**
+  (`T-` + 6 characters, a different code from the students'), which only the owner can create, rotate or
+  turn off, and which only an existing teacher account can redeem (`join_class_as_teacher`) — so teacher
+  accounts stay invite-only. Every teacher of a class sees and does what the owner does (roster, activity,
+  insights, homework, marking, the student join code); **archiving and adding/removing teachers are
+  owner-only** (`_class_owner`). A co-teacher can leave; the owner cannot (archive instead). Each teacher's
+  marks are their own. A teacher is never also a student of the same class.
 - **Teacher reads are `SECURITY DEFINER` functions only** (`teacher_class_roster`, `teacher_class_sessions`,
   `teacher_student_sessions`, `teacher_class_exams`, `teacher_exam_attempt`, `teacher_assignment_progress`).
-  Each checks the caller owns the (non-archived) class and returns rows of **active** members created at
+  Each checks the caller is a teacher of the (non-archived) class (`_owned_class`, now owner or co-teacher) and returns rows of **active** members created at
   or after that member's `joined_at`. No RLS policy on `sessions`, `scoring_envelopes`,
   `session_transcripts` or `exam_feedback_reports` was widened for teachers.
 - Every new function revokes `EXECUTE` from `PUBLIC, anon, authenticated` before granting it, and every
   new table has explicit grants (data-model.md §1, §4). `assignment_allowance` is `service_role` only.
 - A teacher is a `teacher_profiles` row, created only by `redeem_teacher_invite` with a code from
   `teacher_invites` (admins insert those; RLS `is_admin()`). Never `app_metadata.role` alone.
-- The behaviour spec is `backend/supabase/tests/plain_pg/teacher_dashboard_test.sql` (plain Postgres,
-  local only).
+- The behaviour specs are `backend/supabase/tests/plain_pg/teacher_dashboard_test.sql` and
+  `co_teachers_multi_class_test.sql` (plain Postgres, local only).
 
 ## §3 Surfaces
 
@@ -94,8 +104,8 @@ All in the pure `src/domain/teacher/classInsights.ts` (the screens and the Monda
 ## §6 The Monday email
 
 `scripts/scheduledJobs/sendTeacherDigest.ts`, hourly via `.github/workflows/teacher-digest.yml`. Sends
-when it is Monday 07:00–08:59 in the class's time zone, to the teacher's account email, if the class has
-`digest_enabled` and the teacher hasn't opted out. Claim-before-send on `teacher_digest_log(class_id,
+when it is Monday 07:00–08:59 in the class's time zone, to every teacher of the class (owner and co-teachers,
+one email each) who hasn't opted out, if the class has `digest_enabled`. Claim-before-send on `teacher_digest_log(class_id,
 week_start)`: at most one attempt per class per week. Three lines (who practised and who didn't, counted
 mocks and median, the top slip with its coverage) and a link — never a transcript or answer. Needs
 `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `RESEND_API_KEY` (skips without it), optional `APP_BASE_URL`.

@@ -30,11 +30,15 @@ export function HomeworkCard() {
   const { assignments } = useMyHomework(live);
   if (!live || !assignments || assignments.length === 0) return null;
   const shown = assignments.slice(0, 3);
+  // Several classes can set homework; name the class on each row unless it all comes from one.
+  const oneSource = new Set(assignments.map((a) => a.className)).size === 1;
   return (
     <motion.section variants={fadeUp} className="rounded-card border border-hairline bg-surface p-4" aria-labelledby="homework-h" data-testid="home-homework">
       <div className="flex items-center gap-2">
         <ClipboardList size={16} className="text-action-text" aria-hidden="true" />
-        <h2 id="homework-h" className="text-label text-ink">Set by {shown[0].teacherName}</h2>
+        <h2 id="homework-h" className="text-label text-ink">
+          {oneSource ? `Set by ${shown[0].teacherName}` : 'Homework from your teachers'}
+        </h2>
       </div>
       <ul className="mt-2 flex flex-col">
         {shown.map((a) => (
@@ -49,7 +53,10 @@ export function HomeworkCard() {
             >
               <span className="min-w-0">
                 <span className="block text-body-s text-ink">{a.title}</span>
-                <span className="block text-caption text-ink-muted">{what(a)}</span>
+                <span className="block text-caption text-ink-muted">
+                  {what(a)}
+                  {!oneSource && ` · ${a.className}`}
+                </span>
               </span>
               <span className="shrink-0 text-caption text-ink-subtle">{dueLabel(a.dueAt)} ›</span>
             </button>
