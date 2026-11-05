@@ -8,6 +8,7 @@ import { setStorageScope, getStorageScope } from '../../services/persistence/sto
 import { emptyJuniorState } from '../../domain/junior/state';
 import type { NotebookEntry } from '../../domain/learn/notebook/notebook';
 import type { UserProfile } from '../../types/index';
+import { emptyModel } from '../../domain/learnerModel/update';
 
 function baseProfile(overrides: Partial<UserProfile> = {}): UserProfile {
   return {
@@ -58,6 +59,7 @@ function baseState(overrides: { profile?: Partial<UserProfile> } = {}) {
     aim: 'balanced' as never,
     markingLevel: 'exam' as const,
     dailyGoal: 3,
+    learnerModel: emptyModel('test-device'),
   };
 }
 

@@ -16,6 +16,13 @@
 //    (reviewPool.ts's mergeReviewPoolFromCloud).
 //  - learn_settings: the cloud value fills a setting this device never set;
 //    once set here, this device's value wins and is pushed.
+//  - skill_model (docs/systems/learner-model.md §4.3): a per-device map of
+//    decayed per-skill numbers. Each device writes only its own bucket; the
+//    merge keeps each device's latest bucket and the earliest legacy bucket
+//    (domain/learnerModel/merge.ts). No text, transcripts or event bodies.
+//    Behind flag `learnerModelSync` until backend migration 20261106100000
+//    (which adds the key to the CHECK) is applied in production — a push
+//    before then would be refused by the constraint.
 
 import { supabase, supabaseConfigured } from '../../lib/supabase';
 import { STORAGE_KEYS, storageGet, storageSet, scopedKey } from '../persistence/storage';
@@ -24,9 +31,18 @@ import { normalizeTopicMasteryAll } from '../../features/learn/topicAverage';
 import { isMarkingLevel, type MarkingLevel } from '../../domain/learn/marking/markingLevel';
 import type { Aim } from '../../domain/learn/selection/sessionTarget';
 import type { TopicMasteryEntry } from '../../types';
+import { resolveFeatureStatus } from '../../config/featureFlags';
+import { mergeIntoState, toSynced } from '../../domain/learnerModel/merge';
+import type { LearnerModelState } from '../../domain/learnerModel/types';
+import { readStoredLearnerModel, writeLearnerModel } from '../learnerModel/learnerModelStore';
 
-export type LearnerStateKey = 'topic_mastery' | 'review_pool' | 'learn_settings';
-const KEYS: readonly LearnerStateKey[] = ['topic_mastery', 'review_pool', 'learn_settings'];
+export type LearnerStateKey = 'topic_mastery' | 'review_pool' | 'learn_settings' | 'skill_model';
+const BASE_KEYS: readonly LearnerStateKey[] = ['topic_mastery', 'review_pool', 'learn_settings'];
+
+/** The keys this build syncs: skill_model only while `learnerModelSync` is live. */
+export function syncedLearnerStateKeys(): readonly LearnerStateKey[] {
+  return resolveFeatureStatus('learnerModelSync') === 'live' ? [...BASE_KEYS, 'skill_model'] : BASE_KEYS;
+}
 
 const AIMS: readonly Aim[] = ['comfortable', 'balanced', 'push'];
 
@@ -42,6 +58,8 @@ export interface LearnerStateHydration {
   changedTopics: string[];
   /** Settings this device had never set, now filled from the cloud. */
   settings: LearnSettings;
+  /** The learner model merged with the cloud's, when skill_model is synced and something changed. */
+  learnerModel?: LearnerModelState;
 }
 
 /** Last value pushed (or pulled) per key — skips a push that would change nothing. */
@@ -157,18 +175,22 @@ async function pullRows(userId: string): Promise<Partial<Record<LearnerStateKey,
     console.warn('[learnerStateSync] pull failed:', error.message);
     return null;
   }
+  const keys = syncedLearnerStateKeys();
   const out: Partial<Record<LearnerStateKey, unknown>> = {};
   for (const row of (data ?? []) as { key: string; value: unknown }[]) {
-    if ((KEYS as readonly string[]).includes(row.key)) out[row.key as LearnerStateKey] = row.value;
+    if ((keys as readonly string[]).includes(row.key)) out[row.key as LearnerStateKey] = row.value;
   }
   return out;
 }
 
 function currentValues(): Record<LearnerStateKey, Record<string, unknown>> {
+  const model = readStoredLearnerModel();
   return {
     topic_mastery: storageGet<Record<string, TopicMasteryEntry>>(STORAGE_KEYS.topicMastery, {}),
     review_pool: readReviewPoolForSync(),
     learn_settings: { ...readLocalSettings() },
+    // Only the synced part: never the device's seen-set or its id field.
+    skill_model: model ? (toSynced(model) as unknown as Record<string, unknown>) : {},
   };
 }
 
@@ -179,7 +201,9 @@ function currentValues(): Record<LearnerStateKey, Record<string, unknown>> {
 export async function pushLearnerState(userId: string): Promise<void> {
   if (!supabaseConfigured || !hydratedUsers.has(userId)) return;
   const values = currentValues();
-  const rows = KEYS
+  const rows = syncedLearnerStateKeys()
+    // An empty skill_model (no model stored yet) is not worth a row.
+    .filter(key => key !== 'skill_model' || Object.keys(values.skill_model).length > 0)
     .map(key => ({ key, json: JSON.stringify(values[key]) }))
     .filter(({ key, json }) => lastSynced.get(cacheKey(userId, key)) !== json)
     .map(({ key, json }) => ({ user_id: userId, key, value: JSON.parse(json) as Record<string, unknown>, updated_at: new Date().toISOString() }));
@@ -207,7 +231,7 @@ export async function hydrateLearnerState(userId: string): Promise<LearnerStateH
   try {
     const cloud = await pullRows(userId);
     if (!cloud) return null;
-    for (const key of KEYS) {
+    for (const key of syncedLearnerStateKeys()) {
       if (cloud[key] !== undefined) lastSynced.set(cacheKey(userId, key), JSON.stringify(cloud[key]));
     }
 
@@ -218,9 +242,22 @@ export async function hydrateLearnerState(userId: string): Promise<LearnerStateH
     mergeReviewPoolFromCloud(cloud.review_pool);
 
     const settings = settingsToFill(readLocalSettings(), parseCloudSettings(cloud.learn_settings));
+
+    // learner-model §4.3: merge per device; only a real change is written and dispatched.
+    let learnerModel: LearnerModelState | undefined;
+    if (cloud.skill_model !== undefined) {
+      const local = readStoredLearnerModel();
+      if (local) {
+        const next = mergeIntoState(local, cloud.skill_model);
+        if (JSON.stringify(toSynced(next)) !== JSON.stringify(toSynced(local))) {
+          writeLearnerModel(next);
+          learnerModel = next;
+        }
+      }
+    }
     hydratedUsers.add(userId);
 
-    return { topicMastery: merged, changedTopics, settings };
+    return { topicMastery: merged, changedTopics, settings, ...(learnerModel ? { learnerModel } : {}) };
   } catch (err) {
     console.warn('[learnerStateSync] hydrate error:', err);
     return null;

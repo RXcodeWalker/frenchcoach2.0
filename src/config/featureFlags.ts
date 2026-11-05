@@ -55,6 +55,18 @@ export const FEATURE_FLAGS = {
   // (backend migration 20261104090000 must be applied first). Rollback: 'coming-soon'
   // hides the card; existing links keep working until the learner turns them off.
   parentView: 'live',
+  // docs/systems/learner-model.md — the per-skill learner model. The model itself
+  // always records (shadow writes); these flags move ONE reader each onto it.
+  // 'coming-soon' = the old reader (the rollback); preview with ?ff_<key>=live.
+  // learner-model §4.3: sync the model as learner_state `skill_model`. Needs backend
+  // migration 20261106100000 applied in production first (the key CHECK).
+  learnerModelSync: 'coming-soon',
+  // learner-model §7 phase 4: the Home coach (coachBriefInput) reads the model.
+  learnerModelCoach: 'coming-soon',
+  // learner-model §7 phase 5: Learn's ability read and focus skills read the model.
+  learnerModelLearn: 'coming-soon',
+  // learner-model §7 phase 6: Progress's "Grammar to work on" reads the model.
+  learnerModelProgress: 'coming-soon',
 }satisfies Record<string, FeatureStatus>;
 
 export type FeatureFlagKey = keyof typeof FEATURE_FLAGS;

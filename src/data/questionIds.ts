@@ -987,3 +987,183 @@ export const TOPIC_SKILL_COVERAGE: Readonly<Record<string, Readonly<Record<strin
     "tense_past": 7
   }
 };
+
+// The same count from the learner model's skill registry (domain/learnerModel/skills.ts, learner-model §1).
+// Read only while a learner-model reader flag is live; a superset of the table above.
+export const TOPIC_SKILL_COVERAGE_V2: Readonly<Record<string, Readonly<Record<string, number>>>> = {
+  "animals": {
+    "comparative": 1,
+    "confusions": 1,
+    "connectors": 10,
+    "contrast": 1,
+    "etre_avoir": 4,
+    "hypothetical": 3,
+    "opinion": 5,
+    "tense_future": 1,
+    "tense_past": 4
+  },
+  "arts": {
+    "comparative": 2,
+    "confusions": 2,
+    "connectors": 12,
+    "contrast": 2,
+    "etre_avoir": 4,
+    "hypothetical": 1,
+    "opinion": 4,
+    "tense_past": 4
+  },
+  "clothes": {
+    "comparative": 1,
+    "confusions": 1,
+    "connectors": 5,
+    "contrast": 1,
+    "etre_avoir": 5,
+    "hypothetical": 2,
+    "opinion": 3,
+    "tense_future": 1,
+    "tense_past": 5
+  },
+  "culture": {
+    "connectors": 1
+  },
+  "emotions": {
+    "comparative": 2,
+    "confusions": 2,
+    "connectors": 6,
+    "contrast": 2,
+    "etre_avoir": 3,
+    "opinion": 2,
+    "tense_past": 4
+  },
+  "environment": {
+    "comparative": 2,
+    "confusions": 2,
+    "connectors": 19,
+    "contrast": 2,
+    "etre_avoir": 4,
+    "hypothetical": 6,
+    "opinion": 16,
+    "tense_future": 1,
+    "tense_past": 5
+  },
+  "family": {
+    "comparative": 8,
+    "confusions": 8,
+    "connectors": 22,
+    "contrast": 8,
+    "etre_avoir": 6,
+    "hypothetical": 5,
+    "opinion": 6,
+    "tense_future": 2,
+    "tense_past": 8
+  },
+  "food": {
+    "comparative": 8,
+    "confusions": 8,
+    "connectors": 36,
+    "contrast": 8,
+    "etre_avoir": 7,
+    "hypothetical": 9,
+    "opinion": 18,
+    "tense_future": 1,
+    "tense_past": 10
+  },
+  "future": {
+    "comparative": 4,
+    "confusions": 4,
+    "connectors": 30,
+    "contrast": 4,
+    "etre_avoir": 1,
+    "hypothetical": 15,
+    "opinion": 10,
+    "tense_future": 24,
+    "tense_past": 2
+  },
+  "hobbies": {
+    "comparative": 11,
+    "confusions": 11,
+    "connectors": 42,
+    "contrast": 11,
+    "etre_avoir": 11,
+    "hypothetical": 8,
+    "opinion": 4,
+    "tense_future": 1,
+    "tense_past": 13
+  },
+  "holidays": {
+    "comparative": 14,
+    "confusions": 14,
+    "connectors": 27,
+    "contrast": 14,
+    "etre_avoir": 11,
+    "hypothetical": 9,
+    "opinion": 5,
+    "tense_future": 3,
+    "tense_past": 12
+  },
+  "home": {
+    "comparative": 6,
+    "confusions": 6,
+    "connectors": 15,
+    "contrast": 6,
+    "etre_avoir": 2,
+    "hypothetical": 8,
+    "opinion": 3,
+    "tense_future": 1,
+    "tense_past": 6
+  },
+  "jobs": {
+    "comparative": 1,
+    "confusions": 1,
+    "connectors": 13,
+    "contrast": 1,
+    "etre_avoir": 2,
+    "hypothetical": 4,
+    "opinion": 5,
+    "tense_future": 2,
+    "tense_past": 2
+  },
+  "school": {
+    "comparative": 4,
+    "confusions": 4,
+    "connectors": 22,
+    "contrast": 4,
+    "etre_avoir": 4,
+    "hypothetical": 11,
+    "opinion": 10,
+    "tense_future": 2,
+    "tense_past": 7
+  },
+  "shopping": {
+    "comparative": 1,
+    "confusions": 1,
+    "connectors": 12,
+    "contrast": 1,
+    "etre_avoir": 5,
+    "opinion": 3,
+    "tense_future": 1,
+    "tense_past": 5
+  },
+  "sports": {
+    "comparative": 2,
+    "confusions": 2,
+    "connectors": 9,
+    "contrast": 2,
+    "etre_avoir": 4,
+    "hypothetical": 2,
+    "opinion": 2,
+    "tense_future": 1,
+    "tense_past": 4
+  },
+  "survival": {
+    "hypothetical": 1
+  },
+  "transport": {
+    "connectors": 6,
+    "etre_avoir": 6,
+    "hypothetical": 2,
+    "opinion": 5,
+    "tense_future": 1,
+    "tense_past": 7
+  }
+};

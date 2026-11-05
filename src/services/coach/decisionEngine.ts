@@ -21,6 +21,7 @@ import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
 import { getCoachProfile, getActiveGoal, daysUntilExam } from './coachProfileService';
 import { getBeliefSnapshot, getRecentEvidence } from './coachStorage';
 import { getSkillLabel, applyReadinessSubstitution } from './skillGraph';
+import { learnModelSnapshotIfLive } from '../learnerModel/learnerModelViews';
 import { CORE_ONLY } from '../../config/launchScope';
 
 const EXAM_URGENCY_DAYS = 14;
@@ -305,7 +306,10 @@ export function generateDailyPlan(
   }
 
   const profile = opts?.profile ?? getCoachProfile();
-  const snapshot = opts?.snapshot ?? getBeliefSnapshot();
+  // learner-model §7 phase 5: with `learnerModelLearn` live the whole plan —
+  // candidates, readiness and the session blend's focusSkillIds — reads the
+  // learner model's snapshot (its weakestSkillIds are the selectable weakest).
+  const snapshot = opts?.snapshot ?? learnModelSnapshotIfLive() ?? getBeliefSnapshot();
   const evidence = opts?.evidence ?? getRecentEvidence(50);
 
   const { urgency, message } = detectUrgency(profile, evidence);

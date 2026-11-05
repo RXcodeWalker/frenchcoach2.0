@@ -23,209 +23,26 @@ import { selectQuestions } from '../selection/selectQuestions';
 import { computeSessionTarget } from '../selection/sessionTarget';
 import type { Aim } from '../selection/sessionTarget';
 import { deriveDemandScore } from '../demand/deriveDemandLevel';
-import type { CognitiveDemand, DemandProvenance, QuestionDemands, ResponseLoad } from '../demand/types';
-import type { Question, FeedbackV2 } from '../../../types';
+import type { CognitiveDemand, DemandProvenance, ResponseLoad } from '../demand/types';
+import type { Question } from '../../../types';
 import type { EvidenceEvent } from '../../../types/evidence';
 import type { EvidenceBeliefSnapshot } from '../../../types/beliefs';
 import type { SessionBlend } from '../../../types/coach';
 
-// ── Seeded RNG (mulberry32) — deterministic across runs/platforms. ─────────────
-function mulberry32(seed: number): () => number {
-  let a = seed;
-  return function random() {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function logistic(x: number): number {
-  return 1 / (1 + Math.exp(-x));
-}
-
-/**
- * computeEventWeight's recencyWeight is Date.now()-relative (14-day half-
- * life) — a fixed calendar date drifts arbitrarily far in the past as real
- * time passes and would silently decay every synthetic event below
- * MIN_RELIABLE_WEIGHT. All simulated timestamps must stay anchored to "now".
- */
-function recentIso(offsetMinutes: number): string {
-  return new Date(Date.now() + offsetMinutes * 60_000).toISOString();
-}
-
-const ALL_DEMANDS: CognitiveDemand[] = ['describe', 'explain', 'justify', 'compare', 'hypothesize'];
-
-// ── Per-demand marker phrases — reused so synthesized transcripts trigger the
-// SAME closed-list detectors evaluateDemandSatisfaction (docs §9.3) reads. ─────
-const MET_MARKER: Record<CognitiveDemand, string> = {
-  describe: '', // describe has no dedicated marker; word count alone decides (docs §9.3)
-  explain: 'parce que il y a beaucoup de raisons importantes',
-  justify: 'je pense que c\'est vrai parce que',
-  compare: 'd\'un côté c\'est bien, d\'autre part ce n\'est pas parfait',
-  hypothesize: 'si tu avais le temps je pense que ce serait super',
-};
-
-const RESPONSE_LOAD_MIN_WORDS: Record<ResponseLoad, number> = { short: 15, developed: 40, extended: 70 };
-
-function fillerWords(n: number): string {
-  const bank = ['le', 'chat', 'mange', 'la', 'pomme', 'dans', 'jardin', 'avec', 'mon', 'ami', 'aujourd\'hui', 'très', 'joli'];
-  const words: string[] = [];
-  for (let i = 0; i < n; i++) words.push(bank[i % bank.length]);
-  return words.join(' ');
-}
-
-/** Synthesize a transcript that resolves to `met` under evaluateDemandSatisfaction. */
-function metTranscript(demand: CognitiveDemand, responseLoad: ResponseLoad): string {
-  const minWords = RESPONSE_LOAD_MIN_WORDS[responseLoad];
-  const marker = MET_MARKER[demand];
-  const padded = `${marker} ${fillerWords(minWords)}`.trim();
-  return padded;
-}
-
-/** Synthesize a transcript that resolves to `not_attempted` (well below the floor). */
-function notAttemptedTranscript(): string {
-  return fillerWords(2);
-}
-
-/** Synthesize a transcript that resolves to `unknown` (clears the floor, no marker — never possible for 'describe', which has no marker path). */
-function unknownTranscript(responseLoad: ResponseLoad): string {
-  const minWords = RESPONSE_LOAD_MIN_WORDS[responseLoad];
-  return fillerWords(minWords);
-}
-
-function makeDemands(cognitiveDemand: CognitiveDemand, overrides: Partial<QuestionDemands> = {}): QuestionDemands {
-  return {
-    cognitiveDemand,
-    timeFrames: ['present'],
-    structures: [],
-    responseLoad: cognitiveDemand === 'describe' ? 'short' : 'developed',
-    lexicalReach: 'everyday',
-    sufficientAnswer: 'A complete answer addressing the prompt.',
-    provenance: 'authored',
-    ...overrides,
-  };
-}
-
-let questionCounter = 0;
-function makeQuestion(demand: CognitiveDemand, overrides: Partial<QuestionDemands> = {}, provenance: DemandProvenance = 'authored'): Question {
-  questionCounter += 1;
-  const demands = makeDemands(demand, { provenance, ...overrides });
-  return {
-    id: `sim-q-${demand}-${provenance}-${questionCounter}`,
-    topicKey: 'school',
-    text: `Question about ${demand} #${questionCounter}`,
-    hint: 'hint',
-    difficulty: 2,
-    followUps: [],
-    modelAnswer: 'Answer',
-    keyVocab: [],
-    demands,
-  };
-}
-
-/** A pool covering every demand at multiple provenances/response loads, band-wide. */
-function buildPool(): Question[] {
-  const pool: Question[] = [];
-  for (const demand of ALL_DEMANDS) {
-    const responseLoad: ResponseLoad = demand === 'describe' ? 'short' : demand === 'hypothesize' ? 'extended' : 'developed';
-    for (const provenance of ['authored', 'reviewed', 'inferred'] as DemandProvenance[]) {
-      for (let i = 0; i < 4; i++) {
-        pool.push(makeQuestion(demand, { responseLoad }, provenance));
-      }
-    }
-  }
-  return pool;
-}
-
-function makeFeedback(finalScore: number): FeedbackV2 {
-  return {
-    scores: { communication: finalScore, language: finalScore, fluency: finalScore, overall: finalScore },
-    grammar: { critical: [], polish: [] },
-    vocabulary: [],
-    style: [],
-    fillers: [],
-    wordCount: 0,
-    cefrLevel: 'A2',
-  };
-}
-
-interface AttemptOutcome {
-  events: EvidenceEvent[];
-  verdict: 'met' | 'not_attempted' | 'unknown';
-}
-
-/**
- * Simulates one attempt at `question` by a learner whose true ability at
- * `question.demands.cognitiveDemand` is `trueAbility` (0-10 scale, same as
- * demandScore). Draws success via a seeded logistic on (trueAbility -
- * demandScore), then routes through the REAL buildEvidence (docs §9.3/§10),
- * so 'unknown' can still occur at `unknownRate` regardless of the draw,
- * mirroring L1's genuine inability to establish absence for most demands.
- *
- * Stage 8b: when L1 resolves 'unknown', the simulated backend still "grades"
- * the attempt — feedback.demandsResolved is always true (this harness never
- * exercises the corpus-hash-mismatch/unknown-id degrade path, which is Stage
- * 8's own concern, not selection/ability's) and demands_met/demands_missed
- * carries the SAME succeeded/failed draw an LLM grading this attempt would
- * plausibly agree with — buildDemandEvidence's L2 gap-fill then does the real
- * work of turning that into a (lower-reliability) event.
- */
-function simulateAttempt(args: {
-  question: Question;
-  trueAbility: number;
-  rng: () => number;
-  unknownRate: number;
-  sessionId: string;
-  occurredAt: string;
-  /** docs §9.1: when the backend never resolved demands (unknown id / hash mismatch), L2 must not run either — scenario J exercises this pure-L1 path. */
-  skipL2GapFill?: boolean;
-}): AttemptOutcome {
-  const { question, trueAbility, rng, unknownRate, sessionId, occurredAt, skipL2GapFill } = args;
-  const demands = question.demands!;
-  const demandScore = deriveDemandScore(demands);
-  const pSuccess = logistic((trueAbility - demandScore) * 1.2);
-  const succeeded = rng() < pSuccess;
-
-  let transcript: string;
-  let verdict: AttemptOutcome['verdict'];
-  let isUnknown = false;
-
-  if (rng() < unknownRate && demands.cognitiveDemand !== 'describe') {
-    // describe has no marker path (docs §9.3) -> always met/not_attempted, never unknown.
-    transcript = unknownTranscript(demands.responseLoad);
-    verdict = 'unknown';
-    isUnknown = true;
-  } else if (succeeded) {
-    transcript = metTranscript(demands.cognitiveDemand, demands.responseLoad);
-    verdict = 'met';
-  } else {
-    transcript = notAttemptedTranscript();
-    verdict = 'not_attempted';
-  }
-
-  const finalScore = succeeded ? 8 : 3;
-  const feedback = makeFeedback(finalScore);
-  if (isUnknown && !skipL2GapFill) {
-    feedback.demandsResolved = true;
-    if (succeeded) feedback.demands_met = [demands.cognitiveDemand];
-    else feedback.demands_missed = [demands.cognitiveDemand];
-  }
-
-  const events = buildEvidence({
-    sessionId,
-    question,
-    feedback,
-    avoidanceSignals: [],
-    transcript,
-    finalScore,
-    mode: 'practice',
-    topicKey: question.topicKey,
-  }).map((e) => ({ ...e, occurredAt }));
-
-  return { events, verdict };
-}
+// The seeded learner (RNG, transcripts, pool, simulateAttempt) lives in the
+// shared harness so the learner-model reader-parity tests drive the same one.
+import {
+  mulberry32,
+  recentIso,
+  fillerWords,
+  makeQuestion,
+  makeDemands,
+  ALL_DEMANDS,
+  buildPool,
+  makeFeedback,
+  simulateAttempt,
+  type AttemptOutcome,
+} from '../../learnerModel/__tests__/simulationHarness';
 
 function snapshotFrom(events: EvidenceEvent[]): EvidenceBeliefSnapshot {
   const state = reduceEvidenceToBeliefState(events);

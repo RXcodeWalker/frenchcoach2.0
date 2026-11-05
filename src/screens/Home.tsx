@@ -127,9 +127,9 @@ export function Home() {
   // The coach's one decision (coachBrain.ts): what to do now, why, and where.
   // Recomputed when a session lands or the allowance arrives; pure and cheap.
   const brief = useMemo(
-    () => getCoachBrief({ learnAnswersLeft: answersLeft }),
+    () => getCoachBrief({ learnAnswersLeft: answersLeft, learnerModel: state.learnerModel }),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- recentSessions.length marks "a session landed"
-    [answersLeft, state.recentSessions.length],
+    [answersLeft, state.recentSessions.length, state.learnerModel],
   );
 
   const handleDismissReview = () => {

@@ -36,7 +36,6 @@ import { getSkillProfile, buildSkillContext, detectAvoidance } from '../services
 import { orchestrateAttempt, recordDemandOnlyAttempt } from '../services/coach/sessionOrchestrator';
 import { getActiveRecommendation, setRecommendationStatus, generateRecommendation } from '../services/coach/recommendationEngine';
 import { getDailyPlan, invalidateDailyPlan, applyFocusTokenOverride } from '../services/coach/decisionEngine';
-import { getBeliefSnapshot } from '../services/coach/coachStorage';
 import { recordIntervention, recordInterventionOutcome } from '../services/coach/interventionService';
 import { getSkillLabel } from '../services/coach/skillGraph';
 import { consumeItem } from '../services/progression/progressionService';
@@ -66,7 +65,7 @@ import { SessionProgressBar } from './learn/SessionProgressBar';
 import { SessionSummary } from './learn/SessionSummary';
 import { MidSessionToast } from './learn/MidSessionToast';
 import { StreakToast } from './learn/StreakToast';
-import { buildSessionQuestions, makeSessionQuestion, sessionAbility, topicPool, SESSION_TARGET } from '../utils/sessionBuilder';
+import { buildSessionQuestions, learnBeliefSnapshot, makeSessionQuestion, sessionAbility, topicPool, SESSION_TARGET } from '../utils/sessionBuilder';
 import { midSessionAdjust } from '../domain/learn/selection/midSessionAdjust';
 import { NO_FILTERS, hasActiveFilters, visibleGrammarFoci, type LearnFilters } from '../domain/learn/selection/filters';
 import { computeSessionTarget, type Aim } from '../domain/learn/selection/sessionTarget';
@@ -444,7 +443,7 @@ export function Learn() {
   const resolveSelectionInputs = useCallback(() => {
     let dailyPlan = getDailyPlan();
     if (focusTokenActive && dailyPlan) {
-      dailyPlan = applyFocusTokenOverride(dailyPlan, getBeliefSnapshot());
+      dailyPlan = applyFocusTokenOverride(dailyPlan, learnBeliefSnapshot(state.learnerModel));
     }
     const sessionBlend = dailyPlan?.sessionBlend ?? null;
 
@@ -457,7 +456,7 @@ export function Learn() {
       ? dailyPlan?.topAction.targetSkillIds[0] ?? null
       : recommendation?.targetSkillIds?.[0] ?? null;
     return { sessionBlend, focusedSkillId };
-  }, [focusTokenActive]);
+  }, [focusTokenActive, state.learnerModel]);
 
   const startSession = useCallback((mode: SessionMode) => {
     if (!selectedTopic) return;
@@ -473,7 +472,7 @@ export function Learn() {
       focusedSkillId,
       sessionBlend,
       // Planned for the length it will really have (the answers left today).
-      { aim, migratedTier: selectedDifficulty, filters, count: sessionLengthFor(SESSION_TARGET[mode]) },
+      { aim, migratedTier: selectedDifficulty, filters, count: sessionLengthFor(SESSION_TARGET[mode]), learnerModel: state.learnerModel },
     );
     // Filters that match nothing build an empty session; the setup screen
     // disables Start in that case, so this is only a backstop.
@@ -506,7 +505,7 @@ export function Learn() {
       totalWords: 0,
       startedAt: new Date().toISOString(),
       skillSnapshot: JSON.parse(JSON.stringify(skillProfile)),
-      demandSnapshot: adaptiveDifficultyLive ? getBeliefSnapshot()?.demands ?? {} : undefined,
+      demandSnapshot: adaptiveDifficultyLive ? learnBeliefSnapshot(state.learnerModel)?.demands ?? {} : undefined,
       aim: adaptiveDifficultyLive ? aim : undefined,
     };
 
@@ -528,7 +527,7 @@ export function Learn() {
     setIsRetry(false);
     resetSessionScopedState();
     setLearnState('question');
-  }, [selectedTopic, skillProfile, topicMastery, selectedDifficulty, aim, filters, dispatch, resetSessionScopedState, resolveSelectionInputs, focusTokenActive, adaptiveDifficultyLive, sessionLengthFor, feedbackMode]);
+  }, [selectedTopic, skillProfile, topicMastery, selectedDifficulty, aim, filters, dispatch, resetSessionScopedState, resolveSelectionInputs, focusTokenActive, adaptiveDifficultyLive, sessionLengthFor, feedbackMode, state.learnerModel]);
 
   useEffect(() => {
     if (learnState !== 'session_start') return;
@@ -548,7 +547,7 @@ export function Learn() {
   // docs §14 UX #1 — the same read sessionBuilder.ts's adaptive path selects
   // from (belief snapshot + AppState's tier as the cold-start seed), so the
   // level shown here always matches what selection actually used.
-  const sessionStartAbility = (): AbilityResult => sessionAbility(selectedDifficulty);
+  const sessionStartAbility = (): AbilityResult => sessionAbility(selectedDifficulty, state.learnerModel);
 
   // The setup screen's data: how many of this topic's questions match the
   // filters, which focus chips are worth offering, and a dry run of the session
@@ -568,7 +567,7 @@ export function Learn() {
       selectedDifficulty,
       focusedSkillId,
       sessionBlend,
-      { aim: previewAim, migratedTier: selectedDifficulty, filters, count: sessionLengthFor(SESSION_TARGET[mode]) },
+      { aim: previewAim, migratedTier: selectedDifficulty, filters, count: sessionLengthFor(SESSION_TARGET[mode]), learnerModel: state.learnerModel },
     );
     // Only the questions this session keeps (the answers left today), as startSession slices them.
     const kept = (slots ?? []).slice(0, sessionLengthFor((slots ?? []).length));
@@ -888,7 +887,7 @@ export function Learn() {
       totalWords: 0,
       startedAt: new Date().toISOString(),
       skillSnapshot: JSON.parse(JSON.stringify(skillProfile)),
-      demandSnapshot: adaptiveDifficultyLive ? getBeliefSnapshot()?.demands ?? {} : undefined,
+      demandSnapshot: adaptiveDifficultyLive ? learnBeliefSnapshot(state.learnerModel)?.demands ?? {} : undefined,
       aim: adaptiveDifficultyLive ? aim : undefined,
     };
     setActiveSession(session);
@@ -1333,7 +1332,7 @@ export function Learn() {
         seenIds,
         focusSkillIds: [],
         activeDemandProblem: null,
-        beliefSnapshot: getBeliefSnapshot(),
+        beliefSnapshot: learnBeliefSnapshot(state.learnerModel),
         alreadyAdjustedThisSession: hasAdjustedDifficulty,
       });
       if (adjustResult.changed) {

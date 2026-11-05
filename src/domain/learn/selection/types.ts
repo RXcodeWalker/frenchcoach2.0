@@ -53,6 +53,12 @@ export interface ScoreCandidateArgs {
   candidate: SelectionCandidate;
   slot: SessionSlot;
   focusSkillIds: string[];
+  /**
+   * learner-model §5 (flag `learnerModelLearn`): the focus already translated to
+   * question structures through the skill registry. When present, coachFocusMatch
+   * uses it instead of translating focusSkillIds with the hand-written table.
+   */
+  focusStructures?: readonly string[];
   /** cognitiveDemand of any active demand LearningProblem, when one exists — docs §10 "Interventions". */
   activeDemandProblem: CognitiveDemand | null;
 }
@@ -70,6 +76,8 @@ export interface SelectQuestionsArgs {
   chosenIds: Set<string>;
   seenIds: Set<string>;
   focusSkillIds: string[];
+  /** See ScoreCandidateArgs.focusStructures — absent = the hand-written skill→structure table. */
+  focusStructures?: readonly string[];
   activeDemandProblem: CognitiveDemand | null;
   /** Injected so review-slot filling stays the caller's existing reviewPool contract — docs §8.3 slot 1. */
   getReviewQuestion: (chosenIds: Set<string>) => Question | null;

@@ -128,6 +128,11 @@ export interface LearnSummaryInput {
   sessions: StoredSession[];
   streakDays: number;
   skillProfile: SkillProfile;
+  /**
+   * learner-model §7 phase 6 (flag `learnerModelProgress`): "Grammar to work on"
+   * from the learner model (weakSkillsFromModel). Absent = the old skillProfile rule.
+   */
+  weakSkillsOverride?: WeakSkill[];
   now?: number;
 }
 
@@ -173,7 +178,7 @@ export function learnSummary(input: LearnSummaryInput): LearnSummary {
       .reduce((sum, [, n]) => sum + n, 0),
     streakDays: input.streakDays,
     daysPractisedRecently: daysPractisedWithin(input.sessions, CONSISTENCY_WINDOW_DAYS, input.now),
-    weakSkills: weakSkills(input.skillProfile),
+    weakSkills: input.weakSkillsOverride ?? weakSkills(input.skillProfile),
   };
 }
 

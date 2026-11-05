@@ -5,6 +5,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 const upsertMock = vi.fn();
 const pullMock = vi.fn();
+const flagOverrides: Record<string, string> = {};
 
 vi.mock('../../../lib/supabase', () => ({
   supabase: {
@@ -18,7 +19,7 @@ vi.mock('../../../lib/supabase', () => ({
 
 vi.mock('../../../config/featureFlags', async (orig) => ({
   ...(await orig<typeof import('../../../config/featureFlags')>()),
-  resolveFeatureStatus: () => 'live',
+  resolveFeatureStatus: (key: string) => flagOverrides[key] ?? 'live',
 }));
 
 import {
@@ -30,6 +31,8 @@ import {
 } from '../learnerStateSync';
 import { STORAGE_KEYS, storageGet, storageSet, storageSetRaw } from '../../persistence/storage';
 import type { TopicMasteryEntry } from '../../../types';
+import { applyObservations, emptyModel } from '../../../domain/learnerModel/update';
+import { readSkill } from '../../../domain/learnerModel/read';
 
 function entry(topicKey: string, over: Partial<TopicMasteryEntry> = {}): TopicMasteryEntry {
   return {
@@ -50,6 +53,7 @@ beforeEach(() => {
   _resetLearnerStateSyncCache();
   upsertMock.mockReset().mockResolvedValue({ error: null });
   pullMock.mockReset().mockResolvedValue({ data: [], error: null });
+  for (const k of Object.keys(flagOverrides)) delete flagOverrides[k];
 });
 
 describe('mergeTopicMastery', () => {
@@ -163,5 +167,58 @@ describe('pushLearnerState', () => {
     await pushLearnerState('u1');
     const [second] = upsertMock.mock.calls[1] as [{ key: string }[]];
     expect(second.map(r => r.key)).toEqual(['topic_mastery']);
+  });
+});
+
+describe('skill_model (learner-model §4.3)', () => {
+  const T = Date.UTC(2026, 10, 1);
+  const obs = (id: string, skill: string) => ({ id, skillIds: [skill], at: T, kind: 'outcome' as const, success: 0, weight: 0.5 });
+  function storeModel(deviceId: string, ids: string[]) {
+    storageSet(STORAGE_KEYS.learnerModelDevice, deviceId);
+    const model = applyObservations(emptyModel(deviceId), ids.map((id) => obs(id, 'gender')), T);
+    storageSet(STORAGE_KEYS.learnerModel, model);
+    return model;
+  }
+
+  it('pushes only the synced part (never the seen-set or device id) while learnerModelSync is live', async () => {
+    storeModel('dev-A', ['a1']);
+    await hydrateLearnerState('u1');
+    await pushLearnerState('u1');
+    const [rows] = upsertMock.mock.calls[0] as [{ key: string; value: Record<string, unknown> }[]];
+    const row = rows.find((r) => r.key === 'skill_model');
+    expect(row).toBeDefined();
+    expect(Object.keys(row!.value).sort()).toEqual(['devices', 'legacy', 'version']);
+    expect(JSON.stringify(row!.value)).not.toContain('a1');
+  });
+
+  it('with learnerModelSync off it neither pushes nor reads skill_model (the CHECK would refuse it)', async () => {
+    flagOverrides.learnerModelSync = 'coming-soon';
+    const local = storeModel('dev-A', ['a1']);
+    pullMock.mockResolvedValueOnce({ data: [{ key: 'skill_model', value: { version: 'learner-model-v1', devices: { 'dev-B': { updatedAt: 5, skills: {} } }, legacy: null } }], error: null });
+    const result = await hydrateLearnerState('u1');
+    expect(result?.learnerModel).toBeUndefined();
+    expect(storageGet(STORAGE_KEYS.learnerModel, null)).toEqual(local);
+    await pushLearnerState('u1');
+    const keys = upsertMock.mock.calls.flatMap((c) => (c[0] as { key: string }[]).map((r) => r.key));
+    expect(keys).not.toContain('skill_model');
+  });
+
+  it('merges another device\'s bucket in, keeps this device\'s, and reports the change', async () => {
+    storeModel('dev-A', ['a1']);
+    const other = applyObservations(emptyModel('dev-B'), [obs('b1', 'gender'), obs('b2', 'gender')], T);
+    pullMock.mockResolvedValueOnce({ data: [{ key: 'skill_model', value: { version: other.version, devices: other.devices, legacy: null } }], error: null });
+    const result = await hydrateLearnerState('u1');
+    expect(Object.keys(result!.learnerModel!.devices).sort()).toEqual(['dev-A', 'dev-B']);
+    expect(readSkill(result!.learnerModel!, 'gender', T)?.evidenceCount).toBe(3);
+    expect(result!.learnerModel!.deviceId).toBe('dev-A');
+    expect(result!.learnerModel!.seen).toEqual(['a1']);
+  });
+
+  it('a malformed cloud skill_model changes nothing', async () => {
+    const local = storeModel('dev-A', ['a1']);
+    pullMock.mockResolvedValueOnce({ data: [{ key: 'skill_model', value: { version: 'nope' } }], error: null });
+    const result = await hydrateLearnerState('u1');
+    expect(result?.learnerModel).toBeUndefined();
+    expect(storageGet(STORAGE_KEYS.learnerModel, null)).toEqual(local);
   });
 });

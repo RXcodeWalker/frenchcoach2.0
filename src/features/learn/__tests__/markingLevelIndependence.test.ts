@@ -14,6 +14,9 @@ import { supabase } from '../../../lib/supabase';
 import fixture from '../../../domain/learn/marking/__tests__/fixtures/ladderReply.fam_01_simple_a1.json';
 import { getAIFeedback } from '../../../services/api/apiClient';
 import { orchestrateAttempt } from '../../../services/coach/sessionOrchestrator';
+import { onEvidenceAppended } from '../../../services/coach/coachStorage';
+import { observationsFromEvents } from '../../../services/coach/skillObservations';
+import type { SkillObservation } from '../../../domain/learnerModel/types';
 import { midSessionAdjust } from '../../../domain/learn/selection/midSessionAdjust';
 import { getTopicQuestions } from '../../../data/questions';
 import { reducer } from '../../../context/AppContext';
@@ -38,21 +41,26 @@ async function ladderFeedback(): Promise<FeedbackV2> {
 }
 
 /** What Learn's _finalizeAnswer does with one answer at one marking level. */
-function finalize(fb: FeedbackV2, level: MarkingLevel) {
+function finalize(fb: FeedbackV2, level: MarkingLevel, question: Question = QUESTION) {
   localStorage.removeItem(STORAGE_KEYS.reviewPool);
   localStorage.removeItem(STORAGE_KEYS.coachEvidence);
   const scored = scoreLearnAttempt(fb, level, 2);
+  // learner-model §6: capture exactly what AppProvider's listener would dispatch.
+  const dispatched: SkillObservation[] = [];
+  const unsubscribe = onEvidenceAppended((events) => { dispatched.push(...observationsFromEvents(events)); });
   const session: Session = {
     id: 'sess-1', mode: 'practice', topicKey: 'family', questionText: QUESTION.text, transcript: TRANSCRIPT,
     wordCount: fb.wordCount, score: scored.examScore, xpEarned: scored.xp.gain, durationSec: 30,
     feedback: fb, createdAt: '2026-10-20T00:00:00.000Z',
   };
   const result = orchestrateAttempt({
-    session, question: QUESTION, feedback: fb, avoidanceSignals: [], transcript: TRANSCRIPT, durationSec: 30,
+    session, question, feedback: fb, avoidanceSignals: [], transcript: TRANSCRIPT, durationSec: 30,
     mode: 'practice', topicsUsed: ['family'], finalScore: fb.scores.overall, reward: scored.reward,
     streakDays: 2, totalSessionsBefore: 0,
   });
+  unsubscribe();
   return {
+    observations: dispatched,
     scored,
     sessionScore: session.score,
     evidence: result.evidenceEvents.map((e) => ({ ...e, id: '', occurredAt: '' })),
@@ -115,12 +123,29 @@ describe('the marking level changes only what is seen and earned (learn-marking 
       expect(run.evidence).toEqual(runs[0].evidence);
       expect(run.review).toEqual(runs[0].review);
       expect(run.sessionScore).toBe(runs[0].sessionScore);
+      // learner-model §6: the learner model receives the same observations at every level.
+      expect(run.observations).toEqual(runs[0].observations);
     }
     expect(runs[0].sessionScore).toBe(fb.scores.overall);
     expect(runs[0].review).toBeTruthy();
     // What the learner earns does move: A1 is below Exam (no score bonus), B2 is stricter.
     expect(runs.map((r) => r.scored.marked.score)).toEqual([8.8, 7.1, 6.8, 5.3, 4]);
     expect(new Set(runs.map((r) => r.xp)).size).toBeGreaterThan(1);
+  });
+
+  it('learner-model §6: the learner model receives identical, non-empty observations at every level', async () => {
+    const fb = await ladderFeedback();
+    const tagged = {
+      ...QUESTION,
+      demands: {
+        cognitiveDemand: 'describe', timeFrames: ['present'], structures: [], responseLoad: 'short',
+        lexicalReach: 'everyday', sufficientAnswer: 'Describe the family.', provenance: 'reviewed',
+      },
+    } as unknown as Question;
+    const runs = MARKING_LEVELS.map((level) => finalize(fb, level, tagged));
+    expect(runs[0].observations.length).toBeGreaterThan(0);
+    expect(runs[0].observations[0].skillIds).toEqual(['demand:describe']);
+    for (const run of runs.slice(1)) expect(run.observations).toEqual(runs[0].observations);
   });
 
   it('identical mid-session decision, even where the marked score alone would raise', async () => {
