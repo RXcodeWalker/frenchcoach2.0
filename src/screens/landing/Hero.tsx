@@ -14,7 +14,7 @@ export function Hero() {
           <Eyebrow>IGCSE French · Speaking exam practice</Eyebrow>
           <h1 className="font-display text-[40px] sm:text-5xl md:text-6xl leading-[1.05] mb-6">
             Speak French out loud.{' '}
-            <span className="italic font-normal" style={{ color: 'var(--mk-accent)' }}>Know exactly what to fix.</span>
+            <span style={{ color: 'var(--mk-accent)' }}>Know exactly what to fix.</span>
           </h1>
           <p className="text-base md:text-lg leading-relaxed mb-8 max-w-lg" style={{ color: 'var(--mk-ink-muted)' }}>
             Answer exam-style speaking questions, get clear feedback on every answer, and sit full
