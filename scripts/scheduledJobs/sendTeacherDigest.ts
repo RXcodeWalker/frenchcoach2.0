@@ -78,10 +78,9 @@ async function main(): Promise<void> {
   const now = new Date();
   const { data: classes, error } = await db
     .from('classes')
-    .select('id, name, timezone, teacher_id, teacher_profiles!inner(digest_opt_out)')
+    .select('id, name, timezone, teacher_id')
     .is('archived_at', null)
-    .eq('digest_enabled', true)
-    .eq('teacher_profiles.digest_opt_out', false);
+    .eq('digest_enabled', true);
   if (error) throw error;
 
   let sent = 0;
@@ -105,9 +104,19 @@ async function main(): Promise<void> {
     try {
       const content = await buildClassDigest(klass, last);
       if (!content) continue;
-      const { data: teacher } = await db.auth.admin.getUserById(klass.teacher_id);
-      const email = teacher?.user?.email;
-      if (!email) throw new Error('teacher has no email');
+      // Every teacher of the class (owner and co-teachers) who hasn't opted out.
+      const { data: teacherRows, error: tErr } = await db
+        .from('class_teachers')
+        .select('teacher_id, teacher_profiles!inner(digest_opt_out)')
+        .eq('class_id', klass.id)
+        .eq('teacher_profiles.digest_opt_out', false);
+      if (tErr) throw tErr;
+      const emails: string[] = [];
+      for (const row of (teacherRows ?? []) as { teacher_id: string }[]) {
+        const { data: teacher } = await db.auth.admin.getUserById(row.teacher_id);
+        if (teacher?.user?.email) emails.push(teacher.user.email);
+      }
+      if (emails.length === 0) continue;
       const link = `${APP_BASE_URL}/teach/class/${klass.id}`;
       const html =
         `<p style="font:600 16px system-ui">${escapeHtml(content.subject)}</p>` +
@@ -115,19 +124,22 @@ async function main(): Promise<void> {
         `<p style="font:14px system-ui;margin-top:16px"><a href="${link}">Open the class</a></p>` +
         `<p style="font:12px system-ui;color:#666">You can turn this email off in the class's settings.</p>`;
       if (DRY_RUN || !resend) {
-        console.log(`--- ${email}\n${content.subject}\n${content.lines.join('\n')}\n${link}`);
+        console.log(`--- ${emails.join(', ')}\n${content.subject}\n${content.lines.join('\n')}\n${link}`);
         continue;
       }
-      const { error: sendError } = await resend.emails.send({
-        from: FROM,
-        to: email,
-        subject: content.subject,
-        html,
-        text: `${content.lines.join('\n')}\n\nOpen the class: ${link}`,
-      });
-      if (sendError) throw new Error(sendError.message);
+      // One email per teacher, so no teacher sees another's address.
+      for (const to of emails) {
+        const { error: sendError } = await resend.emails.send({
+          from: FROM,
+          to,
+          subject: content.subject,
+          html,
+          text: `${content.lines.join('\n')}\n\nOpen the class: ${link}`,
+        });
+        if (sendError) throw new Error(sendError.message);
+      }
       await db.from('teacher_digest_log').update({ sent_at: new Date().toISOString() }).eq('class_id', klass.id).eq('week_start', weekStart);
-      sent += 1;
+      sent += emails.length;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error(`[digest] class ${klass.id} failed:`, message);

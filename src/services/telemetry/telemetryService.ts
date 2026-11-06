@@ -298,7 +298,8 @@ interface LabOpenedProps {
 // never a class name, student name, code, transcript or mark comment.
 interface ClassJoinedProps {
   via: 'code' | 'link';
-  switched_class: boolean;
+  /** Classes the learner was already in. */
+  other_classes: number;
 }
 interface TeacherDashboardViewedProps {
   tab: 'week' | 'insights' | 'homework' | 'students' | 'student' | 'attempt';
@@ -522,6 +523,7 @@ export type TelemetryEvent =
   | { name: 'teacher_class_created';   props: NoProps }
   | { name: 'class_joined';            props: ClassJoinedProps }
   | { name: 'class_left';              props: NoProps }
+  | { name: 'co_teacher_joined';       props: NoProps }
   | { name: 'teacher_dashboard_viewed'; props: TeacherDashboardViewedProps }
   | { name: 'assignment_created';      props: AssignmentCreatedProps }
   | { name: 'teacher_mark_saved';      props: TeacherMarkSavedProps }
@@ -606,8 +608,9 @@ const DECLARED_PROPS = {
   web_vitals: ['lcp_ms', 'inp_ms', 'cls'],
   backend_cold_start: ['latency_ms', 'attempts', 'reached'],
   teacher_class_created: [],
-  class_joined: ['via', 'switched_class'],
+  class_joined: ['via', 'other_classes'],
   class_left: [],
+  co_teacher_joined: [],
   teacher_dashboard_viewed: ['tab', 'students'],
   assignment_created: ['kind', 'targeted'],
   teacher_mark_saved: ['agreed', 'delta', 'shared'],

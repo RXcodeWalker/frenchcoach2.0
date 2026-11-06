@@ -41,13 +41,17 @@ export type TeacherErrorCode =
   | 'invalid_mark_set'
   | 'invalid_total'
   | 'not_found'
+  | 'owner_only'
+  | 'too_many_teachers'
+  | 'owner_cannot_leave'
+  | 'too_many_classes_joined'
   | 'unknown';
 
 const KNOWN_CODES: TeacherErrorCode[] = [
   'not_authenticated', 'forbidden', 'not_a_teacher', 'invalid_code', 'code_expired', 'code_used_up',
   'invalid_display_name', 'invalid_name', 'too_many_classes', 'own_class', 'already_in_class', 'class_full',
   'invalid_due_date', 'invalid_assignment', 'invalid_students', 'too_many_assignments', 'invalid_mark_set',
-  'invalid_total', 'not_found',
+  'invalid_total', 'not_found', 'owner_only', 'too_many_teachers', 'owner_cannot_leave', 'too_many_classes_joined',
 ];
 
 export class TeacherApiError extends Error {
@@ -84,6 +88,10 @@ const ERROR_COPY: Record<TeacherErrorCode, string> = {
   invalid_mark_set: "That mark couldn't be saved.",
   invalid_total: 'A total must be between 0 and 40.',
   not_found: "That attempt isn't available (the student may have left the class).",
+  owner_only: 'Only the teacher who created this class can do that.',
+  too_many_teachers: 'This class already has 5 teachers.',
+  owner_cannot_leave: "The class's owner can't leave it — archive it instead.",
+  too_many_classes_joined: "You're already in 5 classes. Leave one in Profile first.",
   unknown: 'Something went wrong. Please try again.',
 };
 
@@ -117,6 +125,23 @@ export interface ClassRow {
   timezone: string;
   digestEnabled: boolean;
   createdAt: string;
+  /** The caller's role in this class: the owner created it; co-teachers joined with its co-teacher code. */
+  myRole: 'owner' | 'co_teacher';
+  ownerName: string | null;
+}
+
+export interface ClassTeacher {
+  teacherId: string;
+  displayName: string;
+  role: 'owner' | 'co_teacher';
+  addedAt: string;
+}
+
+export interface ClassTeachers {
+  myRole: 'owner' | 'co_teacher' | null;
+  /** Only the owner sees it. */
+  coTeacherCode: string | null;
+  teachers: ClassTeacher[];
 }
 
 export interface StudentSessionRow extends Omit<ActivityRow, 'studentId' | 'cefrLevel' | 'criticalCount'> {
@@ -143,6 +168,8 @@ export interface MyClass {
   className: string;
   examYear: string | null;
   teacherName: string;
+  /** Every teacher of the class, owner first. */
+  teacherNames: string[];
   joinedAt: string;
 }
 
@@ -153,7 +180,10 @@ export interface ClassPreview {
   teacherName: string;
   isOwnClass: boolean;
   alreadyMember: boolean;
-  currentClassName: string | null;
+  teacherNames: string[];
+  /** Other classes the learner is already in. */
+  otherClassCount: number;
+  classLimitReached: boolean;
 }
 
 export interface ExamAttemptDetail {
@@ -212,8 +242,12 @@ function toClassRow(r: Raw): ClassRow {
     timezone: str(r.timezone) || 'Europe/London',
     digestEnabled: r.digest_enabled !== false,
     createdAt: str(r.created_at),
+    myRole: r.my_role === 'co_teacher' ? 'co_teacher' : 'owner',
+    ownerName: strOrNull(r.owner_name),
   };
 }
+
+const strList = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
 
 // ── Teacher setup ───────────────────────────────────────────────────────────
 
@@ -245,15 +279,45 @@ export async function setTeacherDigestOptOut(optOut: boolean): Promise<void> {
 
 // ── Classes ─────────────────────────────────────────────────────────────────
 
+/** Classes the caller teaches — as owner or co-teacher. */
 export async function listMyClasses(): Promise<ClassRow[]> {
-  if (!supabaseConfigured) throw new TeacherApiError('offline');
-  const { data, error } = await supabase
-    .from('classes')
-    .select('id, name, exam_year, join_code, code_active, timezone, digest_enabled, created_at')
-    .is('archived_at', null)
-    .order('created_at', { ascending: true });
-  if (error) throw mapTeacherError(error.message);
-  return ((data ?? []) as Raw[]).map(toClassRow);
+  const rows = await rpc<Raw[]>('my_teaching_classes');
+  return (rows ?? []).map(toClassRow);
+}
+
+// ── Co-teachers ─────────────────────────────────────────────────────────────
+
+export async function getClassTeachers(classId: string): Promise<ClassTeachers> {
+  const r = await rpc<Raw>('teacher_class_teachers', { p_class_id: classId });
+  const role = r.my_role;
+  return {
+    myRole: role === 'owner' || role === 'co_teacher' ? role : null,
+    coTeacherCode: strOrNull(r.co_teacher_code),
+    teachers: (Array.isArray(r.teachers) ? (r.teachers as Raw[]) : []).map((t) => ({
+      teacherId: str(t.teacher_id),
+      displayName: str(t.display_name),
+      role: t.role === 'owner' ? 'owner' : 'co_teacher',
+      addedAt: str(t.added_at),
+    })),
+  };
+}
+
+export async function rotateCoTeacherCode(classId: string): Promise<string> {
+  return str((await rpc<Raw>('rotate_co_teacher_code', { p_class_id: classId })).co_teacher_code);
+}
+
+export async function clearCoTeacherCode(classId: string): Promise<void> {
+  await rpc('clear_co_teacher_code', { p_class_id: classId });
+}
+
+/** An existing teacher joins another teacher's class with its co-teacher code. */
+export async function joinClassAsTeacher(code: string): Promise<string> {
+  return str((await rpc<Raw>('join_class_as_teacher', { p_code: code.trim() })).class_id);
+}
+
+/** The owner removes a co-teacher, or a co-teacher removes themself. */
+export async function removeClassTeacher(classId: string, teacherId: string): Promise<void> {
+  await rpc('remove_class_teacher', { p_class_id: classId, p_teacher_id: teacherId });
 }
 
 export async function getClass(classId: string): Promise<ClassRow | null> {
@@ -422,29 +486,31 @@ export async function previewClass(code: string): Promise<ClassPreview> {
     teacherName: str(r.teacher_name),
     isOwnClass: r.is_own_class === true,
     alreadyMember: r.already_member === true,
-    currentClassName: strOrNull(r.current_class_name),
+    teacherNames: strList(r.teacher_names),
+    otherClassCount: num(r.other_class_count),
+    classLimitReached: r.class_limit_reached === true,
   };
 }
 
-export async function joinClass(code: string, leaveCurrent: boolean): Promise<string> {
-  return str((await rpc<Raw>('join_class', { p_code: code.trim(), p_leave_current: leaveCurrent })).class_id);
+/** A learner may be in up to 5 classes; joining one never moves them out of another. */
+export async function joinClass(code: string): Promise<string> {
+  return str((await rpc<Raw>('join_class', { p_code: code.trim(), p_leave_current: false })).class_id);
 }
 
-export async function leaveClass(): Promise<void> {
-  await rpc('leave_class');
+export async function leaveClass(classId: string): Promise<void> {
+  await rpc('leave_class', { p_class_id: classId });
 }
 
-export async function getMyClass(): Promise<MyClass | null> {
-  const r = await rpc<Raw>('my_class');
-  const c = r?.class as Raw | null | undefined;
-  if (!c) return null;
-  return {
+export async function getMyClasses(): Promise<MyClass[]> {
+  const rows = await rpc<Raw[]>('my_classes');
+  return (rows ?? []).map((c) => ({
     classId: str(c.class_id),
     className: str(c.class_name),
     examYear: strOrNull(c.exam_year),
     teacherName: str(c.teacher_name),
+    teacherNames: strList(c.teacher_names),
     joinedAt: str(c.joined_at),
-  };
+  }));
 }
 
 export async function getMyAssignments(): Promise<MyAssignment[]> {

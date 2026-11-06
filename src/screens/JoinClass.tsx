@@ -12,6 +12,11 @@ import { track } from '../services/telemetry/telemetryService';
 
 const CODE_RE = /^[A-Z0-9]{6}$/;
 
+function teachersOf(p: ClassPreview): string {
+  const names = p.teacherNames.length > 0 ? p.teacherNames : [p.teacherName];
+  return names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+}
+
 /**
  * `/join` and `/join/:code` — a learner joins their teacher's class (teacher dashboard Stage 1).
  * The confirm step says exactly what the teacher will see, and from when (ADR 0015): joining is
@@ -62,8 +67,8 @@ export function JoinClass() {
     setBusy(true);
     setError(null);
     try {
-      await joinClass(code, preview.currentClassName !== null);
-      track({ name: 'class_joined', props: { via: linkCode ? 'link' : 'code', switched_class: preview.currentClassName !== null } });
+      await joinClass(code);
+      track({ name: 'class_joined', props: { via: linkCode ? 'link' : 'code', other_classes: preview.otherClassCount } });
       setJoined(true);
     } catch (err) {
       setError(teacherErrorMessage(err));
@@ -80,7 +85,7 @@ export function JoinClass() {
           <div className="flex flex-col gap-4 rounded-card border border-hairline bg-surface p-5" role="status">
             <Users size={20} className="text-progress-text" aria-hidden="true" />
             <p className="text-section text-ink">You're in {preview.className}</p>
-            <p className="text-body-s text-ink-muted">Homework from {preview.teacherName} will show on your Home screen.</p>
+            <p className="text-body-s text-ink-muted">Homework from {teachersOf(preview)} will show on your Home screen.</p>
             <Button onClick={() => navigate('/')}>Go to Home</Button>
           </div>
         ) : preview ? (
@@ -88,26 +93,28 @@ export function JoinClass() {
             <div>
               <p className="text-eyebrow uppercase text-ink-subtle">{preview.examYear ? `Exam ${preview.examYear}` : 'Class'}</p>
               <p className="text-section text-ink mt-1">{preview.className}</p>
-              <p className="text-body-s text-ink-muted">Teacher: {preview.teacherName}</p>
+              <p className="text-body-s text-ink-muted">{preview.teacherNames.length > 1 ? 'Teachers' : 'Teacher'}: {teachersOf(preview)}</p>
             </div>
             {preview.isOwnClass ? (
               <InlineAlert>This is your own class — students join it with this code.</InlineAlert>
             ) : preview.alreadyMember ? (
               <InlineAlert tone="success">You're already in this class.</InlineAlert>
+            ) : preview.classLimitReached ? (
+              <InlineAlert>You're already in 5 classes, the most you can join. Leave one in Profile first.</InlineAlert>
             ) : (
               <>
                 <div className="rounded-control bg-surface-recessed px-4 py-3 text-body-s text-ink-muted">
-                  <p className="text-label text-ink">What {preview.teacherName} will see</p>
+                  <p className="text-label text-ink">What {teachersOf(preview)} will see</p>
                   <ul className="mt-1 list-disc pl-5">
                     <li>When you practise, and how much</li>
                     <li>Your answers (what you said, as text) and their feedback</li>
                     <li>Your mock exam marks and transcripts</li>
                   </ul>
                   <p className="mt-2">Only from today — never your practice before joining. Your notebook and sound practice stay private. You can leave the class any time in Profile.</p>
+                  {preview.otherClassCount > 0 && (
+                    <p className="mt-2">You'll stay in your {preview.otherClassCount === 1 ? 'other class' : `${preview.otherClassCount} other classes`} too — each class's teachers see your practice from the day you joined theirs.</p>
+                  )}
                 </div>
-                {preview.currentClassName && (
-                  <InlineAlert>Joining will take you out of {preview.currentClassName}. You can only be in one class.</InlineAlert>
-                )}
                 {error && <InlineAlert>{error}</InlineAlert>}
                 <div className="flex flex-wrap gap-3">
                   <Button onClick={() => void join()} loading={busy}>Join {preview.className}</Button>

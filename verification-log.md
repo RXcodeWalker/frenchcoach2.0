@@ -4869,3 +4869,19 @@ The Stripe Premium migration was renamed `20261104090000_premium_billing.sql` â†
 when the branch was merged into `main`, because `main` already had `20261104090000_user_feedback.sql` (applied to
 production) and Supabase migration versions must be unique. Entries above that name `20261104090000` for Premium mean
 `20261104230000`. Neither Premium migration had been applied anywhere but the throwaway test Postgres.
+
+## 2026-11-05 â€” Teacher dashboard: co-teachers and several classes per student
+
+Owner request. Backend migration `20261105120000_co_teachers_and_multi_class.sql`: `class_teachers` (owner
+backfilled from `classes.teacher_id`, up to 4 co-teachers), the owner's `T-` co-teacher code, `_owned_class` =
+any teacher / `_class_owner` = owner only (archive, teachers), RLS on classes/members/assignments through the
+SECURITY DEFINER `is_class_teacher()`, the co-teacher code hidden from co-teachers' table reads (column grant);
+the one-active-class-per-student index dropped in favour of a 5-class cap; `leave_class(p_class_id)`,
+`my_classes()`, `my_teaching_classes()`. Every existing function keeps its signature and result keys, so the
+frontend deployed before it keeps working. Checked on local Postgres 16: the original teacher spec still passes
+after both migrations, and `co_teachers_multi_class_test.sql` passes (owner/co-teacher rights, code hidden from
+the co-teacher, non-teacher can't redeem it, a co-teacher can't see the owner's other classes, a student in two
+classes, per-class leave, the 5-class cap, owner can't leave). Frontend: Profile lists every class with all its
+teachers; Join no longer moves a student out of a class; Home's homework names the class when it comes from
+several; the teacher area labels co-taught classes, has "Join a colleague's class" and a Teachers section; the
+Monday email goes to every teacher of the class.
