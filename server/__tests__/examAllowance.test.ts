@@ -14,9 +14,9 @@ describe('examAllowanceFrom (one exam per rolling 7 days)', () => {
       allowed: false,
       premium: false,
       lastExamDate: '2026-10-19',
-      nextAvailableAt: '2026-10-26T00:00:00.000Z',
+      nextAvailableAt: '2026-10-25T18:30:00.000Z',
     });
-    expect(examAllowanceFrom(['2026-10-25'], NOW).nextAvailableAt).toBe('2026-11-01T00:00:00.000Z');
+    expect(examAllowanceFrom(['2026-10-25'], NOW).nextAvailableAt).toBe('2026-10-31T18:30:00.000Z');
   });
 
   it('uses the latest exam in the window', () => {
@@ -66,7 +66,7 @@ describe('loadExamGrantDates', () => {
   });
 });
 
-describe('Premium (per UTC day, no weekly window)', () => {
+describe('Premium (per India day, no weekly window)', () => {
   const PREMIUM = { premium: true, premiumDailyLimit: 1 };
 
   it('allows an exam the day after one, which the free rule refuses', () => {
@@ -79,12 +79,12 @@ describe('Premium (per UTC day, no weekly window)', () => {
     });
   });
 
-  it("refuses once today's Premium exams are used, until 00:00 UTC tomorrow", () => {
+  it("refuses once today's Premium exams are used, until 00:00 IST tomorrow", () => {
     expect(examAllowanceFrom(['2026-10-25'], NOW, PREMIUM)).toEqual({
       allowed: false,
       premium: true,
       lastExamDate: '2026-10-25',
-      nextAvailableAt: '2026-10-26T00:00:00.000Z',
+      nextAvailableAt: '2026-10-25T18:30:00.000Z',
     });
     expect(examAllowanceFrom(['2026-10-25'], NOW, { premium: true, premiumDailyLimit: 2 }).allowed).toBe(true);
   });
@@ -127,5 +127,14 @@ describe('loadExamPlan', () => {
     const free = { premium: false, premiumDailyLimit: null };
     expect(await loadExamPlan(fakeClient(1, true, { rpc: new Error('rpc down') }).client, 'u1')).toEqual(free);
     expect(await loadExamPlan(fakeClient(1, true, { limit: new Error('column does not exist') }).client, 'u1')).toEqual(free);
+  });
+});
+
+describe('the quota day is India time (owner, 2026-11-06)', () => {
+  it('an exam at 01:00 IST belongs to that India day, not the UTC day before', () => {
+    // 2026-10-26 01:00 IST = 2026-10-25T19:30Z; grant stamped 2026-10-26 by consume_ai_quota
+    const now = new Date('2026-10-25T19:30:00.000Z');
+    expect(examAllowanceFrom(['2026-10-26'], now).nextAvailableAt).toBe('2026-11-01T18:30:00.000Z');
+    expect(examAllowanceFrom(['2026-10-19'], now).allowed).toBe(true);
   });
 });
