@@ -215,8 +215,9 @@ export function TermsOfService() {
 
         <Section title="17. Contact us">
           <p>
-            Questions about these Terms? Use <strong>Send feedback</strong> in the app (Profile
-            &rarr; Help &amp; feedback) and leave an email address for the reply.
+            Questions about these Terms? Email us at{' '}
+            <a href="mailto:support@beyondthebasics.me" className="mk-link">support@beyondthebasics.me</a>, or use <strong>Send feedback</strong> in the app (Profile &rarr; Help &amp;
+            feedback).
           </p>
         </Section>
       </div>

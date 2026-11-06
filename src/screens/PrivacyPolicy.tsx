@@ -138,7 +138,9 @@ export function PrivacyPolicy() {
             <li><strong>Sentry</strong> &mdash; error monitoring;</li>
             <li><strong>PostHog</strong> &mdash; product analytics (counts and settings only,
               never recordings, transcripts or answers);</li>
-            <li><strong>Resend</strong> &mdash; transactional and reminder emails.</li>
+            <li><strong>Resend</strong> &mdash; transactional and reminder emails;</li>
+            <li><strong>Stripe</strong> and <strong>Razorpay</strong> &mdash; payment processing, if you
+              buy a Premium subscription (we never see or store your full card details).</li>
           </ul>
           <p>
             We may also disclose information if required by law, to protect the rights, safety or
@@ -183,7 +185,7 @@ export function PrivacyPolicy() {
               browser settings.</li>
           </ul>
           <p>
-            For any other request, contact us as described below. You also have the right to lodge
+            For any other request, email{' '}<a href="mailto:support@beyondthebasics.me" className="mk-link">support@beyondthebasics.me</a>. You also have the right to lodge
             a complaint with your local data-protection authority.
           </p>
         </Section>
@@ -230,9 +232,9 @@ export function PrivacyPolicy() {
 
         <Section title="13. Contact us">
           <p>
-            For questions about this policy or your personal information, use{' '}
-            <strong>Send feedback</strong> in the app (Profile &rarr; Help &amp; feedback) and leave
-            an email address for the reply.
+            For questions about this policy, or to exercise any of your rights, email us at{' '}
+            <a href="mailto:support@beyondthebasics.me" className="mk-link">support@beyondthebasics.me</a>. You can also use <strong>Send feedback</strong> in the app (Profile &rarr; Help
+            &amp; feedback). We aim to reply within 30 days.
           </p>
         </Section>
       </div>
