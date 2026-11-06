@@ -119,7 +119,10 @@ Contents are built by `buildWeeklyEmail()`, and every number comes from the data
 - Streak line only if the streak is still alive. On Sunday with nothing yet today it says
   "Practise today to keep it."
 - Parent copy: written about the learner, with no XP and no app CTA. It adds "One easy way to
-  help" (ask them three sentences about their weekend in French). An empty week is called a
+  help" (ask them three sentences about their weekend in French), then "See the full progress
+  page": a private link to the parent dashboard, freshly minted for that email and valid 5 weeks
+  (`parent-view.md`, "The weekly parent email links here"). It is left out when the learner turned
+  that link off. An empty week is called a
   quiet week, honestly.
 
 Settings (`email_report_settings`, own row, column grants so a client can never touch its

@@ -158,9 +158,16 @@ interface Model {
   /** The streak's last day is yesterday (local): it ends tonight unless they practise today. */
   streakDueToday: boolean;
   focus: { id: string; label: string; hint: string | null; misses: number; hasDrill: boolean } | null;
+  /** Parent copy only: the private parent-dashboard link (/parent#<token>), when one was minted. */
+  dashboardUrl: string | null;
 }
 
-export function buildModel(c: WeeklyReportCandidate, audience: Audience, now: Date): Model {
+export interface WeeklyEmailOptions {
+  /** Parent copy only: a private link to the parent dashboard. Ignored for the student email. */
+  dashboardUrl?: string | null;
+}
+
+export function buildModel(c: WeeklyReportCandidate, audience: Audience, now: Date, options: WeeklyEmailOptions = {}): Model {
   const days = weekDays(c.local_date).map((label, i) => ({ label, on: Boolean(c.days_active?.[i]) }));
   const avg = c.scored_week >= MIN_SCORED_FOR_AVERAGE ? num(c.avg_score_week) : null;
   const prevAvg = avg !== null && c.scored_prev_week >= MIN_SCORED_FOR_AVERAGE ? num(c.avg_score_prev_week) : null;
@@ -187,6 +194,7 @@ export function buildModel(c: WeeklyReportCandidate, audience: Audience, now: Da
     focus: c.focus_skill_id && c.focus_label && focusMisses >= 2
       ? { id: c.focus_skill_id, label: c.focus_label, hint: c.focus_hint, misses: focusMisses, hasDrill: c.focus_has_drill }
       : null,
+    dashboardUrl: audience === 'parent' && options.dashboardUrl ? options.dashboardUrl : null,
   };
 }
 
@@ -326,6 +334,25 @@ function parentTip(m: Model): string {
     C.progress);
 }
 
+/**
+ * The parent dashboard URL for a minted token. The token goes in the hash, never the path or query:
+ * a hash is never sent to a server, so it can't land in a log (main repo parentLinkService.ts).
+ */
+export function parentDashboardLink(appUrl: string, token: string): string {
+  return `${new URL('/parent', appUrl).toString()}#${token}`;
+}
+
+/** Parent copy: the way into the full dashboard (practice calendar, trends, sample exam marks, topics). */
+function dashboardSection(m: Model): string {
+  if (!m.dashboardUrl) return '';
+  const who = escapeHtml(m.name ?? 'their');
+  return section('See the full picture',
+    `<p ${P}>${m.name ? `${who}’s` : 'Their'} progress page shows the last four weeks of practice, whether their scores are improving, their latest sample exam out of 40 and which topics need work.</p>
+     <p style="margin:12px 0 0;">${button(m.dashboardUrl, 'See the full progress page')}</p>
+     <p style="margin:10px 0 0;font-size:12px;line-height:1.5;color:${C.subtle};">This link is private to you and works for 5 weeks. Please don’t forward it.</p>`,
+    C.action);
+}
+
 function footer(m: Model, unsubscribeUrl: string, appUrl: string): string {
   const why = m.audience === 'parent'
     ? `${escapeHtml(m.name ?? 'A FrenchCoach learner')} added this address to receive a weekly summary of their French speaking practice.`
@@ -371,6 +398,7 @@ function renderHtml(m: Model, h: ReturnType<typeof headline>, appUrl: string, un
   ${focusSection(m, appUrl, 'email')}
   ${examSection(m, appUrl)}
   ${parentTip(m)}
+  ${dashboardSection(m)}
   ${cta}
   ${footer(m, unsubscribeUrl, appUrl)}
 </table></td></tr></table></body></html>`;
@@ -403,6 +431,7 @@ function renderText(m: Model, h: ReturnType<typeof headline>, appUrl: string, un
   if (m.audience === 'parent') {
     if (m.exams > 0) lines.push('', `Full sample speaking exams this week: ${m.exams}`);
     lines.push('', `One easy way to help: ask ${m.name ?? 'them'} to tell you about their weekend in French. Three sentences, no pressure.`);
+    if (m.dashboardUrl) lines.push('', `See the full progress page (private to you, works for 5 weeks): ${m.dashboardUrl}`);
   } else {
     lines.push('', `Start now: ${trackedUrl(appUrl, '/learn', 'email', 'weekly_report')}`);
   }
@@ -410,8 +439,8 @@ function renderText(m: Model, h: ReturnType<typeof headline>, appUrl: string, un
   return lines.join('\n');
 }
 
-export function buildWeeklyEmail(c: WeeklyReportCandidate, audience: Audience, appUrl: string, now: Date): WeeklyEmail {
-  const m = buildModel(c, audience, now);
+export function buildWeeklyEmail(c: WeeklyReportCandidate, audience: Audience, appUrl: string, now: Date, options: WeeklyEmailOptions = {}): WeeklyEmail {
+  const m = buildModel(c, audience, now, options);
   const h = headline(m);
   const token = audience === 'parent' ? c.parent_unsub_token : c.student_unsub_token;
   const unsubscribeUrl = new URL(`/unsubscribe?t=${encodeURIComponent(token)}`, appUrl).toString();

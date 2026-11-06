@@ -35,6 +35,8 @@ function mapError(error: { message?: string; code?: string }): ParentLinkError {
 export interface ParentLink {
   id: string;
   label: string;
+  /** 'weekly_email' = made by the Sunday parent email (backend 20261106100000); absent on older backends. */
+  source?: 'manual' | 'weekly_email';
   createdAt: string;
   lastViewedAt: string | null;
   viewCount: number;

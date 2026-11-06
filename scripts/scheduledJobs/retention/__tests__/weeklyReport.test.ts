@@ -136,3 +136,34 @@ describe('safety and helpers', () => {
     expect(liveStreak({ streak_count: 5, streak_last_date: '2026-11-06', timezone: 'Europe/London' }, NOW)).toBe(0);
   });
 });
+
+describe('buildWeeklyEmail — parent dashboard link', () => {
+  const TOKEN = 'a'.repeat(64);
+  const url = `${APP}/parent#${TOKEN}`;
+
+  it('builds the link with the token in the hash only', async () => {
+    const { parentDashboardLink } = await import('../weeklyReport');
+    expect(parentDashboardLink(APP, TOKEN)).toBe(url);
+    expect(new URL(parentDashboardLink(APP, TOKEN)).search).toBe('');
+  });
+
+  it('adds the progress-page button and text line to the parent copy', () => {
+    const mail = buildWeeklyEmail(cand(), 'parent', APP, NOW, { dashboardUrl: url });
+    expect(mail.html).toContain('See the full progress page');
+    expect(mail.html).toContain(`href="${url}"`);
+    expect(mail.html).toContain('works for 5 weeks');
+    expect(mail.text).toContain(url);
+  });
+
+  it('leaves it out without a token, and never puts it in the student email', () => {
+    expect(buildWeeklyEmail(cand(), 'parent', APP, NOW).html).not.toContain('/parent#');
+    const student = buildWeeklyEmail(cand(), 'student', APP, NOW, { dashboardUrl: url });
+    expect(student.html).not.toContain('/parent#');
+    expect(student.text).not.toContain('/parent#');
+  });
+
+  it('still shows the link on a quiet week', () => {
+    const quiet = buildWeeklyEmail(cand({ sessions_week: 0, days_active: Array(7).fill(false) }), 'parent', APP, NOW, { dashboardUrl: url });
+    expect(quiet.html).toContain('See the full progress page');
+  });
+});

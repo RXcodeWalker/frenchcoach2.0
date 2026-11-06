@@ -31,7 +31,7 @@ import { createClient } from '@supabase/supabase-js';
 import webpush from 'web-push';
 import { Resend } from 'resend';
 import { chooseDailyNudge, medianRunGapHours, trackedUrl, type DailyNudgeCandidate, type Nudge } from './retention/dailyNudge';
-import { buildWeeklyEmail, type Audience, type WeeklyReportCandidate } from './retention/weeklyReport';
+import { buildWeeklyEmail, parentDashboardLink, type Audience, type WeeklyReportCandidate } from './retention/weeklyReport';
 import { renderNudgeEmail } from './retention/nudgeEmail';
 
 type Job = 'daily_nudge' | 'weekly_report';
@@ -194,9 +194,24 @@ async function sendWeekly(c: WeeklyReportCandidate, audience: Audience, now: Dat
     return null;
   }
   if (!(await claim(c.user_id, type, c.local_date, audience))) return null;
-  const channel: Channel = (await sendEmail(to, mail.subject, mail.html, mail.text, mail.unsubscribeUrl)) ? 'email' : 'failed';
+  // The parent copy links to the parent dashboard with a fresh 5-week token, minted only once
+  // the send is claimed. No token (learner turned the link off, or the RPC failed) = no link.
+  const final = audience === 'parent'
+    ? buildWeeklyEmail(c, audience, APP_URL, now, { dashboardUrl: await parentDashboardUrl(c) })
+    : mail;
+  const channel: Channel = (await sendEmail(to, final.subject, final.html, final.text, final.unsubscribeUrl)) ? 'email' : 'failed';
   await recordChannel(c.user_id, type, c.local_date, channel);
   return channel;
+}
+
+async function parentDashboardUrl(c: WeeklyReportCandidate): Promise<string | null> {
+  if (!c.parent_email) return null;
+  const { data, error } = await db.rpc('mint_parent_digest_token', { p_user_id: c.user_id, p_parent_email: c.parent_email });
+  if (error) {
+    console.warn(`[notify] parent dashboard link skipped for ${c.user_id}:`, error.message);
+    return null;
+  }
+  return typeof data === 'string' && /^[0-9a-f]{64}$/.test(data) ? parentDashboardLink(APP_URL, data) : null;
 }
 
 async function runWeeklyReport(): Promise<void> {
