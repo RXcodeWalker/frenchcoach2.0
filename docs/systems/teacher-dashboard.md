@@ -98,7 +98,7 @@ when it is Monday 07:00–08:59 in the class's time zone, to the teacher's accou
 `digest_enabled` and the teacher hasn't opted out. Claim-before-send on `teacher_digest_log(class_id,
 week_start)`: at most one attempt per class per week. Three lines (who practised and who didn't, counted
 mocks and median, the top slip with its coverage) and a link — never a transcript or answer. Needs
-`SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `RESEND_API_KEY` (skips without it), optional `APP_BASE_URL`.
+`SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `RESEND_API_KEY` (skips without it), optional repo variables `APP_BASE_URL` (default `https://french.beyondthebasics.me`) and `NOTIFY_FROM_EMAIL`.
 
 ## §7 Teacher marks
 

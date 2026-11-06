@@ -51,7 +51,8 @@ if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) {
 }
 
 const APP_URL = (env.APP_URL || 'https://french.beyondthebasics.me').replace(/\/+$/, '');
-const FROM = env.NOTIFY_FROM_EMAIL || 'FrenchCoach <notifications@frenchcoach.app>';
+// Must be on a domain verified in Resend (mail.french.beyondthebasics.me is).
+const FROM = env.NOTIFY_FROM_EMAIL || 'FrenchCoach <notifications@mail.french.beyondthebasics.me>';
 const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 const db = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY, { auth: { persistSession: false } });
 

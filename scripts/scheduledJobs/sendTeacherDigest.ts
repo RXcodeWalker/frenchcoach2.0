@@ -15,7 +15,7 @@
  * Nothing in the email is a transcript or an answer: counts, a median, first names of
  * who didn't practise, and the top slip category.
  *
- *   SUPABASE_URL=... SUPABASE_SERVICE_KEY=... RESEND_API_KEY=... [APP_BASE_URL=...] \
+ *   SUPABASE_URL=... SUPABASE_SERVICE_KEY=... RESEND_API_KEY=... [APP_BASE_URL=...] [NOTIFY_FROM_EMAIL=...] \
  *     npx tsx scripts/scheduledJobs/sendTeacherDigest.ts [--dry-run] [--force]
  *
  * --dry-run prints each email instead of claiming/sending; --force ignores the Monday window.
@@ -30,7 +30,9 @@ import { toExamAttemptRow } from '../../src/domain/teacher/rows';
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const APP_BASE_URL = (process.env.APP_BASE_URL || 'https://frenchcoach.app').replace(/\/$/, '');
+const APP_BASE_URL = (process.env.APP_BASE_URL || 'https://french.beyondthebasics.me').replace(/\/$/, '');
+// Must be on a domain verified in Resend (mail.french.beyondthebasics.me is); same repo variable as sendNotifications.ts.
+const FROM = process.env.NOTIFY_FROM_EMAIL || 'FrenchCoach <notifications@mail.french.beyondthebasics.me>';
 const DRY_RUN = process.argv.includes('--dry-run');
 const FORCE = process.argv.includes('--force');
 
@@ -117,7 +119,7 @@ async function main(): Promise<void> {
         continue;
       }
       const { error: sendError } = await resend.emails.send({
-        from: 'FrenchCoach <notifications@frenchcoach.app>',
+        from: FROM,
         to: email,
         subject: content.subject,
         html,

@@ -44,3 +44,4 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           APP_BASE_URL: ${{ vars.APP_BASE_URL }}
+          NOTIFY_FROM_EMAIL: ${{ vars.NOTIFY_FROM_EMAIL }}

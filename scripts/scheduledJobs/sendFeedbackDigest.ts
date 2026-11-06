@@ -23,10 +23,9 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FEEDBACK_NOTIFY_EMAIL = process.env.FEEDBACK_NOTIFY_EMAIL;
-// Resend's shared test sender needs no domain verification, but only delivers to the
-// Resend account's own address — exactly the owner's inbox. Set FEEDBACK_FROM once a
-// sending domain is verified in Resend.
-const FEEDBACK_FROM = process.env.FEEDBACK_FROM || 'FrenchCoach Feedback <onboarding@resend.dev>';
+// Must be on a domain verified in Resend (mail.french.beyondthebasics.me is) — Resend's shared test
+// sender is refused by a key restricted to that domain.
+const FEEDBACK_FROM = process.env.FEEDBACK_FROM || 'FrenchCoach Feedback <feedback@mail.french.beyondthebasics.me>';
 
 const BATCH = 50;
 

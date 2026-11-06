@@ -469,7 +469,7 @@ on them with `backend/supabase/ops/expire_open_duels_at_deploy.sql` (D11; run by
 - `teacher-digest.yml` (teacher dashboard) — hourly, runs `scripts/scheduledJobs/sendTeacherDigest.ts`,
   which emails each class's teacher on Monday 07:00–08:59 in the class's time zone (Resend; claim-before-send
   on `teacher_digest_log`). Secrets `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, optional `RESEND_API_KEY`; repo
-  variable `APP_BASE_URL` (default `https://frenchcoach.app`). `docs/systems/teacher-dashboard.md` §6.
+  variables `APP_BASE_URL` (default `https://french.beyondthebasics.me`) and `NOTIFY_FROM_EMAIL` (as below). `docs/systems/teacher-dashboard.md` §6.
 - `notifications-streak-and-goal.yml` (Phase 4.3; retention loop 2026-11-03) — hourly, runs
   `scripts/scheduledJobs/sendNotifications.ts` once per job (`daily_nudge`, `weekly_report`;
   spec `docs/systems/retention-notifications.md`). This is the first workflow that makes outbound
@@ -485,7 +485,7 @@ on them with `backend/supabase/ops/expire_open_duels_at_deploy.sql` (D11; run by
   it `weekly_report` is skipped), alongside `SUPABASE_URL` / `SUPABASE_SERVICE_KEY`. Optional
   repo **variables**: `APP_URL` (origin the links point at, default
   `https://french.beyondthebasics.me`) and `NOTIFY_FROM_EMAIL` (default
-  `FrenchCoach <notifications@frenchcoach.app>` — must be a Resend-verified domain). The client
+  `FrenchCoach <notifications@mail.french.beyondthebasics.me>` — must be on a Resend-verified domain; `mail.french.beyondthebasics.me` is the verified one, and the Resend API key is restricted to it). The client
   half (`src/services/notifications/pushService.ts`, `learnerSnapshot.ts`, the service worker `src/pwa/serviceWorker.ts`) needs
   `VITE_VAPID_PUBLIC_KEY` set wherever the frontend is built (Vercel).
 - `feedback-notify.yml` (2026-11-04) — hourly at :17, runs
@@ -496,7 +496,7 @@ on them with `backend/supabase/ops/expire_open_duels_at_deploy.sql` (D11; run by
   before sending and releases it if Resend fails. Secrets: `SUPABASE_URL` /
   `SUPABASE_SERVICE_KEY` (required), `RESEND_API_KEY` + `FEEDBACK_NOTIFY_EMAIL` (without
   them the run only warns and messages wait in the table), optional `FEEDBACK_FROM` (default
-  Resend's `onboarding@resend.dev`, which delivers only to the Resend account's own address).
+  `FrenchCoach Feedback <feedback@mail.french.beyondthebasics.me>`).
   The client half is `src/features/contact/` (desktop side rail, Profile → Help & feedback,
   the crash screen); optional `VITE_CONTACT_EMAIL` shows a "prefer email?" address in it.
 
