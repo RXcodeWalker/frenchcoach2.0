@@ -42,7 +42,7 @@ import { requestAndSubscribe, unsubscribe, isPushSupported } from '../services/n
 import { pushProfileSettingsToCloud } from '../services/sync/profileSettingsSync';
 import { WeeklyEmailSettings } from '../features/notifications/WeeklyEmailSettings';
 import { getActiveGoal, getCoachProfile, daysUntilExam } from '../services/coach/coachProfileService';
-import { achievementTiles, type AchievementCounts } from '../features/profile/achievementDisplay';
+import { achievementTiles, groupAchievementTiles, GROUP_COLLAPSED_TILES, type AchievementCounts } from '../features/profile/achievementDisplay';
 import { achievementHistoryCounts } from '../services/coach/achievementContextBuilder';
 import { TrackSwitch } from '../features/junior/TrackSwitch';
 import { ParentLinksCard } from '../features/parentView/ParentLinksCard';
@@ -64,7 +64,6 @@ const RENAME_REASON_COPY: Record<string, string> = {
   unknown: 'Something went wrong. Try again.',
 };
 
-const ACHIEVEMENTS_COLLAPSED = 8;
 
 const AI_ENGINES: { id: AIEngine; label: string; desc: string }[] = [
   { id: 'offline', label: 'Offline · instant', desc: 'Fast rule-based feedback, works without a connection' },
@@ -320,7 +319,8 @@ export function Profile() {
   const unlockedCount = state.achievements.filter(a => a.unlocked && !retiredIds.has(a.id)).length;
   const totalAchievements = ACHIEVEMENT_DEFINITIONS.length - retiredIds.size;
   const nextUp = tiles.find(t => !t.achievement.unlocked) ?? null;
-  const shownTiles = achievementsExpanded ? tiles : tiles.slice(0, ACHIEVEMENTS_COLLAPSED);
+  const achievementGroups = groupAchievementTiles(tiles);
+  const collapsible = achievementGroups.some(g => g.tiles.length > GROUP_COLLAPSED_TILES);
 
   const displayName = profile.username ?? user?.email ?? 'French Learner';
   const since = new Date(coachProfile.createdAt);
@@ -492,48 +492,65 @@ export function Profile() {
                 </div>
               )}
 
-              <ul className="grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(min(100%,140px),1fr))]">
-                {shownTiles.map(({ achievement: a, Icon, progress, fraction }) => (
-                  <motion.li
-                    key={a.id}
-                    variants={enter}
-                    initial="hidden"
-                    animate="show"
-                    title={a.description}
-                    className={`flex min-w-0 flex-col gap-2.5 rounded-control border border-hairline p-3.5 ${a.unlocked ? 'bg-surface' : 'bg-surface-recessed'}`}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className={`flex h-9 w-9 items-center justify-center rounded-control
-                        ${a.unlocked ? 'bg-reward-soft text-reward-text' : 'bg-surface-recessed text-ink-subtle shadow-[inset_0_0_0_1px_var(--hairline)]'}`}
-                    >
-                      <Icon size={18} />
-                    </span>
-                    <span className="flex flex-col gap-0.5">
-                      <span className="text-[14px] font-semibold leading-[1.3] text-ink">{a.name}</span>
-                      <span className="text-caption text-ink-subtle">{a.description}</span>
-                    </span>
-                    {a.unlocked ? (
-                      <span className="inline-flex items-center gap-1 text-caption font-medium text-progress-text">
-                        <Check size={14} aria-hidden="true" />
-                        {a.unlockedAt ? `Unlocked ${new Date(a.unlockedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : 'Unlocked'}
-                      </span>
-                    ) : progress ? (
-                      <span className="flex items-center gap-2">
-                        <span className="block h-1 flex-1 overflow-hidden rounded-pill bg-track">
-                          <span className="block h-full rounded-pill bg-progress" style={{ width: `${Math.max(2, fraction * 100)}%` }} />
-                        </span>
+              <div className="flex flex-col gap-5">
+                {achievementGroups.map(group => {
+                  const shown = achievementsExpanded ? group.tiles : group.tiles.slice(0, GROUP_COLLAPSED_TILES);
+                  const more = group.tiles.length - shown.length;
+                  const headingId = `profile-achievements-${group.category}`;
+                  return (
+                    <section key={group.category} aria-labelledby={headingId} className="flex flex-col gap-2.5" data-testid={`achievement-group-${group.category}`}>
+                      <div className="flex items-baseline justify-between gap-3">
+                        <h3 id={headingId} className="text-eyebrow uppercase text-ink-subtle">{group.label}</h3>
                         <span className="font-numeral text-caption text-ink-subtle">
-                          {progress.current.toLocaleString('en-GB')}/{progress.max.toLocaleString('en-GB')}
+                          {group.unlocked} of {group.tiles.length}{more > 0 ? ` · ${more} more` : ''}
                         </span>
-                      </span>
-                    ) : (
-                      <span className="text-caption text-ink-subtle">Locked</span>
-                    )}
-                  </motion.li>
-                ))}
-              </ul>
-              {tiles.length > ACHIEVEMENTS_COLLAPSED && (
+                      </div>
+                      <ul className="grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(min(100%,140px),1fr))]">
+                        {shown.map(({ achievement: a, Icon, progress, fraction }) => (
+                          <motion.li
+                            key={a.id}
+                            variants={enter}
+                            initial="hidden"
+                            animate="show"
+                            title={a.description}
+                            className={`flex min-w-0 flex-col gap-2.5 rounded-control border border-hairline p-3.5 ${a.unlocked ? 'bg-surface' : 'bg-surface-recessed'}`}
+                          >
+                            <span
+                              aria-hidden="true"
+                              className={`flex h-9 w-9 items-center justify-center rounded-control
+                                ${a.unlocked ? 'bg-reward-soft text-reward-text' : 'bg-surface-recessed text-ink-subtle shadow-[inset_0_0_0_1px_var(--hairline)]'}`}
+                            >
+                              <Icon size={18} />
+                            </span>
+                            <span className="flex flex-col gap-0.5">
+                              <span className="text-[14px] font-semibold leading-[1.3] text-ink">{a.name}</span>
+                              <span className="text-caption text-ink-subtle">{a.description}</span>
+                            </span>
+                            {a.unlocked ? (
+                              <span className="inline-flex items-center gap-1 text-caption font-medium text-progress-text">
+                                <Check size={14} aria-hidden="true" />
+                                {a.unlockedAt ? `Unlocked ${new Date(a.unlockedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : 'Unlocked'}
+                              </span>
+                            ) : progress ? (
+                              <span className="flex items-center gap-2">
+                                <span className="block h-1 flex-1 overflow-hidden rounded-pill bg-track">
+                                  <span className="block h-full rounded-pill bg-progress" style={{ width: `${Math.max(2, fraction * 100)}%` }} />
+                                </span>
+                                <span className="font-numeral text-caption text-ink-subtle">
+                                  {progress.current.toLocaleString('en-GB')}/{progress.max.toLocaleString('en-GB')}
+                                </span>
+                              </span>
+                            ) : (
+                              <span className="text-caption text-ink-subtle">Locked</span>
+                            )}
+                          </motion.li>
+                        ))}
+                      </ul>
+                    </section>
+                  );
+                })}
+              </div>
+              {collapsible && (
                 <button
                   type="button"
                   onClick={() => setAchievementsExpanded(v => !v)}

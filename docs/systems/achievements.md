@@ -37,7 +37,11 @@ must pass three questions:
 
 ## §3 The set
 
-Order here is the rule order (a prerequisite always comes first).
+Order here is the rule order (a prerequisite always comes first). Profile shows the
+grid under these groups (`ACHIEVEMENT_GROUPS` in `achievementDisplay.ts`: Getting
+started, Habit, Speaking, Getting better, Exam, Explore), each with its own
+"N of M" — small, finishable sets rather than one long wall. Collapsed, each group
+shows its first two tiles (unlocked first, then the closest to unlocking).
 
 | Group | Id | Name | Unlocks when | Hidden |
 |---|---|---|---|---|

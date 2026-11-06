@@ -5,7 +5,7 @@ import {
   Wrench, Zap,
 } from 'lucide-react';
 import type { Achievement } from '../../types';
-import { DEVELOPED_ANSWER_WORDS } from '../../data/achievements';
+import { DEVELOPED_ANSWER_WORDS, type AchievementCategory } from '../../data/achievements';
 
 /**
  * Display for Profile's achievements (Design System v2): a lucide icon per
@@ -109,4 +109,41 @@ export function achievementTiles(achievements: Achievement[], hiddenIds: Readonl
       return { achievement: a, Icon: achievementIcon(a.id), progress, fraction: a.unlocked ? 1 : progress ? progress.current / progress.max : 0 };
     });
   return [...tiles.filter(t => t.achievement.unlocked), ...tiles.filter(t => !t.achievement.unlocked).sort((a, b) => b.fraction - a.fraction)];
+}
+
+/** Profile's achievement groups, in the order a learner meets them (docs/systems/achievements.md §3). */
+export const ACHIEVEMENT_GROUPS: readonly { category: AchievementCategory; label: string }[] = [
+  { category: 'start', label: 'Getting started' },
+  { category: 'habit', label: 'Habit' },
+  { category: 'speaking', label: 'Speaking' },
+  { category: 'growth', label: 'Getting better' },
+  { category: 'exam', label: 'Exam' },
+  { category: 'explore', label: 'Explore' },
+];
+
+/** Tiles shown per group while the list is collapsed — its first row: unlocked first, then closest. */
+export const GROUP_COLLAPSED_TILES = 2;
+
+export interface AchievementGroup {
+  category: AchievementCategory;
+  label: string;
+  /** In `achievementTiles` order: unlocked first, then locked closest to unlocking. */
+  tiles: AchievementTile[];
+  unlocked: number;
+}
+
+/**
+ * The grid's tiles split into groups, each keeping `achievementTiles`' order.
+ * A group with nothing to show (e.g. only hidden, locked achievements) is left
+ * out; a tile with an unknown category joins the last group rather than vanish.
+ */
+export function groupAchievementTiles(tiles: AchievementTile[]): AchievementGroup[] {
+  const known = new Set(ACHIEVEMENT_GROUPS.map(g => g.category));
+  const fallback = ACHIEVEMENT_GROUPS[ACHIEVEMENT_GROUPS.length - 1].category;
+  return ACHIEVEMENT_GROUPS
+    .map(({ category, label }) => {
+      const inGroup = tiles.filter(t => (known.has(t.achievement.category) ? t.achievement.category : fallback) === category);
+      return { category, label, tiles: inGroup, unlocked: inGroup.filter(t => t.achievement.unlocked).length };
+    })
+    .filter(g => g.tiles.length > 0);
 }
