@@ -2,10 +2,10 @@
  * One sample exam per account per rolling 7 days (launch limit, owner decision 2026-10-24).
  *
  * POST /score charges `exam_attempt` with the exam's sessionId (backend migration
- * 20261025090000). consume_ai_quota counts per UTC day, so the 7-day window is checked
- * here, from the account's exam_attempt grants, before the charge. Grant dates are UTC
+ * 20261025090000). consume_ai_quota counts per India day (midnight IST), so the 7-day window is checked
+ * here, from the account's exam_attempt grants, before the charge. Grant dates are India
  * days, so "7 days" is 7 calendar days: an exam on a Monday unlocks the next one on the
- * following Monday (00:00 UTC). A retry of the same attempt (same sessionId) is never
+ * following Monday (00:00 IST). A retry of the same attempt (same sessionId) is never
  * counted against itself.
  *
  * Premium (Stripe subscription, backend routers/billing.py): no 7-day window; instead
@@ -23,16 +23,24 @@ export interface ExamAllowance {
   premium: boolean;
   /** UTC date (YYYY-MM-DD) of the latest exam inside the window, if any. */
   lastExamDate: string | null;
-  /** When the next exam unlocks (ISO, 00:00 UTC), or null when one is allowed now. */
+  /** When the next exam unlocks (ISO, 00:00 IST), or null when one is allowed now. */
   nextAvailableAt: string | null;
 }
 
+/**
+ * The quota day is India's calendar day (owner, 2026-11-06): consume_ai_quota stamps
+ * grant_date in Asia/Kolkata (backend migration 20261106090000). India has no DST, so a
+ * fixed +05:30 offset is exact.
+ */
+const QUOTA_OFFSET_MS = 5.5 * 3600 * 1000;
+
 function utcDay(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  return new Date(date.getTime() + QUOTA_OFFSET_MS).toISOString().slice(0, 10);
 }
 
+/** Midnight India time at the start of `day` + `days`. */
 function addDays(day: string, days: number): Date {
-  const d = new Date(`${day}T00:00:00.000Z`);
+  const d = new Date(`${day}T00:00:00.000+05:30`);
   d.setUTCDate(d.getUTCDate() + days);
   return d;
 }

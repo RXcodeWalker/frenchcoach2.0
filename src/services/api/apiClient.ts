@@ -665,7 +665,7 @@ export interface LearnAllowance {
   remaining: number;
   /** True when the server applied the Premium limit (backend routers/billing.py). */
   premium: boolean;
-  /** ISO time the allowance resets (00:00 UTC). */
+  /** ISO time the allowance resets (midnight India time, 00:00 IST). */
   resetsAt: string;
 }
 
@@ -1077,7 +1077,7 @@ export class ExaminerFeedbackUnavailableError extends Error {
 /** The backend's daily examiner-feedback quota is used up (HTTP 429). */
 export class ExaminerQuotaExceededError extends Error {
   constructor() {
-    super("You've used today's AI feedback allowance. It resets at midnight UTC.");
+    super("You've used today's AI feedback allowance. It resets at midnight India time.");
     this.name = 'ExaminerQuotaExceededError';
   }
 }

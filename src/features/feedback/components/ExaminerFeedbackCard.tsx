@@ -64,7 +64,7 @@ export function ExaminerFeedbackCard({
     return (
       <div className={`${stateBox} space-y-2 text-center`}>
         <p className="text-sm text-ink-muted font-semibold">You've used today's AI feedback allowance.</p>
-        <p className="text-xs text-ink-muted">It resets at midnight UTC.</p>
+        <p className="text-xs text-ink-muted">It resets at midnight India time.</p>
       </div>
     );
   }
