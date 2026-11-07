@@ -119,6 +119,7 @@ export const ACHIEVEMENT_GROUPS: readonly { category: AchievementCategory; label
   { category: 'growth', label: 'Getting better' },
   { category: 'exam', label: 'Exam' },
   { category: 'explore', label: 'Explore' },
+  { category: 'levels', label: 'Levels' },
 ];
 
 /** Tiles shown per group while the list is collapsed — its first row: unlocked first, then closest. */

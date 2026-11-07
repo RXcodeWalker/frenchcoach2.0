@@ -21,7 +21,7 @@ describe('groupAchievementTiles', () => {
   it('groups in the fixed order, losing no tile and keeping unlocked-first order', () => {
     const tiles = achievementTiles(achievements(['premier_pas', 'triple_jour']), hiddenIds, COUNTS);
     const groups = groupAchievementTiles(tiles);
-    expect(groups.map(g => g.category)).toEqual(['start', 'habit', 'speaking', 'growth', 'exam', 'explore']);
+    expect(groups.map(g => g.category)).toEqual(['start', 'habit', 'speaking', 'growth', 'exam', 'explore', 'levels']);
     expect(groups.flatMap(g => g.tiles)).toHaveLength(tiles.length);
     const habit = groups.find(g => g.category === 'habit')!;
     expect(habit.tiles[0].achievement.id).toBe('triple_jour');

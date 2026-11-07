@@ -9,7 +9,7 @@ import type { LearningProblem, Intervention } from '../types/intervention';
  * description says exactly what to do, and nothing claims a level (CEFR,
  * grade) the app cannot measure.
  */
-export type AchievementCategory = 'start' | 'habit' | 'speaking' | 'growth' | 'exam' | 'explore';
+export type AchievementCategory = 'start' | 'habit' | 'speaking' | 'growth' | 'exam' | 'explore' | 'levels';
 
 export interface AchievementDefinition {
   id: string;
@@ -112,8 +112,6 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
   { id: 'fidele',              name: 'Fidèle',              description: 'Practise on 30 different days',                      icon: '🗓️', xpReward: 300,  category: 'habit' },
   { id: 'dix_sessions',        name: 'Habitué',             description: 'Record 10 answers',                                  icon: '🗓️', xpReward: 100,  category: 'habit' },
   { id: 'marathonien',         name: 'Marathonien',         description: 'Record 50 answers',                                  icon: '🏃', xpReward: 250,  category: 'habit' },
-  { id: 'expert',              name: 'Expert',              description: 'Reach the Advanced level (1,500 XP)',                icon: '🏆', xpReward: 500,  category: 'habit' },
-  { id: 'bete_de_mode',        name: 'Bête de mode',        description: 'Reach Beast Mode (7,000 XP)',                        icon: '👹', xpReward: 1000, category: 'habit' },
 
   // Speaking — what examiners reward
   { id: 'developpe',           name: 'Développé',           description: `Give a ${DEVELOPED_ANSWER_WORDS}-word answer — examiners reward answers you develop`, icon: '🗣️', xpReward: 100, category: 'speaking' },
@@ -138,6 +136,10 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
   { id: 'explorateur',         name: 'Explorateur',         description: 'Answer your first role play',                        icon: '🧭', xpReward: 50,   category: 'explore' },
   { id: 'causeur',             name: 'Causeur',             description: 'Practise 5 different role plays',                    icon: '💬', xpReward: 125,  category: 'explore' },
   { id: 'polyglotte',          name: 'Polyglotte',          description: 'Practise 8 different Learn topics',                  icon: '🗺️', xpReward: 200,  category: 'explore' },
+
+  // Levels — XP milestones; the level bar on Profile already shows progress
+  { id: 'expert',              name: 'Expert',              description: 'Reach the Advanced level (1,500 XP)',                icon: '🏆', xpReward: 500,  category: 'levels' },
+  { id: 'bete_de_mode',        name: 'Bête de mode',        description: 'Reach Beast Mode (7,000 XP)',                        icon: '👹', xpReward: 1000, category: 'levels' },
 
   // Retired — kept only for learners who already earned them
   { id: 'cinq_sessions',       name: 'Assidu',              description: 'Record 5 answers',                                   icon: '📅', xpReward: 75,   category: 'habit', retired: true },
