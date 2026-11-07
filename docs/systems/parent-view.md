@@ -44,7 +44,7 @@ learner makes a private link in **Profile → Parent view**, and the parent open
 | Table + RPCs (`create_parent_link`, `list_parent_links`, `revoke_parent_link`, `get_parent_report` (anon-callable)) | backend `supabase/migrations/20261104090000_parent_links.sql` + `20261104100000_parent_report_exam_columns.sql`, both applied to production 2026-11-04 |
 | Wire shape + parser | `src/features/parentView/rawReport.ts` |
 | Report builder (pure, tested) | `src/features/parentView/buildReport.ts` |
-| Email tokens (`parent_link_tokens`, `mint_parent_digest_token`) | backend `20261106100000_parent_digest_dashboard_link.sql`; sender `scripts/scheduledJobs/sendNotifications.ts`, copy `retention/weeklyReport.ts`'s `dashboardSection` |
+| Email tokens (`parent_link_tokens`, `mint_parent_digest_token`) | backend `20261107100000_parent_digest_dashboard_link.sql`; sender `scripts/scheduledJobs/sendNotifications.ts`, copy `retention/weeklyReport.ts`'s `dashboardSection` |
 | RPC client, link/hash helpers | `src/features/parentView/parentLinkService.ts` |
 | Profile card | `src/features/parentView/ParentLinksCard.tsx`, flag `parentView` |
 | Page | `src/screens/ParentView.tsx`, rendered by `App.tsx`'s `AppShell` before every auth/onboarding gate (route kind `unregistered`) |
@@ -59,7 +59,7 @@ Data comes from the cloud `sessions` rows (last 120 days, at most 1,000) and
 The Sunday parent copy of the weekly progress email (`retention-notifications.md` §4) ends with
 "See the full progress page". The link token is never stored, so the sender can't reuse one:
 for each email it calls the service-role `mint_parent_digest_token(user, parent_email)` (backend
-`20261106100000_parent_digest_dashboard_link.sql`), which returns a fresh token in
+`20261107100000_parent_digest_dashboard_link.sql`), which returns a fresh token in
 `parent_link_tokens`, valid 35 days, hanging off one `source = 'weekly_email'` parent link per
 (learner, address). The learner sees that link in Profile → Parent view as "Weekly email to your
 parent", with its last-opened date, and it doesn't count toward the 5-link cap.
