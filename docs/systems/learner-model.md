@@ -1,6 +1,6 @@
 # Learner model — one per-skill estimate (specification)
 
-Status: **model live (shadow writes); `skill_model` sync live since 2026-11-07; every reader flag `coming-soon`.** Decision: ADR 0016.
+Status: **model live (shadow writes); `skill_model` sync and the Progress reader live since 2026-11-07; coach and Learn readers `coming-soon`.** Decision: ADR 0016.
 Cited in code as `learner-model §N`. Sections are numbered; **never renumber them.**
 
 The app used to keep four separate "how good is this learner at X" stores, and its readers mixed them:

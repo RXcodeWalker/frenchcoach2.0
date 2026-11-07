@@ -67,7 +67,8 @@ export const FEATURE_FLAGS = {
   // learner-model §7 phase 5: Learn's ability read and focus skills read the model.
   learnerModelLearn: 'coming-soon',
   // learner-model §7 phase 6: Progress's "Grammar to work on" reads the model.
-  learnerModelProgress: 'coming-soon',
+  // Switched live by the owner on 2026-11-07. Rollback: 'coming-soon'.
+  learnerModelProgress: 'live',
 }satisfies Record<string, FeatureStatus>;
 
 export type FeatureFlagKey = keyof typeof FEATURE_FLAGS;

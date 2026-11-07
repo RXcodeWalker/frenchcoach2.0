@@ -47,7 +47,7 @@ describe('learner-model flags', () => {
     expect(FEATURE_FLAGS.learnerModelSync).toBe('live');
     expect(FEATURE_FLAGS.learnerModelCoach).toBe('coming-soon');
     expect(FEATURE_FLAGS.learnerModelLearn).toBe('coming-soon');
-    expect(FEATURE_FLAGS.learnerModelProgress).toBe('coming-soon');
+    expect(FEATURE_FLAGS.learnerModelProgress).toBe('live');
   });
 
   it('learnerModelSync gates the skill_model key', () => {
