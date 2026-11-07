@@ -13,6 +13,7 @@ import { getDueReviewCounts } from '../services/coach/reviewPool';
 import { TOPICS } from '../data/topics';
 import { isTopicVisible } from '../features/learn/sessionSetup';
 import { examSummary, learnAverage, learnSummary, nextStep, pastAttempts, practiceDays } from '../features/progress/progressSummary';
+import { weakSkillsFromModel } from '../features/progress/modelWeakSkills';
 import { fadeUp } from '../components/motion/variants';
 import { PageShell } from '../components/layout/PageShell';
 import { TopContextBar } from '../components/TopContextBar';
@@ -47,6 +48,10 @@ export function Progress() {
     sessions,
     streakDays: profile.streak_days,
     skillProfile,
+    // learner-model §7 phase 6: the same weak-skill rule the coach uses, on the learner model.
+    ...(resolveFeatureStatus('learnerModelProgress') === 'live'
+      ? { weakSkillsOverride: weakSkillsFromModel(state.learnerModel, Date.now()) }
+      : {}),
   });
   const step = nextStep({ sessions, exam, learn });
   const attempts = pastAttempts(sessions, TOPICS);

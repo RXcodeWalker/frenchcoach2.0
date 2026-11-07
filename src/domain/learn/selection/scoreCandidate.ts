@@ -25,9 +25,12 @@ export function bandFit(demandScore: number, band: { lo: number; hi: number } | 
  * to question structures first (skillStructures.ts) — the vocabularies differ.
  */
 export function coachFocusMatch(args: ScoreCandidateArgs): number {
-  const { candidate, focusSkillIds, activeDemandProblem } = args;
+  const { candidate, focusSkillIds, focusStructures, activeDemandProblem } = args;
   const demands = candidate.question.demands;
-  if (demands && practisesAnySkill(demands.structures, focusSkillIds)) return 1;
+  const practises = focusStructures
+    ? focusStructures.some((s) => (demands?.structures ?? []).includes(s as never))
+    : demands !== undefined && practisesAnySkill(demands.structures, focusSkillIds);
+  if (demands && practises) return 1;
   if (demands && activeDemandProblem && demands.cognitiveDemand === activeDemandProblem) return 1;
   return 0;
 }

@@ -24,7 +24,7 @@
 import type { CoachGoalType } from '../../types/coach';
 import type { EvidenceDerivedSkillBelief } from '../../types/beliefs';
 import type { StoredSession } from '../analytics/analyticsService';
-import { examSummary, learnTopicPath, EXAM_WINDOW_DAYS, type ExamArea } from '../../features/progress/progressSummary';
+import { examSummary, learnTopicPath, EXAM_WINDOW_DAYS, type ExamArea, type ExamAreaKey } from '../../features/progress/progressSummary';
 
 const DAY_MS = 86_400_000;
 
@@ -124,6 +124,52 @@ export interface CoachInput {
   topicStats: Record<string, CoachTopicStats>;
   /** AI-marked Learn answers left today; null while unknown. */
   learnAnswersLeft: number | null;
+  /**
+   * learner-model §5 (flag `learnerModelCoach`): the three 0520 areas from the
+   * learner model — decayed over counted Exam Sim attempts only. Absent = the
+   * old rule (the latest counted attempt, if fresh). When present, the weakest
+   * area is chosen from it and the copy says "across your recent Exam Sims".
+   */
+  examStanding?: CoachExamStanding[];
+}
+
+/** One area of the learner model's exam standing (domain/learnerModel/read.ts ExamAreaReading). */
+export interface CoachExamStanding {
+  key: ExamAreaKey;
+  /** Decayed share of the area's marks across counted attempts (0–1). */
+  mastery: number;
+  lastMark: number;
+  lastMax: number;
+}
+
+/** The weak area the moves talk about, and which rule chose it. */
+type WeakArea = ExamArea & { basis: 'latest' | 'recent'; share: number };
+
+const AREA_LABEL: Record<ExamAreaKey, string> = {
+  rolePlay: 'Role play',
+  communication: 'Communication',
+  qualityOfLanguage: 'Quality of language',
+};
+
+/** The model's weakest area when the learner model is the reader, else the fresh latest attempt's. */
+function chooseWeakArea(standing: CoachExamStanding[] | undefined, latestWeakest: ExamArea | null): WeakArea | null {
+  if (standing !== undefined) {
+    let weakest: CoachExamStanding | null = null;
+    for (const a of standing) if (!weakest || a.mastery < weakest.mastery) weakest = a;
+    if (!weakest || weakest.mastery >= WEAK_AREA_RATIO || !(weakest.lastMax > 0)) return null;
+    return { key: weakest.key, label: AREA_LABEL[weakest.key], mark: weakest.lastMark, max: weakest.lastMax, basis: 'recent', share: weakest.mastery };
+  }
+  if (latestWeakest && latestWeakest.mark / latestWeakest.max < WEAK_AREA_RATIO) {
+    return { ...latestWeakest, basis: 'latest', share: latestWeakest.mark / latestWeakest.max };
+  }
+  return null;
+}
+
+/** "Role play was your weakest area in your last Exam Sim (6/15)" — or the model's "across your recent Exam Sims" form. */
+function weakAreaSentence(label: string, a: WeakArea): string {
+  return a.basis === 'latest'
+    ? `${label} was your weakest area in your last Exam Sim (${a.mark}/${a.max})`
+    : `${label} has been your weakest area across your recent Exam Sims (about ${pct(a.share)}% of its marks; ${a.mark}/${a.max} last time)`;
 }
 
 /** How hard to push the weekly Exam Sim in each phase (the closer the exam, the more it matters). */
@@ -245,10 +291,7 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
   const exam = examSummary(sessions);
   const latest = exam.latestWithAreas;
   const latestFresh = latest !== null && now - new Date(latest.date).getTime() <= EXAM_RESULT_FRESH_DAYS * DAY_MS;
-  const weakArea: ExamArea | null =
-    latestFresh && exam.weakestArea && exam.weakestArea.mark / exam.weakestArea.max < WEAK_AREA_RATIO
-      ? exam.weakestArea
-      : null;
+  const weakArea: WeakArea | null = chooseWeakArea(input.examStanding, latestFresh ? exam.weakestArea : null);
 
   const dueTotal = Object.values(input.dueCounts).reduce((a, b) => a + b, 0);
   const answersGone = input.learnAnswersLeft === 0;
@@ -324,7 +367,7 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
       kind: 'role_play',
       title: 'Drill role plays',
       why: rp
-        ? `Role play was your weakest area in your last Exam Sim (${weakArea.mark}/${weakArea.max}). Each task wants a full answer to every part — drilling the cards is the fastest fix.`
+        ? `${weakAreaSentence('Role play', weakArea)}. Each task wants a full answer to every part — drilling the cards is the fastest fix.`
         : finalNoExam
           ? 'Final week: role plays are quick, familiar wins — and they don’t use today’s marked answers.'
           : answersGone
@@ -345,7 +388,7 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
     add({
       kind: 'develop_answers',
       title: 'Develop your answers',
-      why: `Communication was your weakest area in your last Exam Sim (${weakArea.mark}/${weakArea.max}). Those marks come from developed answers: give an opinion, say why, and add a past or future example.`,
+      why: `${weakAreaSentence('Communication', weakArea)}. Those marks come from developed answers: give an opinion, say why, and add a past or future example.`,
       cta: topic ? `Practise in ${topic.labelEn}` : 'Practise in Learn',
       to: topicPath(topic),
       topicKey: topic?.key ?? null,
@@ -369,7 +412,11 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
       const qol = weakArea?.key === 'qualityOfLanguage';
       let why = `${label} is your weakest area — about ${pct(belief.mastery)}% right across ${plural(belief.evidenceCount, 'answer')}${slipping ? ', and it’s slipping' : ''}.`;
       if (avoided) why += ' You also tend to steer around it when a question invites it.';
-      if (qol) why += ` Quality of language was your lowest exam area (${weakArea.mark}/${weakArea.max}), and this is where it leaks.`;
+      if (qol) {
+        why += weakArea.basis === 'latest'
+          ? ` Quality of language was your lowest exam area (${weakArea.mark}/${weakArea.max}), and this is where it leaks.`
+          : ` Quality of language has been your lowest exam area recently (about ${pct(weakArea.share)}% of its marks), and this is where it leaks.`;
+      }
       if (topic && covered) why += ` ${topic.labelEn} has the most questions that need it.`;
       add({
         kind: 'weak_skill',
@@ -530,7 +577,7 @@ function buildSignals(a: {
   phase: ExamPhase;
   days: number | null;
   exam: ReturnType<typeof examSummary>;
-  weakArea: ExamArea | null;
+  weakArea: WeakArea | null;
   move: CoachMove;
   skills: Record<string, EvidenceDerivedSkillBelief>;
   skillLabel: (id: string) => string;
@@ -542,7 +589,11 @@ function buildSignals(a: {
   const out: string[] = [];
   if (a.days !== null && a.days >= 0 && a.examGoal) out.push(a.days === 0 ? 'Exam today' : `Exam in ${plural(a.days, 'day')}`);
   if (a.exam.counted.length > 0) out.push(`Last Exam Sim ${a.exam.counted[0].total}/40`);
-  if (a.weakArea) out.push(`Weakest exam area: ${a.weakArea.label} ${a.weakArea.mark}/${a.weakArea.max}`);
+  if (a.weakArea) {
+    out.push(a.weakArea.basis === 'latest'
+      ? `Weakest exam area: ${a.weakArea.label} ${a.weakArea.mark}/${a.weakArea.max}`
+      : `Weakest exam area: ${a.weakArea.label} ~${pct(a.weakArea.share)}%`);
+  }
   const skillId = a.move.skillIds[0];
   const belief = skillId ? a.skills[skillId] : undefined;
   if (skillId && belief) out.push(`${a.skillLabel(skillId)} ${pct(belief.mastery)}%${belief.trend === 'declining' ? ', slipping' : belief.trend === 'improving' ? ', improving' : ''}`);

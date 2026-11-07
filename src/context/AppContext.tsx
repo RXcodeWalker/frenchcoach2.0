@@ -30,7 +30,11 @@ import { hydrateXpEventsFromCloud, backfillXpEventsToCloud, flushPendingXpEventQ
 import { getXpEventLog } from '../services/social/xpLedgerStorage';
 import { getEconomySnapshot } from '../services/shop/shopService';
 import { flushMintQueue } from '../services/shop/mintQueue';
-import { getEvidenceEvents } from '../services/coach/coachStorage';
+import { getEvidenceEvents, onEvidenceAppended } from '../services/coach/coachStorage';
+import { observationsFromEvents } from '../services/coach/skillObservations';
+import { loadOrBootstrapLearnerModel, parseStoredLearnerModel, getLearnerModelDeviceId, reviewItemLookup, writeLearnerModel } from '../services/learnerModel/learnerModelStore';
+import { applyObservations, examObservations } from '../domain/learnerModel/update';
+import type { LearnerModelState, SkillObservation } from '../domain/learnerModel/types';
 import { isMigrationNeeded, markMigrationComplete, runMigration, type MigrationPhase, type MigrationRecord } from '../services/sync/migrationService';
 import { pushProfileSettingsToCloud } from '../services/sync/profileSettingsSync';
 import { pushLearnerSnapshot } from '../services/notifications/learnerSnapshot';
@@ -79,6 +83,13 @@ interface AppState {
   /** learn-marking §8 — the Learn marking level. Device-only: never sent, never synced. */
   markingLevel: MarkingLevel;
   dailyGoal: number;
+  /**
+   * The per-skill learner model (docs/systems/learner-model.md). Written only by
+   * RECORD_SKILL_OBSERVATIONS (Learn evidence, via the appendEvidenceEvents
+   * listener), ADD_SESSION (counted Exam Sim area marks) and HYDRATE_LEARNER_MODEL
+   * (cloud merge / another tab). Readers switch to it one flag at a time.
+   */
+  learnerModel: LearnerModelState;
 }
 
 export const DAILY_GOAL_MIN = 1;
@@ -146,7 +157,11 @@ type Action =
   | { type: 'SET_DIFFICULTY'; tier: DifficultyTier }
   | { type: 'SET_AIM'; aim: Aim }
   | { type: 'SET_MARKING_LEVEL'; level: MarkingLevel }
-  | { type: 'SET_DAILY_GOAL'; goal: number };
+  | { type: 'SET_DAILY_GOAL'; goal: number }
+  /** learner-model §4.2 — idempotent by observation id. */
+  | { type: 'RECORD_SKILL_OBSERVATIONS'; observations: SkillObservation[]; now?: number }
+  /** learner-model §4.3 — a merged copy (cloud) or another tab's write; replaces the slice. */
+  | { type: 'HYDRATE_LEARNER_MODEL'; model: LearnerModelState; persist?: boolean };
 
 function buildInitialState(): AppState {
   const analytics = getStats();
@@ -252,7 +267,17 @@ function buildInitialState(): AppState {
     aim,
     markingLevel: readMarkingLevel(),
     dailyGoal: readDailyGoal(),
+    learnerModel: loadOrBootstrapLearnerModel().model,
   };
+}
+
+/** learner-model §4.2: fold observations into the slice and persist only when something changed. */
+function recordSkillObservations(state: AppState, observations: readonly SkillObservation[], now: number): AppState {
+  if (!state.learnerModel || observations.length === 0) return state;
+  const next = applyObservations(state.learnerModel, observations, now);
+  if (next === state.learnerModel) return state;
+  writeLearnerModel(next);
+  return { ...state, learnerModel: next };
 }
 
 /** Persists Junior state only when a Junior transition actually changed it. */
@@ -354,8 +379,17 @@ export function reducer(state: AppState, action: Action): AppState {
         ? [...state.gemAnimations, { id: 'g' + animId, amount: xpResult.gemsGain, x: 55, y: 50 }]
         : state.gemAnimations;
 
+      // learner-model §3/§4.2: a counted Exam Sim attempt's three area marks
+      // (ADR 0007 — examObservations drops Coached/typed/resumed/early-start).
+      // Deduplicated by session id inside applyObservations.
+      const examObs = examObservations({
+        sessionId: session.id, date: session.createdAt, mode: session.mode,
+        practiceOnly: session.practiceOnly, marks: session.examMarks,
+      });
+      const withModel = recordSkillObservations(state, examObs, Date.now());
+
       return {
-        ...state,
+        ...withModel,
         profile: newProfile,
         recentSessions: state.recentSessions.some(s => s.id === session.id)
           ? state.recentSessions
@@ -456,6 +490,14 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, dailyGoal: goal };
     }
 
+    case 'RECORD_SKILL_OBSERVATIONS':
+      return recordSkillObservations(state, action.observations, action.now ?? Date.now());
+
+    case 'HYDRATE_LEARNER_MODEL': {
+      if (action.persist) writeLearnerModel(action.model);
+      return { ...state, learnerModel: action.model };
+    }
+
     default:
       return state;
   }
@@ -475,6 +517,20 @@ export function AppProvider({ identity, children }: { identity: string; children
 
   // Dev-time sanity check: warn if achievement definitions and rules are out of sync.
   useEffect(() => { validateAchievementRegistry(); }, []);
+
+  // learner-model §4.2/§4.5: persist a first-run bootstrap, then feed every newly
+  // appended evidence batch into the model (the reducer is the only writer).
+  useEffect(() => {
+    if (state.learnerModel && !parseStoredLearnerModel(storageGet<unknown>(STORAGE_KEYS.learnerModel, null), getLearnerModelDeviceId())) {
+      writeLearnerModel(state.learnerModel);
+    }
+    return onEvidenceAppended((events) => {
+      const observations = observationsFromEvents(events, reviewItemLookup());
+      if (observations.length > 0) dispatch({ type: 'RECORD_SKILL_OBSERVATIONS', observations });
+    });
+    // Mount only: the listener dispatches, it never reads stale state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Auto-dismiss XP modal after 3 seconds (fix for known never-dismissing bug)
   useEffect(() => {
@@ -515,6 +571,7 @@ export function AppProvider({ identity, children }: { identity: string; children
       if (learn.settings.aim) dispatch({ type: 'SET_AIM', aim: learn.settings.aim });
       if (learn.settings.markingLevel) dispatch({ type: 'SET_MARKING_LEVEL', level: learn.settings.markingLevel });
       if (learn.settings.dailyGoal) dispatch({ type: 'SET_DAILY_GOAL', goal: learn.settings.dailyGoal });
+      if (learn.learnerModel) dispatch({ type: 'HYDRATE_LEARNER_MODEL', model: learn.learnerModel });
       void pushLearnerState(userId);
     }
 
@@ -774,7 +831,7 @@ export function AppProvider({ identity, children }: { identity: string; children
     const timer = setTimeout(() => { void pushLearnerState(userId); }, 3000);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.topicMastery, state.recentSessions[0]?.id, state.aim, state.markingLevel, state.dailyGoal, authUser?.id]);
+  }, [state.topicMastery, state.recentSessions[0]?.id, state.aim, state.markingLevel, state.dailyGoal, state.learnerModel, authUser?.id]);
 
   // Incremental session push — fires after each new session, gated on auth + hydration
   const newestSessionId = state.recentSessions[0]?.id;
@@ -851,6 +908,14 @@ export function AppProvider({ identity, children }: { identity: string; children
           entries = [];
         }
         dispatch({ type: 'SET_NOTEBOOK', entries });
+        return;
+      }
+      if (matchesScopedKey(e.key, STORAGE_KEYS.learnerModel)) {
+        // Another tab recorded an answer: mirror its model (already written there).
+        let raw: unknown = null;
+        try { raw = e.newValue ? JSON.parse(e.newValue) : null; } catch { raw = null; }
+        const model = parseStoredLearnerModel(raw, getLearnerModelDeviceId());
+        if (model) dispatch({ type: 'HYDRATE_LEARNER_MODEL', model });
         return;
       }
       if (matchesScopedKey(e.key, STORAGE_KEYS.learnerTrack)) {

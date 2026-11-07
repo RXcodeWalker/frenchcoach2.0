@@ -16,6 +16,21 @@ import { filterPool, matchesFilters, NO_FILTERS, type LearnFilters } from '../do
 import type { DemandBand, SelectionReason, SlotType } from '../domain/learn/selection/types';
 import type { CognitiveDemand } from '../domain/learn/demand/types';
 import { getActiveProblem } from '../services/coach/interventionService';
+import type { EvidenceBeliefSnapshot } from '../types/beliefs';
+import type { SyncedSkillModel } from '../domain/learnerModel/types';
+import { focusStructures } from '../domain/learnerModel/read';
+import { learnModelSnapshotIfLive, learnReadsLearnerModel } from '../services/learnerModel/learnerModelViews';
+
+export { learnReadsLearnerModel };
+
+/**
+ * The belief snapshot Learn selection reads. With `learnerModelLearn` live it is
+ * the learner model's (learnerModelSnapshot — same shape, so deriveAbility and
+ * the selector need no change); otherwise the old evidence snapshot untouched.
+ */
+export function learnBeliefSnapshot(learnerModel?: SyncedSkillModel, now: number = Date.now()): EvidenceBeliefSnapshot | null {
+  return learnModelSnapshotIfLive(learnerModel, now) ?? getBeliefSnapshot();
+}
 
 /**
  * docs §10 "Interventions" row: an active demand:* LearningProblem is pinned
@@ -145,6 +160,11 @@ export interface SessionSelectionOptions {
    */
   filters?: LearnFilters;
   /**
+   * learner-model §5 — AppState's learner model, read only while
+   * `learnerModelLearn` is live (absent: the stored copy).
+   */
+  learnerModel?: SyncedSkillModel;
+  /**
    * The length the session will really have (e.g. the answers left today), when
    * shorter than the mode's. The plan is made for this many questions, so a
    * session is never planned long and then cut down to whichever slots happened
@@ -166,8 +186,8 @@ export function topicPool(topicKey: string | null, filters: LearnFilters = NO_FI
  * docs §6.2/§6.4 — the ability read selection uses. Exported so the setup
  * screen shows exactly the read the adaptive path selects from.
  */
-export function sessionAbility(migratedTier?: DifficultyTier): AbilityResult {
-  const snapshot = getBeliefSnapshot();
+export function sessionAbility(migratedTier?: DifficultyTier, learnerModel?: SyncedSkillModel): AbilityResult {
+  const snapshot = learnBeliefSnapshot(learnerModel);
   // No snapshot at all yet (brand-new learner, no evidence log) -> the same
   // coldStart() path deriveAbility itself falls back to when totalWeight is 0.
   return snapshot ? deriveAbility(snapshot, migratedTier) : coldStart(migratedTier);
@@ -213,8 +233,8 @@ function buildSessionQuestionsAdaptive(
   const pool = topicPool(topicKey, filters);
   const seen = new Set<string>(topicMastery?.uniqueQuestionsAnswered ?? []);
 
-  const snapshot = getBeliefSnapshot();
-  const ability = sessionAbility(options.migratedTier);
+  const snapshot = learnBeliefSnapshot(options.learnerModel);
+  const ability = sessionAbility(options.migratedTier, options.learnerModel);
   const aim: Aim = options.aim ?? 'balanced';
   const sessionTarget = computeSessionTarget(ability.abilityScore, aim);
 
@@ -244,6 +264,9 @@ function buildSessionQuestionsAdaptive(
       chosenIds: new Set<string>(),
       seenIds: seen,
       focusSkillIds: blend.focusSkillIds,
+      // learner-model §1: the registry's skill→structure view (covers connectors,
+      // contrast, confusions) once Learn reads the learner model.
+      ...(learnReadsLearnerModel() ? { focusStructures: focusStructures(blend.focusSkillIds) } : {}),
       activeDemandProblem: activeDemandProblemCognitiveDemand(),
       targetLevel: sessionTarget,
       holdToLevel: aim === 'comfortable',
