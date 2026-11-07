@@ -6,8 +6,8 @@
  * coach's daily plan and the practice heatmap all use this.
  *
  * NOT for server-enforced or shared days: the AI usage limits and the exam's
- * rolling 7 days are counted by the server in UTC, and the Daily Challenge is
- * one set for everyone per UTC day.
+ * 7 days are counted by the server on India's day (midnight IST, owner
+ * 2026-11-06), and the Daily Challenge is one set for everyone per UTC day.
  */
 export function localDay(date: Date = new Date()): string {
   const y = String(date.getFullYear()).padStart(4, '0');

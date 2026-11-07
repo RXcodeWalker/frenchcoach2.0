@@ -128,6 +128,11 @@ export const STORAGE_KEYS = {
   speakingLog:                   'frenchCoach_speakingLog',
   // ── Exam guide: opened once (auto-opens before the first Exam Sim until then) ───
   examGuideSeen:                 'frenchCoach_examGuideSeen',
+  // ── Learner model (docs/systems/learner-model.md): per-skill decayed Beta stats.
+  //    Account-scoped slice of AppState; synced only as learner_state `skill_model`.
+  learnerModel:                  'frenchCoach_learnerModel',
+  // This browser's id for its own learner-model bucket (device-scoped, never synced on its own).
+  learnerModelDevice:            'frenchCoach_learnerModelDevice',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
@@ -146,6 +151,7 @@ const DEVICE_SCOPED = new Set<string>([
   STORAGE_KEYS.featureInterest,
   STORAGE_KEYS.localCounters,
   STORAGE_KEYS.analyticsState,
+  STORAGE_KEYS.learnerModelDevice,
 ]);
 
 /**

@@ -480,8 +480,7 @@ on them with `backend/supabase/ops/expire_open_duels_at_deploy.sql` (D11; run by
   user's subscribed devices, and Resend (email) for the Sunday weekly progress email (learner +
   optional parent copy) and as the nudge fallback when every push attempt fails. Reads
   candidates from the `get_daily_nudge_candidates` / `get_weekly_report_candidates` RPCs
-  (service-role only, backend migration `20261104120000_retention_loop`, which must be applied
-  before this workflow runs) and claims an at-most-once send attempt via a `notifications_log`
+  (service-role only, backend migration `20261104120000_retention_loop`, applied to production 2026-11-07) and claims an at-most-once send attempt via a `notifications_log`
   upsert before sending — see the script's own header. Secrets (GitHub Actions repo secrets,
   not exposed to the client except `VITE_VAPID_PUBLIC_KEY`): `VAPID_PUBLIC_KEY` /
   `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` (Web Push signing) and `RESEND_API_KEY` (email; without

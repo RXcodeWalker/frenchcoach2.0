@@ -24,6 +24,7 @@ Depth 2. Four live categories, one archive.
 - `systems/teacher-dashboard.md` — classes, the teacher area, homework and its allowance, teacher marks, the Monday email; access model is ADR 0015 (§-numbered, cited as `teacher-dashboard.md §N` — do not renumber)
 - `systems/payments.md` — Premium subscriptions through Stripe or Razorpay: what Premium raises, how the webhook mirror and quota RPC fit together, the owner's one-time Stripe setup (§-numbered)
 - `systems/retention-notifications.md` — the retention loop: the learner snapshot, the one-a-day specific nudge (what, when, priority), the weekly learner/parent progress email, unsubscribe and open tracking (§-numbered, do not renumber)
+- `systems/learner-model.md` — the one per-skill learner model: the closed skill registry, the decayed Beta estimator, evidence sources and weights, AppState slice + `skill_model` sync, readers and their flags (ADR 0016; §-numbered, cited as `learner-model §N` — do not renumber)
 - `guides/content-authoring.md` — content-authoring rules for the question bank
 - `guides/review/` — generated G2 review sheet (`0520-g2-review.md`) and its English glosses source; regenerate, never hand-edit
 - `guides/corpus-matrix.md` — corpus coverage rules

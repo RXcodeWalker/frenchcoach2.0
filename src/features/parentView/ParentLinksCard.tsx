@@ -96,7 +96,8 @@ export function ParentLinksCard() {
   }
 
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
-  const atLimit = (links?.length ?? 0) >= MAX_LINKS;
+  // The weekly email's link is made by the email, not the learner, so it doesn't count toward the cap.
+  const atLimit = (links?.filter(l => l.source !== 'weekly_email').length ?? 0) >= MAX_LINKS;
 
   return (
     <motion.section variants={fadeUp} aria-labelledby="profile-parent" className="flex flex-col gap-4 rounded-card border border-hairline bg-surface p-[clamp(20px,3cqw,24px)]" data-testid="profile-parent-view">
@@ -151,9 +152,9 @@ export function ParentLinksCard() {
           {links.map(l => (
             <li key={l.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-hairline py-3">
               <span className="flex min-w-0 flex-col">
-                <span className="text-[14px] font-semibold text-ink">{l.label || 'Parent link'}</span>
+                <span className="text-[14px] font-semibold text-ink">{l.source === 'weekly_email' ? 'Weekly email to your parent' : l.label || 'Parent link'}</span>
                 <span className="text-[13px] text-ink-subtle">
-                  Made {fmt(l.createdAt)} · {l.lastViewedAt ? `Last opened ${fmt(l.lastViewedAt)} (${l.viewCount} view${l.viewCount === 1 ? '' : 's'})` : 'Not opened yet'}
+                  {l.source === 'weekly_email' ? 'Opened from the Sunday email' : `Made ${fmt(l.createdAt)}`} · {l.lastViewedAt ? `Last opened ${fmt(l.lastViewedAt)} (${l.viewCount} view${l.viewCount === 1 ? '' : 's'})` : 'Not opened yet'}
                 </span>
               </span>
               {confirmId === l.id ? (

@@ -10,7 +10,8 @@ import { describe, expect, it } from 'vitest';
  */
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SRC = join(HERE, '..', '..', '..');
-const MIGRATION = join(SRC, '..', 'backend', 'supabase', 'migrations', '20261104090000_parent_links.sql');
+const MIGRATIONS_DIR = join(SRC, '..', 'backend', 'supabase', 'migrations');
+const MIGRATION = join(MIGRATIONS_DIR, '20261104090000_parent_links.sql');
 
 function read(rel: string): string {
   return readFileSync(join(SRC, rel), 'utf8');
@@ -32,11 +33,18 @@ describe('parent view isolation', () => {
 
 describe.skipIf(!existsSync(MIGRATION))('get_parent_report (backend migration)', () => {
   const sql = existsSync(MIGRATION) ? readFileSync(MIGRATION, 'utf8') : '';
-  const body = sql.slice(sql.indexOf('FUNCTION public.get_parent_report'));
 
-  it('never returns transcripts or question text', () => {
-    expect(body).not.toMatch(/transcript/i);
-    expect(body).not.toMatch(/question_text/);
+  it('never returns transcripts or question text, in any version of the function', () => {
+    const versions = readdirSync(MIGRATIONS_DIR)
+      .filter(f => f.endsWith('.sql'))
+      .map(f => readFileSync(join(MIGRATIONS_DIR, f), 'utf8'))
+      .filter(text => text.includes('FUNCTION public.get_parent_report'));
+    expect(versions.length).toBeGreaterThanOrEqual(3);
+    for (const text of versions) {
+      const fn = text.slice(text.indexOf('FUNCTION public.get_parent_report'));
+      expect(fn).not.toMatch(/transcript/i);
+      expect(fn).not.toMatch(/question_text/);
+    }
   });
 
   it('stores only a hash of the link token', () => {

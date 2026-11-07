@@ -150,13 +150,23 @@ function emptyBeliefState(nodeId: string): SkillBeliefState {
  * event was counted or discarded.
  */
 export function computeEventWeight(event: EvidenceEvent): number {
+  return computeBaseEventWeight(event) * recencyWeight(event.occurredAt);
+}
+
+/**
+ * The event's weight before recency: min(reliability × evaluatorCap,
+ * MAX_EVENT_WEIGHT) × sourceWeight. The learner model (learner-model §2) gates
+ * on THIS value at ingest and lets decay run afterwards, so an old event fades
+ * instead of vanishing the day its decayed weight crosses MIN_RELIABLE_WEIGHT.
+ * computeEventWeight = this × recencyWeight, unchanged (REDUCER_FIXTURE_HASH).
+ */
+export function computeBaseEventWeight(event: EvidenceEvent): number {
   const { assessmentConfidence, taskValidity, signalQuality, evaluator } = event.reliability;
   const reliability    = assessmentConfidence * taskValidity * signalQuality;
   const evaluatorCap   = EVALUATOR_CAPS[evaluator] ?? 0.65;
   const sourceWeight   = SOURCE_WEIGHTS[event.context.mode] ?? 0.70;
-  const recency        = recencyWeight(event.occurredAt);
 
-  return Math.min(reliability * evaluatorCap, MAX_EVENT_WEIGHT) * sourceWeight * recency;
+  return Math.min(reliability * evaluatorCap, MAX_EVENT_WEIGHT) * sourceWeight;
 }
 
 /**

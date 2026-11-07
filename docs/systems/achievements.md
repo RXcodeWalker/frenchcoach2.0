@@ -37,7 +37,11 @@ must pass three questions:
 
 ## §3 The set
 
-Order here is the rule order (a prerequisite always comes first).
+Order here is the rule order (a prerequisite always comes first). Profile shows the
+grid under these groups (`ACHIEVEMENT_GROUPS` in `achievementDisplay.ts`: Getting
+started, Habit, Speaking, Getting better, Exam, Explore, Levels), each with its own
+"N of M" — small, finishable sets rather than one long wall. Collapsed, each group
+shows its first two tiles (unlocked first, then the closest to unlocking).
 
 | Group | Id | Name | Unlocks when | Hidden |
 |---|---|---|---|---|
@@ -49,8 +53,8 @@ Order here is the rule order (a prerequisite always comes first).
 | Habit | `fidele` | Fidèle | 30 different practice days | |
 | Habit | `dix_sessions` | Habitué | 10 answers | |
 | Habit | `marathonien` | Marathonien | 50 answers | |
-| Habit | `expert` | Expert | 1,500 XP (Advanced level) | |
-| Habit | `bete_de_mode` | Bête de mode | 7,000 XP (Beast Mode) | |
+| Levels | `expert` | Expert | 1,500 XP (Advanced level) | |
+| Levels | `bete_de_mode` | Bête de mode | 7,000 XP (Beast Mode) | |
 | Speaking | `developpe` | Développé | One answer of 40+ words (not a whole exam) | |
 | Speaking | `fluent` | Très bien | A counted 8/10 | |
 | Speaking | `perfectionniste` | Perfectionniste | A counted 10/10 | yes |

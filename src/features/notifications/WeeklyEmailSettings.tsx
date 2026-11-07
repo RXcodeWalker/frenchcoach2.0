@@ -117,7 +117,7 @@ export function WeeklyEmailSettings({ userId, accountEmail }: { userId: string; 
           divided
           icon={<Users size={16} />}
           label="Send a copy to a parent"
-          description="Optional. People who see your progress help you keep going"
+          description="Optional. Every Sunday, with a private link to your progress page. People who see your progress help you keep going"
           onClick={settings ? () => { setEditing(true); setError(null); } : undefined}
           testId="weekly-email-add-parent"
         />

@@ -34,12 +34,35 @@ export function getEvidenceEvents(): EvidenceEvent[] {
   return storageGet<EvidenceEvent[]>(STORAGE_KEYS.coachEvidence, []);
 }
 
+type EvidenceListener = (events: EvidenceEvent[]) => void;
+const evidenceListeners = new Set<EvidenceListener>();
+
+/**
+ * Subscribe to newly appended evidence (learner-model §4.2). AppProvider is the
+ * one subscriber: it turns each batch into RECORD_SKILL_OBSERVATIONS, so every
+ * writer of this log (orchestrator, demand-only path, placement, pronunciation)
+ * feeds the learner model without a second call site. Events merged in from the
+ * cloud (coachSync) do NOT come through here — the model syncs on its own key,
+ * so they are never counted twice. Returns the unsubscribe.
+ */
+export function onEvidenceAppended(listener: EvidenceListener): () => void {
+  evidenceListeners.add(listener);
+  return () => { evidenceListeners.delete(listener); };
+}
+
 /** Append events, keeping only the most recent MAX_EVIDENCE_EVENTS. */
 export function appendEvidenceEvents(events: EvidenceEvent[]): EvidenceEvent[] {
   if (events.length === 0) return getEvidenceEvents();
   const existing = getEvidenceEvents();
   const next = [...existing, ...events].slice(-MAX_EVIDENCE_EVENTS);
   storageSet(STORAGE_KEYS.coachEvidence, next);
+  for (const listener of evidenceListeners) {
+    try {
+      listener(events);
+    } catch {
+      // A listener failure must never break the evidence write (the log is the source of truth).
+    }
+  }
   return next;
 }
 

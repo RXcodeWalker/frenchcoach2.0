@@ -116,10 +116,15 @@ function buildCandidate(
  * docs §8.3. Ranks candidates by (score desc, fnv1a(id) asc) for determinism
  * and returns the single best, or null if the pool is empty.
  */
+interface FocusSpec {
+  skillIds: string[];
+  structures?: readonly string[];
+}
+
 function pickBest(
   pool: Question[],
   slot: SessionSlot,
-  focusSkillIds: string[],
+  focus: FocusSpec,
   activeDemandProblem: SelectQuestionsArgs['activeDemandProblem'],
   seenIds: Set<string>,
   usedCognitiveDemands: Set<string>,
@@ -131,7 +136,10 @@ function pickBest(
     .map((q) => {
       const candidate = buildCandidate(q, seenIds, usedCognitiveDemands, snapshot);
       const demandScore = q.demands ? deriveDemandScore(q.demands) : null;
-      const score = scoreCandidate({ candidate, slot, focusSkillIds, activeDemandProblem }, demandScore);
+      const score = scoreCandidate(
+        { candidate, slot, focusSkillIds: focus.skillIds, ...(focus.structures ? { focusStructures: focus.structures } : {}), activeDemandProblem },
+        demandScore,
+      );
       return { q, score };
     })
     .filter(({ score }) => score > 0)
@@ -162,7 +170,8 @@ function fillNonStretchSlot(
   usedCognitiveDemands: Set<string>,
   snapshot: EvidenceBeliefSnapshot | null,
 ): RungHit | null {
-  const { focusSkillIds, activeDemandProblem, seenIds, chosenIds } = args;
+  const { activeDemandProblem, seenIds, chosenIds } = args;
+  const focus: FocusSpec = { skillIds: args.focusSkillIds, structures: args.focusStructures };
   const available = pool.filter((q) => !chosenIds.has(q.id));
 
   const allWithDemands = available.filter((q) => !!q.demands);
@@ -170,13 +179,13 @@ function fillNonStretchSlot(
   const unseenWithDemands = withDemands.filter((q) => !seenIds.has(q.id));
 
   // Rung 0 (band as planned).
-  let hit = pickBest(unseenWithDemands, slot, focusSkillIds, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
+  let hit = pickBest(unseenWithDemands, slot, focus, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
   if (hit) return { question: hit, rung: 0 };
 
   // Rung 1: widen the band by +-1.0.
   if (slot.band) {
     const widened: SessionSlot = { ...slot, band: widenBand(slot.band, 1.0) };
-    hit = pickBest(unseenWithDemands, widened, focusSkillIds, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
+    hit = pickBest(unseenWithDemands, widened, focus, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
     if (hit) return { question: hit, rung: 1 };
   }
 
@@ -184,15 +193,15 @@ function fillNonStretchSlot(
   // bandFit contribute its neutral 1.0 for every candidate equally, which is
   // equivalent to ranking on the remaining terms only).
   const noBand: SessionSlot = { ...slot, band: null };
-  hit = pickBest(unseenWithDemands, noBand, focusSkillIds, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
+  hit = pickBest(unseenWithDemands, noBand, focus, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
   if (hit) return { question: hit, rung: 2 };
 
   // Rung 3: allow the historical seen set back in.
-  hit = pickBest(withDemands, noBand, focusSkillIds, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
+  hit = pickBest(withDemands, noBand, focus, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
   if (hit) return { question: hit, rung: 3 };
 
   // Rung 4: allow questions without demands (bandFit omitted for them by scoreCandidate).
-  hit = pickBest(available.filter((q) => !q.demands), noBand, focusSkillIds, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
+  hit = pickBest(available.filter((q) => !q.demands), noBand, focus, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
   if (hit) return { question: hit, rung: 4 };
 
   // Rung 5: every question left is above the ceiling — take the easiest, never a
@@ -223,7 +232,8 @@ function fillStretchSlot(
   usedCognitiveDemands: Set<string>,
   snapshot: EvidenceBeliefSnapshot | null,
 ): (RungHit & { slotType: SlotType }) | null {
-  const { focusSkillIds, activeDemandProblem, seenIds, chosenIds } = args;
+  const { activeDemandProblem, seenIds, chosenIds } = args;
+  const focus: FocusSpec = { skillIds: args.focusSkillIds, structures: args.focusStructures };
   // The stretch band comes from today's target when the caller passes it, so a
   // mid-session raise (which carries the target band) is a real step up too.
   const stretchSlot: SessionSlot = args.targetLevel !== undefined
@@ -235,7 +245,7 @@ function fillStretchSlot(
   const fitting = (band: SessionSlot) =>
     trusted.filter((q) => fitsStretch(deriveDemandScore(q.demands!), band, args.targetLevel));
 
-  let hit = pickBest(fitting(stretchSlot), stretchSlot, focusSkillIds, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
+  let hit = pickBest(fitting(stretchSlot), stretchSlot, focus, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
   if (hit) return { question: hit, rung: 0, slotType: 'stretch' };
 
   // Rung 1: widen the band by ±1.0 (still above today's level, still at most one
@@ -243,7 +253,7 @@ function fillStretchSlot(
   // without this a learner at A2 would never meet a B1 question to climb with.
   if (stretchSlot.band) {
     const widened: SessionSlot = { ...stretchSlot, band: widenBand(stretchSlot.band, 1.0) };
-    hit = pickBest(fitting(widened), widened, focusSkillIds, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
+    hit = pickBest(fitting(widened), widened, focus, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
     if (hit) return { question: hit, rung: 1, slotType: 'stretch' };
   }
 

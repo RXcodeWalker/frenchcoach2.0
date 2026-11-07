@@ -15,7 +15,7 @@ export interface LabAllowance {
   limit: number;
   used: number;
   remaining: number;
-  /** ISO time the allowance resets (00:00 UTC). */
+  /** ISO time the allowance resets (midnight India time, 00:00 IST). */
   resetsAt: string;
 }
 

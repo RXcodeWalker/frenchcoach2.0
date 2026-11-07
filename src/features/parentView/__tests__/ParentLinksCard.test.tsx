@@ -54,3 +54,16 @@ describe('ParentLinksCard', () => {
     expect(screen.queryByRole('button', { name: 'Make a parent link' })).toBeNull();
   });
 });
+
+describe('ParentLinksCard — weekly email link', () => {
+  it('names the Sunday email link and leaves it out of the 5-link cap', async () => {
+    list.mockResolvedValue([
+      { id: 'w', label: 'Weekly email', source: 'weekly_email', createdAt: '2026-10-01T00:00:00Z', lastViewedAt: '2026-11-02T00:00:00Z', viewCount: 2 },
+      ...Array.from({ length: 4 }, (_, i) => ({ id: `l${i}`, label: `L${i}`, source: 'manual', createdAt: '2026-10-01T00:00:00Z', lastViewedAt: null, viewCount: 0 })),
+    ]);
+    render(<ParentLinksCard />);
+    expect(await screen.findByText('Weekly email to your parent')).toBeTruthy();
+    expect(screen.getByText(/Opened from the Sunday email/)).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Make a parent link' })).toBeTruthy();
+  });
+});
