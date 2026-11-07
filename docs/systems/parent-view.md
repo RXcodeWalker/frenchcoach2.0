@@ -44,7 +44,7 @@ learner makes a private link in **Profile → Parent view**, and the parent open
 | Table + RPCs (`create_parent_link`, `list_parent_links`, `revoke_parent_link`, `get_parent_report` (anon-callable)) | backend `supabase/migrations/20261104090000_parent_links.sql` + `20261104100000_parent_report_exam_columns.sql`, both applied to production 2026-11-04 |
 | Wire shape + parser | `src/features/parentView/rawReport.ts` |
 | Report builder (pure, tested) | `src/features/parentView/buildReport.ts` |
-| Email tokens (`parent_link_tokens`, `mint_parent_digest_token`) | backend `20261107100000_parent_digest_dashboard_link.sql`; sender `scripts/scheduledJobs/sendNotifications.ts`, copy `retention/weeklyReport.ts`'s `dashboardSection` |
+| Email tokens (`parent_link_tokens`, `mint_parent_digest_token`) | backend `20261107100000_parent_digest_dashboard_link.sql` (applied to production 2026-11-07); sender `scripts/scheduledJobs/sendNotifications.ts`, copy `retention/weeklyReport.ts`'s `dashboardSection` |
 | RPC client, link/hash helpers | `src/features/parentView/parentLinkService.ts` |
 | Profile card | `src/features/parentView/ParentLinksCard.tsx`, flag `parentView` |
 | Page | `src/screens/ParentView.tsx`, rendered by `App.tsx`'s `AppShell` before every auth/onboarding gate (route kind `unregistered`) |
