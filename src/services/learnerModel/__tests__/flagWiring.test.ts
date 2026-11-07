@@ -43,14 +43,15 @@ beforeEach(() => {
 });
 
 describe('learner-model flags', () => {
-  it('ship off (coming-soon): the rollback is the default', () => {
-    expect(FEATURE_FLAGS.learnerModelSync).toBe('coming-soon');
+  it('readers ship off (coming-soon); sync is live (migration applied 2026-11-07)', () => {
+    expect(FEATURE_FLAGS.learnerModelSync).toBe('live');
     expect(FEATURE_FLAGS.learnerModelCoach).toBe('coming-soon');
     expect(FEATURE_FLAGS.learnerModelLearn).toBe('coming-soon');
     expect(FEATURE_FLAGS.learnerModelProgress).toBe('coming-soon');
   });
 
   it('learnerModelSync gates the skill_model key', () => {
+    setFlags({ learnerModelSync: 'coming-soon' });
     expect(syncedLearnerStateKeys()).not.toContain('skill_model');
     setFlags({ learnerModelSync: 'live' });
     expect(syncedLearnerStateKeys()).toContain('skill_model');

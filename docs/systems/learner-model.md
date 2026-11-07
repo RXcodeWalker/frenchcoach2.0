@@ -1,6 +1,6 @@
 # Learner model — one per-skill estimate (specification)
 
-Status: **model live (shadow writes); every reader flag `coming-soon`.** Decision: ADR 0016.
+Status: **model live (shadow writes); `skill_model` sync live since 2026-11-07; every reader flag `coming-soon`.** Decision: ADR 0016.
 Cited in code as `learner-model §N`. Sections are numbered; **never renumber them.**
 
 The app used to keep four separate "how good is this learner at X" stores, and its readers mixed them:
@@ -129,7 +129,7 @@ bucket, never twice.
 
 Sync uses the `learner_state` key `skill_model` only (backend migration `20261106100000` widens the
 key CHECK). It sits behind flag `learnerModelSync` until the owner has applied that migration in
-production, because a push before then would violate the constraint.
+production, because a push before then would violate the constraint. Applied to production and the flag switched `live` on 2026-11-07.
 
 The value is `{ version, devices, legacy }`: decayed numbers and counts only, with no text,
 transcripts or event bodies.

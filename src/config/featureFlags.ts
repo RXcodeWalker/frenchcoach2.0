@@ -58,9 +58,10 @@ export const FEATURE_FLAGS = {
   // docs/systems/learner-model.md — the per-skill learner model. The model itself
   // always records (shadow writes); these flags move ONE reader each onto it.
   // 'coming-soon' = the old reader (the rollback); preview with ?ff_<key>=live.
-  // learner-model §4.3: sync the model as learner_state `skill_model`. Needs backend
-  // migration 20261106100000 applied in production first (the key CHECK).
-  learnerModelSync: 'coming-soon',
+  // learner-model §4.3: sync the model as learner_state `skill_model`. Backend
+  // migration 20261106100000 applied to production 2026-11-07; switched live by the
+  // owner the same day. Rollback: 'coming-soon' (pushes and pulls of the key stop).
+  learnerModelSync: 'live',
   // learner-model §7 phase 4: the Home coach (coachBriefInput) reads the model.
   learnerModelCoach: 'coming-soon',
   // learner-model §7 phase 5: Learn's ability read and focus skills read the model.
