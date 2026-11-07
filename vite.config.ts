@@ -4,6 +4,7 @@ import { sentryVitePlugin } from '@sentry/vite-plugin';
 import type { Plugin, ManualChunkMeta } from 'vite';
 import { fileURLToPath } from 'node:url';
 import { bundleServiceWorker } from './scripts/pwa/serviceWorkerBundle';
+import { PRELOAD_ASSETS_URL_FROM, PRELOAD_ASSETS_URL_TO, stableModuleId } from './scripts/build/stableChunkNames';
 
 // Dev only: serves /sw.js bundled from src/pwa/serviceWorker.ts with an empty
 // precache list — push works, nothing is ever cached (HMR stays untouched).
@@ -22,6 +23,33 @@ function serviceWorkerDev(): Plugin {
           })
           .catch(next);
       });
+    },
+  };
+}
+
+// Build only: the Vite half of stable chunk names (scripts/build/stableChunkNames.ts).
+// Vite's preload helper resolves file names through the import map, and each
+// chunk's module ids are left in dist/.chunk-modules.json for the post-build
+// step (scripts/build/applyStableChunkNames.ts), which does the renaming once
+// Vite and the Sentry upload have finished.
+function stableChunkNamesPlugin(): Plugin {
+  const root = fileURLToPath(new URL('.', import.meta.url));
+  return {
+    name: 'frenchcoach-stable-chunk-names',
+    apply: 'build',
+    transform(code, id) {
+      if (id !== '\0vite/preload-helper.js') return null;
+      if (!code.includes(PRELOAD_ASSETS_URL_FROM)) {
+        throw new Error('Vite preload helper changed shape — update PRELOAD_ASSETS_URL_FROM (stableChunkNames.ts)');
+      }
+      return { code: code.replace(PRELOAD_ASSETS_URL_FROM, PRELOAD_ASSETS_URL_TO), map: null };
+    },
+    generateBundle(_options, bundle) {
+      const modules: Record<string, string[]> = {};
+      for (const item of Object.values(bundle)) {
+        if (item.type === 'chunk') modules[item.fileName] = item.moduleIds.map((m) => stableModuleId(m, root));
+      }
+      this.emitFile({ type: 'asset', fileName: '.chunk-modules.json', source: JSON.stringify(modules) });
     },
   };
 }
@@ -119,6 +147,7 @@ export default defineConfig({
   plugins: [
     react(),
     serviceWorkerDev(),
+    stableChunkNamesPlugin(),
     ...(uploadSourceMaps
       ? [
           sentryVitePlugin({

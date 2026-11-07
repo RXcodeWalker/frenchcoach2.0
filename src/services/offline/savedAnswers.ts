@@ -9,11 +9,18 @@
  * marks it through the normal path — the same allowance, XP, Session and
  * evidence as an answer given online. Nothing here is marked or scored.
  *
+ * Once marked, the answer stays here as `marked` with its feedback, so the
+ * learner can read it again for free (owner, 2026-11-06): only an answer that
+ * has not been corrected yet spends one of the day's marked answers.
+ *
  * Stored in IndexedDB (audio is too big for localStorage), per account scope
  * (`userId` or `guest`), at most MAX_SAVED_ANSWERS per scope. Never synced,
- * never sent anywhere except `/api/transcribe` (via the processor) — the audio
- * is deleted as soon as the answer has been marked or the learner deletes it.
+ * never sent anywhere except `/api/transcribe` (via the processor). It goes
+ * when the learner deletes it, or, once marked, when room is needed for a new
+ * offline answer (the oldest marked one goes first).
  */
+import type { FeedbackV2 } from '../../types';
+import type { ExaminerFeedback } from '../coaching/examinerFeedback';
 
 export type SavedAnswerStatus =
   /** Not uploaded yet (offline, or the last upload failed). */
@@ -21,7 +28,14 @@ export type SavedAnswerStatus =
   /** Transcribed: ready for feedback. */
   | 'ready'
   /** Uploaded, but no speech could be read from it. */
-  | 'unclear';
+  | 'unclear'
+  /** Marked in Learn; `marked` holds the feedback, which is shown again for free. */
+  | 'marked';
+
+/** The feedback a saved answer got when it was marked (what "See feedback" shows). */
+export type SavedAnswerFeedback =
+  | { style: 'coach'; feedback: FeedbackV2 }
+  | { style: 'examiner'; result: ExaminerFeedback };
 
 export interface SavedAnswer {
   id: string;
@@ -37,6 +51,9 @@ export interface SavedAnswer {
   status: SavedAnswerStatus;
   transcript: string | null;
   uploadAttempts: number;
+  /** Set with status `marked`. */
+  marked?: SavedAnswerFeedback;
+  markedAt?: string;
 }
 
 export type NewSavedAnswer = Pick<SavedAnswer, 'scope' | 'questionId' | 'topicKey' | 'questionText' | 'durationSec'> & {
@@ -152,7 +169,13 @@ export async function getSavedAnswer(id: string, scope: string): Promise<SavedAn
 
 export async function saveAnswer(input: NewSavedAnswer, now: Date = new Date()): Promise<SavedAnswer> {
   const existing = await listSavedAnswers(input.scope);
-  if (existing.length >= MAX_SAVED_ANSWERS) throw new SavedAnswersFullError();
+  if (existing.length >= MAX_SAVED_ANSWERS) {
+    // Make room by dropping already-marked answers, oldest first; never one still waiting for feedback.
+    const marked = existing.filter((a) => a.status === 'marked');
+    const excess = existing.length - MAX_SAVED_ANSWERS + 1;
+    if (marked.length < excess) throw new SavedAnswersFullError();
+    for (const old of marked.slice(0, excess)) await store().delete(old.id);
+  }
   const item: SavedAnswer = {
     id: `saved-${now.getTime()}-${Math.random().toString(36).slice(2, 7)}`,
     scope: input.scope,
@@ -177,6 +200,17 @@ export async function updateSavedAnswer(id: string, patch: Partial<Pick<SavedAns
   if (!item) return;
   await store().put({ ...item, ...patch });
   changed();
+}
+
+/** Learn marked this saved answer: keep its feedback so it can be read again without a new charge. */
+export async function markSavedAnswer(id: string, feedback: SavedAnswerFeedback, now: Date = new Date()): Promise<void> {
+  try {
+    const item = await store().get(id);
+    if (!item) return;
+    await store().put({ ...item, status: 'marked', marked: feedback, markedAt: now.toISOString() });
+  } finally {
+    changed();
+  }
 }
 
 export async function deleteSavedAnswer(id: string): Promise<void> {

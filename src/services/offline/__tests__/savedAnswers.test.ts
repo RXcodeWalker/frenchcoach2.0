@@ -6,6 +6,7 @@ import {
   deleteSavedAnswersFor,
   getSavedAnswer,
   listSavedAnswers,
+  markSavedAnswer,
   memoryBackend,
   saveAnswer,
   savedAnswerBlob,
@@ -55,6 +56,31 @@ describe('saved answers (offline Learn recordings)', () => {
     for (let i = 0; i < MAX_SAVED_ANSWERS; i++) await saveAnswer(answer('user-1', `q${i}`));
     await expect(saveAnswer(answer('user-1'))).rejects.toBeInstanceOf(SavedAnswersFullError);
     await expect(saveAnswer(answer('user-2'))).resolves.toBeTruthy();
+  });
+
+  it('keeps a marked answer with its feedback, so reading it again needs no new marking', async () => {
+    const saved = await saveAnswer(answer());
+    await updateSavedAnswer(saved.id, { status: 'ready', transcript: 'Mon collège est grand.' });
+    const feedback = { scores: { overall: 7 } } as never;
+    await markSavedAnswer(saved.id, { style: 'coach', feedback }, new Date('2026-11-05T09:00:00Z'));
+    const marked = await getSavedAnswer(saved.id, 'user-1');
+    expect(marked?.status).toBe('marked');
+    expect(marked?.marked).toEqual({ style: 'coach', feedback });
+    expect(marked?.markedAt).toBe('2026-11-05T09:00:00.000Z');
+    expect(marked?.transcript).toBe('Mon collège est grand.');
+  });
+
+  it('makes room for a new offline answer by dropping the oldest marked one, never one still waiting', async () => {
+    const first = await saveAnswer(answer('user-1', 'q0'), new Date('2026-11-01T10:00:00Z'));
+    for (let i = 1; i < MAX_SAVED_ANSWERS; i++) await saveAnswer(answer('user-1', `q${i}`), new Date(Date.UTC(2026, 10, 2, 10, i)));
+    await markSavedAnswer(first.id, { style: 'coach', feedback: {} as never });
+    const added = await saveAnswer(answer('user-1', 'new'));
+    const ids = (await listSavedAnswers('user-1')).map((a) => a.id);
+    expect(ids).toHaveLength(MAX_SAVED_ANSWERS);
+    expect(ids).not.toContain(first.id);
+    expect(ids).toContain(added.id);
+    // All 20 waiting again: nothing may be dropped.
+    await expect(saveAnswer(answer('user-1', 'one-more'))).rejects.toBeInstanceOf(SavedAnswersFullError);
   });
 
   it('updates, deletes and tells listeners', async () => {

@@ -9,16 +9,17 @@ import { setActiveLearnHomework } from '../features/homework/homeworkContext';
 import { useMyHomework } from '../features/homework/useMyHomework';
 import { TOPICS, getTopicQuestions, getQuestionById } from '../data/gameData';
 import { isOnline } from '../pwa/useOnlineStatus';
-import { SAVED_ANSWER_PARAM } from '../features/learn/savedAnswers/savedAnswerLink';
+import { SAVED_ANSWER_AGAIN_PARAM, SAVED_ANSWER_PARAM, canMarkSavedAnswer } from '../features/learn/savedAnswers/savedAnswerLink';
 import { useSavedAnswers, useSavedAnswerScope } from '../features/learn/savedAnswers/useSavedAnswers';
 import {
-  deleteSavedAnswer,
   getSavedAnswer,
+  markSavedAnswer,
   saveAnswer,
   savedAnswerBlob,
   SavedAnswersFullError,
   MAX_SAVED_ANSWERS,
   type SavedAnswer,
+  type SavedAnswerFeedback,
 } from '../services/offline/savedAnswers';
 import { getAIFeedback, streamFeedback, getExaminerFeedback, isExaminerQuotaExceededError, getLearnAllowance, isLearnDailyLimitError, SIGNED_OUT_FEEDBACK_REASON } from '../services/api/apiClient';
 import { LEARN_ANSWERS_PER_DAY, dailySessionLength, learnDailyLimit, learnDailyLimitMessage } from '../features/learn/dailyAllowance';
@@ -235,17 +236,20 @@ export function Learn() {
   // recorder's (pronunciation, "How it sounded", the speaking log). Cleared
   // as soon as a new answer is recorded.
   const replayRef = useRef<{ id: string; blob: Blob; durationSec: number } | null>(null);
-  // The feedback attempt that marks the saved answer; it is deleted once marked.
+  // The feedback attempt that marks the saved answer; its feedback is kept on it once marked.
   const replayAttemptRef = useRef<{ attemptId: number; savedId: string } | null>(null);
   const answerAudio = (): Promise<Blob | null> =>
     replayRef.current ? Promise.resolve(replayRef.current.blob) : recording.audioBlobPromise();
   const answerDurationSec = (): number => replayRef.current?.durationSec ?? recording.elapsedTime;
-  /** A saved answer has been marked: its stored copy is no longer needed. */
-  const settleSavedAnswer = (attemptId: number) => {
+  /**
+   * A saved answer has been marked (it spent one of today's answers): keep the
+   * feedback on it, so reading it again from Saved answers costs nothing.
+   */
+  const settleSavedAnswer = (attemptId: number, marked: SavedAnswerFeedback) => {
     const pending = replayAttemptRef.current;
     if (!pending || pending.attemptId !== attemptId) return;
     replayAttemptRef.current = null;
-    void deleteSavedAnswer(pending.savedId);
+    void markSavedAnswer(pending.savedId, marked);
   };
 
   // Product analytics: the open session (so leaving mid-session can be
@@ -394,12 +398,13 @@ export function Learn() {
 
   // `/learn?saved=<id>` (Saved answers' "Get feedback") opens that answer once.
   const savedAnswerParam = searchParams.get(SAVED_ANSWER_PARAM);
+  const savedAnswerAgain = searchParams.get(SAVED_ANSWER_AGAIN_PARAM) === '1';
   const openedSavedAnswerRef = useRef<string | null>(null);
   useEffect(() => {
     if (!savedAnswerParam || openedSavedAnswerRef.current === savedAnswerParam) return;
     let cancelled = false;
     void getSavedAnswer(savedAnswerParam, savedScope).then((item) => {
-      if (cancelled || !item || item.status !== 'ready') return;
+      if (cancelled || !item || !canMarkSavedAnswer(item.status, savedAnswerAgain)) return;
       openedSavedAnswerRef.current = savedAnswerParam;
       openSavedAnswer(item);
     });
@@ -601,7 +606,7 @@ export function Learn() {
     if (finalizedAttemptIdRef.current === attemptId) return;
     finalizedAttemptIdRef.current = attemptId;
     // An offline (local heuristic) evaluation leaves a saved answer waiting for real feedback.
-    if (fb.engineMeta?.actualEngine !== 'offline') settleSavedAnswer(attemptId);
+    if (fb.engineMeta?.actualEngine !== 'offline') settleSavedAnswer(attemptId, { style: 'coach', feedback: fb });
 
     // Apply avoidance signals
     if (avoidanceSignals.length > 0 && !fb.avoidanceReport?.length) {
@@ -1034,7 +1039,7 @@ export function Learn() {
         if (myAttemptId !== attemptIdRef.current) return;
         setExaminerFeedbackResult(result);
         setExaminerStatus('done');
-        settleSavedAnswer(myAttemptId);
+        settleSavedAnswer(myAttemptId, { style: 'examiner', result });
         logSpeakingSample(myAttemptId, transcript, {
           style: 'examiner', sessionId: null, score: null, aiFluency: null, durationSec: answerDurationSec(),
         });

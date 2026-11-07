@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && tsx --tsconfig tsconfig.scripts.json scripts/seo/prerender.ts && tsx --tsconfig tsconfig.scripts.json scripts/seo/sitemap.ts && tsx --tsconfig tsconfig.scripts.json scripts/pwa/buildServiceWorker.ts && tsx --tsconfig tsconfig.scripts.json scripts/android/writeAssetLinks.ts",
+    "build": "vite build && tsx --tsconfig tsconfig.scripts.json scripts/build/applyStableChunkNames.ts && tsx --tsconfig tsconfig.scripts.json scripts/seo/prerender.ts && tsx --tsconfig tsconfig.scripts.json scripts/seo/sitemap.ts && tsx --tsconfig tsconfig.scripts.json scripts/pwa/buildServiceWorker.ts && tsx --tsconfig tsconfig.scripts.json scripts/android/writeAssetLinks.ts",
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
@@ -87,6 +87,7 @@
     "@types/web-push": "^3.6.4",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.18",
+    "es-module-shims": "2.8.4",
     "esbuild": "^0.21.5",
     "eslint": "^9.9.1",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
