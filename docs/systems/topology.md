@@ -61,8 +61,10 @@ and may charge `assignment_learn_answer` instead of `learn_answer`. Both decisio
   `lazyScreen`); startup is the entry, `app-core` (the shell's own code) and the `vendor-*`
   chunks — ~0.28 MB compressed, was 1.2 MB in one 4.2 MB file. `vite.config.ts`'s `namedChunk`
   keeps library code and startup app code in stable files so a deploy that touches one screen
-  renames ~2 files; a change to startup app code still renames every chunk that imports it
-  (no import maps yet). What is cached is decided by
+  renames ~2 files. Since 2026-11-06 an import map makes names depend only on a chunk's own code
+  (`scripts/build/applyStableChunkNames.ts`, run right after `vite build`): one-line changes to a
+  screen or to startup code each renamed 1 of ~190 files in testing. Browsers without import maps
+  (iOS before 16.4) load `es-module-shims` from `/assets/`. What is cached is decided by
   the pure `src/pwa/swRouting.ts`: page loads network-first with a 3.5 s timeout then the cached
   shell; hashed assets cache-first; Google Fonts; recorded voices from the public `tts-audio`
   bucket (cache-first, 500 newest, range requests answered from the cached file). Everything that
@@ -73,7 +75,8 @@ and may charge `assignment_learn_answer` instead of `learn_answer`. Both decisio
   (`src/lib/offlineSession.ts`) until supabase-js refreshes it. Learn answers recorded offline
   are kept in IndexedDB (`src/services/offline/savedAnswers.ts`), uploaded to `/api/transcribe`
   (`purpose: 'learn'`) when the connection returns, and marked from `/learn/saved` through
-  Learn's normal path. Explore greys out modes marked `needsConnection` in `src/data/features.ts`.
+  Learn's normal path. Once marked, an answer keeps its feedback and is read again from
+  `/learn/saved` with no request, so it never spends a second daily answer. Explore greys out modes marked `needsConnection` in `src/data/features.ts`.
 - The scoring service (`french-scoring`) is reached directly by the browser via
   `VITE_SCORING_API_URL` — it is not proxied through `vercel.json`.
 - **The Android app (`android/`, 2026-11-03) is not a fourth runtime.** It is a Trusted Web
