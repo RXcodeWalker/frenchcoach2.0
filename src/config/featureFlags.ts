@@ -63,9 +63,11 @@ export const FEATURE_FLAGS = {
   // owner the same day. Rollback: 'coming-soon' (pushes and pulls of the key stop).
   learnerModelSync: 'live',
   // learner-model §7 phase 4: the Home coach (coachBriefInput) reads the model.
-  learnerModelCoach: 'coming-soon',
+  // Switched live by the owner on 2026-11-08. Rollback: 'coming-soon'.
+  learnerModelCoach: 'live',
   // learner-model §7 phase 5: Learn's ability read and focus skills read the model.
-  learnerModelLearn: 'coming-soon',
+  // Switched live by the owner on 2026-11-08. Rollback: 'coming-soon'.
+  learnerModelLearn: 'live',
   // learner-model §7 phase 6: Progress's "Grammar to work on" reads the model.
   // Switched live by the owner on 2026-11-07. Rollback: 'coming-soon'.
   learnerModelProgress: 'live',

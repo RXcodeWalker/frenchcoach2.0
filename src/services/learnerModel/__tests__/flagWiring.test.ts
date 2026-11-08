@@ -43,10 +43,10 @@ beforeEach(() => {
 });
 
 describe('learner-model flags', () => {
-  it('readers ship off (coming-soon); sync is live (migration applied 2026-11-07)', () => {
+  it('every learner-model flag is live (2026-11-08)', () => {
     expect(FEATURE_FLAGS.learnerModelSync).toBe('live');
-    expect(FEATURE_FLAGS.learnerModelCoach).toBe('coming-soon');
-    expect(FEATURE_FLAGS.learnerModelLearn).toBe('coming-soon');
+    expect(FEATURE_FLAGS.learnerModelCoach).toBe('live');
+    expect(FEATURE_FLAGS.learnerModelLearn).toBe('live');
     expect(FEATURE_FLAGS.learnerModelProgress).toBe('live');
   });
 
@@ -58,6 +58,7 @@ describe('learner-model flags', () => {
   });
 
   it('learnerModelCoach: off reads the evidence snapshot; on reads the model (and the registry coverage)', () => {
+    setFlags({ learnerModelCoach: 'coming-soon' });
     appendEvidenceEvents([oldEvent('o1', ['gender']), oldEvent('o2', ['gender']), oldEvent('o3', ['gender'])]);
     const model = modelWith(weakTense);
     const off = gatherCoachInput({ learnAnswersLeft: 3, learnerModel: model });
@@ -73,6 +74,7 @@ describe('learner-model flags', () => {
   });
 
   it('learnerModelLearn: off keeps the old snapshot and cold start; on reads the model\'s demands', () => {
+    setFlags({ learnerModelLearn: 'coming-soon' });
     const model = modelWith(strongJustify);
     expect(learnBeliefSnapshot(model)).toBeNull();
     expect(sessionAbility(undefined, model).source).toBe('seeded');
