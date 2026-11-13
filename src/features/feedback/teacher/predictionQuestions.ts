@@ -95,6 +95,19 @@ const NOT_FOUND_LABEL: Record<Exclude<PredictionCheckId, 'mistakes' | 'tense'>, 
   linking: 'a linking word',
 };
 
+/**
+ * What the learner claimed, restated so each verdict connects back to the
+ * question they answered while they waited: "You said you linked your ideas…".
+ * `yes` is the claim as made; `no` is the claim they denied.
+ */
+const CLAIM: Record<Exclude<PredictionCheckId, 'mistakes' | 'tense'>, { yes: string; no: string }> = {
+  conditional: { yes: 'You said you talked about what you would do', no: "You thought you hadn't said what you would do" },
+  reason: { yes: 'You said you explained why', no: "You thought you hadn't explained why" },
+  comparison: { yes: 'You said you made a comparison', no: "You thought you hadn't made a comparison" },
+  opinion: { yes: 'You said you gave your opinion', no: "You thought you hadn't given your opinion" },
+  linking: { yes: 'You said you linked your ideas', no: "You thought you hadn't linked your ideas" },
+};
+
 function tenseCheck(frames: Frame[]): PredictionCheck {
   const label = frames.length === 2 ? 'the past or the future' : FRAME_LABEL[frames[0]];
   return { id: 'tense', prompt: `Did you talk about ${label}?`, frames };
@@ -174,27 +187,47 @@ function markerLine(check: PredictionCheck, answer: PredictionAnswer, transcript
     tryNext = TRY_NEXT[id];
   }
 
+  const claim =
+    check.id === 'tense'
+      ? {
+          yes: `You said you talked about ${frameLabel(check)}`,
+          no: `You thought you hadn't talked about ${frameLabel(check)}`,
+        }
+      : CLAIM[check.id as keyof typeof CLAIM];
+  // With two frames asked about, say which one was found.
+  const which = check.id === 'tense' && (check.frames?.length ?? 0) === 2 ? `, about ${label}` : '';
+
   if (hit) {
-    const found =
-      check.id === 'tense' ? `you talked about ${label}: ${quoted(hit.quote)}` : `here it is: ${quoted(hit.quote)}`;
     return answer === 'yes'
-      ? { id: check.id, answer, verdict: 'right', quote: hit.quote, text: `Right, ${found}.` }
-      : { id: check.id, answer, verdict: 'wrong', quote: hit.quote, text: `You did better than you thought, ${found}.` };
+      ? { id: check.id, answer, verdict: 'right', quote: hit.quote, text: `${claim.yes}, and you did${which}: ${quoted(hit.quote)}.` }
+      : {
+          id: check.id,
+          answer,
+          verdict: 'wrong',
+          quote: hit.quote,
+          text: `${claim.no}, but you did${which}: ${quoted(hit.quote)}. You did better than you thought.`,
+        };
   }
-  const missing = check.id === 'tense' ? `you talking about ${label}` : label;
+  // The claim already names the time frame, so a tense miss just says "it".
+  const missing = check.id === 'tense' ? 'it' : label;
   return answer === 'yes'
     ? {
         id: check.id,
         answer,
         verdict: 'unsure',
-        text: `You thought so, but I couldn't spot ${missing}. Make it unmistakable next time: ${tryNext}.`,
+        text: `${claim.yes}, but I couldn't spot ${missing}. Make it unmistakable next time: ${tryNext}.`,
       }
     : {
         id: check.id,
         answer,
         verdict: 'right',
-        text: `Agreed, I couldn't spot ${missing} either. Add one next time: ${tryNext}.`,
+        text: `${claim.no}, and I couldn't spot ${missing} either. Add one next time: ${tryNext}.`,
       };
+}
+
+function frameLabel(check: PredictionCheck): string {
+  const frames = check.frames ?? [];
+  return frames.length === 2 ? 'the past or the future' : FRAME_LABEL[frames[0] ?? 'past'];
 }
 
 function mistakesLine(answer: PredictionAnswer, fixes: FeedbackFixes): CalibrationLine {
@@ -203,17 +236,28 @@ function mistakesLine(answer: PredictionAnswer, fixes: FeedbackFixes): Calibrati
   const count = n === 1 ? 'one thing to fix' : `${n} things to fix`;
   if (n === 0) {
     return answer === 'no'
-      ? { id: 'mistakes', answer, verdict: 'right', text: "Spot on: I didn't find a mistake." }
-      : { id: 'mistakes', answer, verdict: 'wrong', text: "You were harder on yourself than you needed to be: I didn't find a mistake." };
+      ? { id: 'mistakes', answer, verdict: 'right', text: "You thought your grammar was mistake-free, and it was: I didn't find a mistake." }
+      : {
+          id: 'mistakes',
+          answer,
+          verdict: 'wrong',
+          text: "You thought you'd made a grammar mistake, but I didn't find one. You were harder on yourself than you needed to be.",
+        };
   }
   return answer === 'yes'
-    ? { id: 'mistakes', answer, verdict: 'right', quote: first, text: `Good ear: there's ${count}, starting with ${quoted(first)}.` }
+    ? {
+        id: 'mistakes',
+        answer,
+        verdict: 'right',
+        quote: first,
+        text: `You thought you'd made a grammar mistake. Good ear: there's ${count}, starting with ${quoted(first)}.`,
+      }
     : {
         id: 'mistakes',
         answer,
         verdict: 'wrong',
         quote: first,
-        text: `You thought it was mistake-free, but there's ${count}, starting with ${quoted(first)}. Listen out for it next time.`,
+        text: `You thought your grammar was mistake-free, but there's ${count}, starting with ${quoted(first)}. Listen out for it next time.`,
       };
 }
 

@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BookOpen, ChevronDown } from 'lucide-react';
 import type { TeachMe, MiniLesson } from '../../../types';
 
@@ -7,12 +7,20 @@ interface Props {
   teachMe?: TeachMe;
   mini_lesson?: MiniLesson;
   defaultOpen?: boolean;
-  /** Forces open state from outside (e.g. the report's "expand all" control). */
+  /** Forces open state from outside (locks the toggle). */
   forceOpen?: boolean;
+  /**
+   * The report's "Open all / Close all lessons": each new command (`seq`) sets
+   * the lesson open or closed once, and the learner can still toggle it after.
+   */
+  command?: { open: boolean; seq: number } | null;
 }
 
-export function TeachMeLesson({ teachMe, mini_lesson, defaultOpen = false, forceOpen }: Props) {
-  const [open, setOpen] = useState(defaultOpen);
+export function TeachMeLesson({ teachMe, mini_lesson, defaultOpen = false, forceOpen, command }: Props) {
+  const [open, setOpen] = useState(command ? command.open : defaultOpen);
+  useEffect(() => {
+    if (command) setOpen(command.open);
+  }, [command]);
   const isOpen = forceOpen ?? open;
 
   // Prefer mini_lesson (new backend) over teachMe (offline / legacy)

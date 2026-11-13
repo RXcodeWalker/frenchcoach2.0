@@ -53,13 +53,13 @@ describe('calibrationLines — every answered check gets a verdict', () => {
 
   it('confirms with the words found, quoted verbatim', () => {
     const lines = calibrationLines(checks, { linking: 'yes' }, LIBRARY_ANSWER, NO_FIXES);
-    expect(lines).toEqual([{ id: 'linking', answer: 'yes', verdict: 'right', quote: 'aussi', text: 'Right, here it is: « aussi ».' }]);
+    expect(lines).toEqual([{ id: 'linking', answer: 'yes', verdict: 'right', quote: 'aussi', text: 'You said you linked your ideas, and you did: « aussi ».' }]);
   });
 
   it('tells a learner who said no that they did it', () => {
     const [line] = calibrationLines(checks, { reason: 'no' }, "J'aime le foot parce que c'est drôle.", NO_FIXES);
     expect(line.verdict).toBe('wrong');
-    expect(line.text).toBe("You did better than you thought, here it is: « parce que c'est drôle ».");
+    expect(line.text).toBe("You thought you hadn't explained why, but you did: « parce que c'est drôle ». You did better than you thought.");
   });
 
   it('says "couldn\'t spot" (never "you didn\'t") when nothing was found, with what to try', () => {
@@ -69,14 +69,14 @@ describe('calibrationLines — every answered check gets a verdict', () => {
     expect(yes.text).toContain('parce que');
     const [no] = calibrationLines(checks, { reason: 'no' }, LIBRARY_ANSWER, NO_FIXES);
     expect(no.verdict).toBe('right');
-    expect(no.text).toMatch(/^Agreed, I couldn't spot a reason either/);
+    expect(no.text).toMatch(/^You thought you hadn't explained why, and I couldn't spot a reason either/);
   });
 
   it('judges the mistakes check against the fixes the feedback lists', () => {
     const fixes = { quotes: ['des autres choses', 'mon mère'] };
     expect(calibrationLines(checks, { mistakes: 'yes' }, LIBRARY_ANSWER, fixes)[0]).toMatchObject({
       verdict: 'right',
-      text: "Good ear: there's 2 things to fix, starting with « des autres choses ».",
+      text: "You thought you'd made a grammar mistake. Good ear: there's 2 things to fix, starting with « des autres choses ».",
     });
     expect(calibrationLines(checks, { mistakes: 'no' }, LIBRARY_ANSWER, fixes)[0].verdict).toBe('wrong');
     expect(calibrationLines(checks, { mistakes: 'no' }, LIBRARY_ANSWER, NO_FIXES)[0]).toMatchObject({ verdict: 'right' });
@@ -86,7 +86,7 @@ describe('calibrationLines — every answered check gets a verdict', () => {
   it('finds the time frame the question asked about', () => {
     const tense = predictionChecks(d('describe', ['past', 'future']));
     const [line] = calibrationLines(tense, { tense: 'yes' }, 'Demain je vais aller au parc.', NO_FIXES);
-    expect(line.text).toBe('Right, you talked about the future: « je vais aller ».');
+    expect(line.text).toBe('You said you talked about the past or the future, and you did, about the future: « je vais aller ».');
     const pastOnly: PredictionCheck[] = predictionChecks(d('describe', ['past']));
     expect(calibrationLines(pastOnly, { tense: 'yes' }, 'Demain je vais aller au parc.', NO_FIXES)[0].verdict).toBe('unsure');
   });

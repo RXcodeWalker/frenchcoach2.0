@@ -118,7 +118,7 @@ describe('FeedbackExperience coach view (Batch 6a + 6b)', () => {
     showMe();
     const text = container.textContent ?? '';
     const order = [
-      'What you did well', 'Fix these first', 'Also worth fixing', 'Say it better', 'Go further', 'Now say it again, and use the fixes.', '6.5', 'Get new feedback', 'Next question',
+      'What you did well', 'Fix these first', 'Also worth fixing', 'Say it better', 'Now say it again, and use the fixes.', '6.5', 'Open the Full report', 'Get new feedback', 'Next question',
     ].map((t) => text.lastIndexOf(t)); // the live region at the top repeats the talk, so take the visible one
     expect(order.every((i) => i >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
@@ -202,17 +202,46 @@ describe('FeedbackExperience coach view (Batch 6a + 6b)', () => {
     expect(text).toContain('Stretch (B2)');
   });
 
-  it('shows Go further (vocabulary and expansion ideas) but keeps the one focus in the Full report', () => {
-    const { container } = renderFeedback();
-    const goFurther = screen.getByRole('region', { name: 'Go further' });
-    expect(goFurther.textContent).toContain('Vocabulary');
-    expect(goFurther.textContent).toContain('How To Extend Your Answer');
+  it('keeps vocabulary, extension ideas and the model answer in the Full report only (owner, 2026-11-13)', () => {
+    const { container } = renderFeedback({ modelAnswer: 'Le modèle.' });
+    showMe();
+    expect(screen.queryByRole('region', { name: 'Go further' })).toBeNull();
+    expect(container.textContent).not.toContain('How To Extend Your Answer');
+    expect(container.textContent).not.toContain('Show model answer');
     expect(container.textContent).not.toContain('Add one sentence about what you will do next weekend.');
+    // One tap to the report, which has all three.
+    fireEvent.click(screen.getByRole('button', { name: /Open the Full report/ }));
+    expect(container.textContent).toContain('Vocabulary');
+    expect(container.textContent).toContain('How To Extend Your Answer');
+    expect(container.textContent).toContain('Show model answer');
   });
 
-  it('has no Go further section when there is nothing to add', () => {
-    renderFeedback({ feedback: { ...FEEDBACK, vocabulary: [], expansion_ideas: [] } as FeedbackV2 });
-    expect(screen.queryByRole('region', { name: 'Go further' })).toBeNull();
+  it('has no Full report pointer when there is nothing extra there', () => {
+    renderFeedback({ feedback: { ...FEEDBACK, vocabulary: [], vocabularyV2: [], expansion_ideas: [] } as FeedbackV2 });
+    expect(screen.queryByRole('button', { name: /Open the Full report/ })).toBeNull();
+  });
+
+  it('shows the answer as it was confirmed and marked, not the raw captions', () => {
+    const { container } = renderFeedback({
+      transcript: 'hier je suis allé au parc',
+      feedback: { ...FEEDBACK, gradedTranscript: TRANSCRIPT } as FeedbackV2,
+    });
+    expect(container.textContent).toContain(TRANSCRIPT);
+    expect(container.textContent).not.toContain('hier je suis allé au parc');
+  });
+
+  it('asks before "Get new feedback", because it is marked again and uses a daily answer', () => {
+    const onRetry = vi.fn();
+    renderFeedback({ onRetry, retryNote: 'Uses one of your 3 Learn answers for today.' });
+    fireEvent.click(screen.getByRole('button', { name: /Get new feedback/ }));
+    expect(onRetry).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog').textContent).toContain('Uses one of your 3 Learn answers for today.');
+    fireEvent.click(screen.getByRole('button', { name: 'Keep this feedback' }));
+    expect(onRetry).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /Get new feedback/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, use an answer' }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
   it('the Full report holds the one focus and the third correction', () => {
@@ -283,6 +312,7 @@ describe('FeedbackExperience typed reveal (Batch 6b)', () => {
     expect((retry as HTMLButtonElement).disabled).toBe(false);
     fireEvent.click(next);
     fireEvent.click(retry);
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, use an answer' }));
     expect(onComplete).toHaveBeenCalledTimes(1);
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
@@ -373,7 +403,9 @@ describe('FeedbackExperience while the feedback is generated (Batch 6b)', () => 
         <FeedbackExperience feedback={FEEDBACK} transcript="Hier j'ai mangé une pizza parce que c'est délicieux." demands={demands} onRetry={vi.fn()} onComplete={vi.fn()} />
       </MemoryRouter>,
     );
-    expect(view.container.textContent).toContain("You did better than you thought, here it is: « parce que c'est délicieux ».");
+    // The verdict restates the prediction, then quotes the evidence.
+    expect(view.container.textContent).toContain("You thought you hadn't explained why, but you did: « parce que c'est délicieux ».");
+    expect(view.container.textContent).toContain('While you waited, you predicted how your answer went.');
   });
 
   it('shows the verdicts in the Full report too (owner report 2026-10-31)', () => {

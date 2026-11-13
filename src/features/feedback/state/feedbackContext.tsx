@@ -7,8 +7,6 @@ interface FeedbackUIState {
   highlightedCardId: string | null;
   /** Docs Stage 6: segmented control at the top of the feedback stack. */
   viewMode: 'coach' | 'report';
-  /** Docs Stage 6: report's explicit "expand all" for collapsed lessons. */
-  expandAllLessons: boolean;
 }
 
 type Action =
@@ -17,8 +15,7 @@ type Action =
   | { type: 'SET_DEEP_MODE'; value: boolean }
   | { type: 'SELECT_ISSUE'; issueId: string | null }
   | { type: 'HIGHLIGHT_CARD'; cardId: string | null }
-  | { type: 'SET_VIEW_MODE'; mode: 'coach' | 'report' }
-  | { type: 'SET_EXPAND_ALL_LESSONS'; value: boolean };
+  | { type: 'SET_VIEW_MODE'; mode: 'coach' | 'report' };
 
 function reducer(state: FeedbackUIState, action: Action): FeedbackUIState {
   switch (action.type) {
@@ -40,8 +37,6 @@ function reducer(state: FeedbackUIState, action: Action): FeedbackUIState {
       return { ...state, highlightedCardId: action.cardId };
     case 'SET_VIEW_MODE':
       return { ...state, viewMode: action.mode };
-    case 'SET_EXPAND_ALL_LESSONS':
-      return { ...state, expandAllLessons: action.value };
     default:
       return state;
   }
@@ -59,7 +54,6 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
     selectedIssueId: null,
     highlightedCardId: null,
     viewMode: 'coach',
-    expandAllLessons: false,
   });
   return <FeedbackContext.Provider value={{ state, dispatch }}>{children}</FeedbackContext.Provider>;
 }

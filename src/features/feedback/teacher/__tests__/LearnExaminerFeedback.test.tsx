@@ -69,7 +69,7 @@ describe('LearnExaminerFeedback', () => {
     view.rerender(
       <LearnExaminerFeedback {...base} status="done" result={RESULT} demands={{ cognitiveDemand: 'justify', timeFrames: ['present'] }} />,
     );
-    expect(view.container.textContent).toContain("You did better than you thought, here it is: « parce que j'aime le sport ».");
+    expect(view.container.textContent).toContain("You thought you hadn't explained why, but you did: « parce que j'aime le sport ».");
   });
 
   it('leaves failed, quota and empty states to the examiner card', () => {

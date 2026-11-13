@@ -187,8 +187,9 @@ describe('buildTeacherScript — Predict calibration lines', () => {
   it('sit between the opening and what went well, one talk line each', () => {
     const lines = buildTeacherScript({ register: 'coach', transcript: TRANSCRIPT, groups: [strengths, fixGroup(1)], calibration });
     expect(ids(lines)).toEqual([
-      'learner', 'opening', 'calibration:reason', 'calibration:mistakes', 'points:What you did well', 'connective', 'points:Fix these first',
+      'learner', 'opening', 'calibration:intro', 'calibration:reason', 'calibration:mistakes', 'points:What you did well', 'connective', 'points:Fix these first',
     ]);
+    expect(talk(lines).find((l) => l.role === 'calibrationIntro')?.text).toBe(TEACHER_FRAMING.coach.calibrationIntro);
     expect(talk(lines).filter((l) => l.role === 'calibration').map((l) => l.text)).toEqual(calibration.map((c) => c.text));
   });
 
@@ -246,13 +247,34 @@ describe('recurringFixQuote / buildCoachTeacherScript', () => {
       expansion_ideas: ['Say who you went with.'],
     });
     const lines = buildCoachTeacherScript(feedback, { transcript: TRANSCRIPT, name: 'Marie', recurring: { nodeId: 'etre_avoir', label: 'Être vs Avoir', times: 3 } });
+    // Go further (vocabulary, ideas) lives in the Full report only since 2026-11-13.
     expect(ids(lines)).toEqual([
-      'learner', 'opening', 'points:What you did well', 'connective', 'points:Fix these first',
-      'section:say-it-better', 'section:go-further', 'memory',
+      'learner', 'opening', 'highlights', 'points:What you did well', 'connective', 'points:Fix these first',
+      'section:say-it-better', 'memory',
     ]);
+    expect(ids(buildCoachTeacherScript(feedback, { transcript: TRANSCRIPT, goFurther: true }))).toContain('section:go-further');
     expect(talk(lines)[0].text).toBe('You gave a clear reason with « parce que c’est drôle ».');
     const unrelated = buildCoachTeacherScript(feedback, { transcript: TRANSCRIPT, recurring: { nodeId: 'negation', label: 'Negation', times: 3 } });
     expect(ids(unrelated)).not.toContain('memory');
+  });
+});
+
+describe('buildCoachTeacherScript — what this answer does, quoted', () => {
+  it('says it right after the opening, leaving out what a Predict verdict already covers', () => {
+    const transcript = "Hier j'ai mangé une pizza parce que c'est délicieux.";
+    const feedback = fb({ grammar: { critical: [], polish: [] } as never });
+    const plain = talk(buildCoachTeacherScript(feedback, { transcript }));
+    expect(plain.find((l) => l.role === 'highlights')?.text).toBe(
+      "In this answer you gave a reason (« parce que c'est délicieux ») and talked about the past (« j'ai mangé »).",
+    );
+    const calibration = [{ id: 'reason' as const, answer: 'yes' as const, verdict: 'right' as const, text: 'x', quote: 'parce que' }];
+    const withVerdict = talk(buildCoachTeacherScript(feedback, { transcript, calibration }));
+    expect(withVerdict.find((l) => l.role === 'highlights')?.text).toBe("In this answer you talked about the past (« j'ai mangé »).");
+  });
+
+  it('says nothing when no marker finds anything', () => {
+    const lines = buildCoachTeacherScript(fb({ grammar: { critical: [], polish: [] } as never }), { transcript: 'Je suis grand.' });
+    expect(ids(lines)).not.toContain('highlights');
   });
 });
 
@@ -261,7 +283,8 @@ describe('framing never reads as a mark, band or grade (ADR 0005)', () => {
     const recurring: RecurringMistake = { label: 'Être vs Avoir', times: 3, quote: "j'ai allé" };
     for (const register of ['coach', 'examiner'] as const) {
       const f = TEACHER_FRAMING[register];
-      const strings = [f.opening(null), f.opening('Marie'), f.noFix(null), f.oneFix('Marie'), f.manyFix(null), f.memory(recurring), f.memory({ ...recurring, times: null }), f.sayItBetter, f.goFurther];
+      const strings = [f.opening(null), f.opening('Marie'), f.noFix(null), f.oneFix('Marie'), f.manyFix(null), f.memory(recurring), f.memory({ ...recurring, times: null }), f.sayItBetter, f.goFurther, f.calibrationIntro,
+        f.highlights([{ id: 'reason', phrase: 'gave a reason', quote: "parce que c'est drôle" }, { id: 'tense', phrase: 'talked about the past', quote: "j'ai mangé" }])];
       for (const s of strings) expect(claimMentionsMarkOrBand(s), s).toBe(false);
       const lines = buildTeacherScript({ register, transcript: TRANSCRIPT, name: 'Marie', groups: [strengths, fixGroup(3)], recurring });
       for (const line of talk(lines)) expect(claimMentionsMarkOrBand(line.text), line.text).toBe(false);

@@ -15,28 +15,30 @@ interface Props {
   title?: string;
 }
 
+/**
+ * One changed stretch of the improved answer: only the new words, in green.
+ * The crossed-out originals are not repeated here — "Your response marked up"
+ * already shows them (owner, 2026-11-13). A pure deletion shows nothing; tap a
+ * word that has a reason to see why it changed.
+ */
 function DiffChip({ op }: { op: AnnotatedDiffOp }) {
   const [open, setOpen] = useState(false);
   const hasExplanation = !!op.annotation;
+  if (op.type === 'delete') return null;
 
   return (
     <span className="inline">
-      {op.type === 'delete' || op.type === 'replace' ? (
-        <span className="line-through decoration-correction-text decoration-2 text-ink-muted">{op.beforeText.trim()}</span>
-      ) : null}
-      {op.type === 'replace' ? ' ' : null}
-      {op.type === 'insert' || op.type === 'replace' ? (
-        hasExplanation ? (
-          <button
-            onClick={() => setOpen(o => !o)}
-            className="text-progress-text font-medium underline decoration-progress-text decoration-dotted underline-offset-2 cursor-pointer hover:opacity-80"
-          >
-            {op.afterText}
-          </button>
-        ) : (
-          <span className="text-progress-text font-medium">{op.afterText}</span>
-        )
-      ) : null}
+      {hasExplanation ? (
+        <button
+          onClick={() => setOpen(o => !o)}
+          aria-expanded={open}
+          className="text-progress-text font-medium underline decoration-progress-text decoration-dotted underline-offset-2 cursor-pointer hover:opacity-80"
+        >
+          {op.afterText}
+        </button>
+      ) : (
+        <span className="text-progress-text font-medium">{op.afterText}</span>
+      )}
       {hasExplanation && open && (
         <AnimatePresence>
           <motion.span
@@ -96,13 +98,13 @@ export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = 
       <div className="space-y-2">
         <div className="p-3 rounded-lg surface-recessed">
           <p className="text-eyebrow text-ink-subtle uppercase mb-1.5">Your answer</p>
-          <p className="text-sm text-ink-muted leading-relaxed italic">{transcript}</p>
+          <p className="text-sm text-ink-muted leading-relaxed">{transcript}</p>
         </div>
         <div className="flex justify-center">
           <ArrowDown size={14} className="text-info-text" />
         </div>
         <div className="p-3 rounded-lg bg-info-soft border border-hairline">
-          <p className="text-eyebrow text-info-text uppercase mb-1.5">What changed</p>
+          <p className="text-eyebrow text-info-text uppercase mb-1.5">Improved version</p>
           <p className="text-sm text-ink leading-relaxed">
             {annotated.map((op, i) => op.type === 'equal'
               ? <span key={i}>{op.afterText}</span>
@@ -112,7 +114,7 @@ export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = 
         </div>
         {annotated.some(op => op.annotation) && (
           <p className="text-xs text-ink-subtle flex items-center gap-1">
-            <ChevronDown size={9} /> Tap a highlighted word for why it changed
+            <ChevronDown size={9} /> Changes are in green. Tap an underlined word for why it changed
           </p>
         )}
       </div>

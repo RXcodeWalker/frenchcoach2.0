@@ -8,11 +8,13 @@ interface Props {
   issue: CoachingIssue;
   isSelected?: boolean;
   lessonDefaultOpen?: boolean;
-  /** Forces every lesson open/closed (report's "expand all" control). */
+  /** Forces the lesson open/closed (locks its toggle). */
   lessonForceOpen?: boolean;
+  /** The report's "Open all / Close all lessons" command (see TeachMeLesson). */
+  lessonCommand?: { open: boolean; seq: number } | null;
 }
 
-export function IssueRow({ issue, isSelected, lessonDefaultOpen, lessonForceOpen }: Props) {
+export function IssueRow({ issue, isSelected, lessonDefaultOpen, lessonForceOpen, lessonCommand }: Props) {
   const bg = SEVERITY_BG[issue.severity] ?? '';
   return (
     <div className={`rounded-lg border p-3 ${bg} ${isSelected ? 'ring-1 ring-violet-400/40' : ''}`}>
@@ -79,7 +81,7 @@ export function IssueRow({ issue, isSelected, lessonDefaultOpen, lessonForceOpen
       )}
 
       {/* Prefer mini_lesson (new backend) over teachMe (offline legacy) */}
-      <TeachMeLesson mini_lesson={issue.mini_lesson} teachMe={issue.teachMe} defaultOpen={lessonDefaultOpen} forceOpen={lessonForceOpen} />
+      <TeachMeLesson mini_lesson={issue.mini_lesson} teachMe={issue.teachMe} defaultOpen={lessonDefaultOpen} forceOpen={lessonForceOpen} command={lessonCommand} />
     </div>
   );
 }

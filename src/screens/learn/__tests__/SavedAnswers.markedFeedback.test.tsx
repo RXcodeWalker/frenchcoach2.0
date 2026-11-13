@@ -73,6 +73,9 @@ describe('Saved answers: an answer already marked is read again for free', () =>
     );
     fireEvent.click(screen.getByTestId('see-feedback'));
     fireEvent.click(screen.getAllByRole('button', { name: /Get new feedback/ })[0]);
+    // It is asked first: marking again uses one of today's answers.
+    expect(screen.getByTestId('retry-confirm-note').textContent).toContain('daily Learn answers');
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, use an answer' }));
     expect(screen.getByTestId('where').textContent).toBe('/learn?saved=saved-1&again=1');
   });
 });

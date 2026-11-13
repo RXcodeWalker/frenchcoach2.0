@@ -7,6 +7,7 @@ import { addressName, type TeacherRegister } from './persona';
 import type { FirstId } from './firsts';
 import type { CalibrationLine } from './predictionQuestions';
 import type { SelfCorrection } from '../../../domain/learn/feedback/selfCorrection';
+import { answerHighlights, type AnswerHighlight } from './answerHighlights';
 
 /**
  * The teacher's script (Learn feedback Batch 6b): the already-filtered feedback
@@ -15,8 +16,10 @@ import type { SelfCorrection } from '../../../domain/learn/feedback/selfCorrecti
  *
  *  1. the learner's answer, as their own bubble;
  *  2. the opening — the model's own line when it survived the filters, else a
- *     data-driven template;
- *  3. what the Predict checks found (at most one line per answered check), then
+ *     data-driven template — then one line on what THIS answer does, quoting
+ *     it (`answerHighlights`);
+ *  3. what the Predict checks found (an intro, then at most one line per
+ *     answered check, each restating the prediction), then
  *     any milestone "first" Learn has proven (Batch 6c) — one honest line each —
  *     then any slip the learner fixed themselves (filterCoachFeedback's
  *     `selfCorrections`), credited rather than listed as a fix;
@@ -37,7 +40,7 @@ import type { SelfCorrection } from '../../../domain/learn/feedback/selfCorrecti
 
 export type TeacherLine =
   | { id: string; kind: 'learner'; text: string }
-  | { id: string; kind: 'talk'; role: 'opening' | 'calibration' | 'connective' | 'memory' | 'secondTake' | 'nextQuestion' | 'first' | 'selfCorrection'; text: string }
+  | { id: string; kind: 'talk'; role: 'opening' | 'highlights' | 'calibrationIntro' | 'calibration' | 'connective' | 'memory' | 'secondTake' | 'nextQuestion' | 'first' | 'selfCorrection'; text: string }
   | { id: string; kind: 'points'; group: FeedbackPointGroup }
   /** A block the existing cards render (the diff, vocabulary and ideas); the script only places it. */
   | { id: string; kind: 'section'; section: TeacherSection; heading: string };
@@ -70,6 +73,8 @@ export interface TeacherScriptInput {
   recurring?: RecurringMistake | null;
   /** `calibrationLines(...)` for the Predict checks the learner answered; each carries a quote the markers found. */
   calibration?: CalibrationLine[];
+  /** What this answer does, quoted (`answerHighlights`); said right after the opening. */
+  highlights?: readonly AnswerHighlight[];
   /** Offer the Second take (Batch 6c). Ignored when there is no fix to retake. */
   secondTake?: boolean;
   /**
@@ -96,6 +101,9 @@ export const TEACHER_FRAMING = {
       `« ${r.quote} » is a slip I've seen before: ${r.label} has come up ${
         r.times !== null ? `${r.times} times` : 'more than once'
       } this week. Let's lock it in.`,
+    highlights: (parts: readonly AnswerHighlight[]) =>
+      `In this answer you ${joinParts(parts.map((p) => `${p.phrase} (« ${p.quote} »)`))}.`,
+    calibrationIntro: 'While you waited, you predicted how your answer went. Here is what I found.',
     sayItBetter: 'Say it better',
     goFurther: 'Go further',
     secondTake: 'Now say it again, and use the fixes.',
@@ -123,6 +131,9 @@ export const TEACHER_FRAMING = {
       `« ${r.quote} » — this ${r.label} point has recurred ${
         r.times !== null ? `${r.times} times` : 'more than once'
       } in your recent answers. Please pay particular attention to it.`,
+    highlights: (parts: readonly AnswerHighlight[]) =>
+      `In this answer you ${joinParts(parts.map((p) => `${p.phrase} (« ${p.quote} »)`))}.`,
+    calibrationIntro: 'You made some predictions about your answer. Here is what I found.',
     sayItBetter: 'Say it better',
     goFurther: 'Go further',
     secondTake: 'Now answer once more, applying the corrections.',
@@ -137,6 +148,10 @@ export const TEACHER_FRAMING = {
       `You corrected « ${s.quote} » to « ${s.repair} » yourself. A slip corrected at once is not held against you; aim to say it correctly the first time.`,
   },
 } as const;
+
+function joinParts(parts: readonly string[]): string {
+  return parts.length <= 1 ? (parts[0] ?? '') : `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+}
 
 function countFixes(groups: FeedbackPointGroup[]): number {
   return groups.reduce((n, g) => n + g.points.filter((p) => p.kind === 'fix').length, 0);
@@ -159,6 +174,13 @@ export function buildTeacherScript(input: TeacherScriptInput): TeacherLine[] {
   }
   const connectiveName = modelOpening ? name : null;
 
+  if (input.highlights && input.highlights.length > 0) {
+    lines.push({ id: 'highlights', kind: 'talk', role: 'highlights', text: framing.highlights(input.highlights) });
+  }
+
+  if ((input.calibration ?? []).length > 0) {
+    lines.push({ id: 'calibration:intro', kind: 'talk', role: 'calibrationIntro', text: framing.calibrationIntro });
+  }
   (input.calibration ?? []).forEach((line) => {
     lines.push({ id: `calibration:${line.id}`, kind: 'talk', role: 'calibration', text: line.text });
   });
@@ -249,6 +271,11 @@ export interface CoachScriptContext {
   nextQuestion?: string | null;
   /** Proven milestone firsts for this answer. */
   firsts?: readonly FirstId[];
+  /**
+   * Say Vocabulary / extension ideas in the conversation. Off by default since
+   * 2026-11-13: they live only in the Full report (owner: "only one place").
+   */
+  goFurther?: boolean;
 }
 
 /** The coach-voice script for filtered Learn feedback. */
@@ -261,7 +288,11 @@ export function buildCoachTeacherScript(feedback: FeedbackV2, ctx: CoachScriptCo
     opening: feedback.encouragement,
     groups: coachPointGroups(feedback),
     hasSayItBetter: !!feedback.improved_answer,
-    hasGoFurther: hasGoFurther(feedback),
+    hasGoFurther: !!ctx.goFurther && hasGoFurther(feedback),
+    highlights: answerHighlights(ctx.transcript, {
+      checks: new Set((ctx.calibration ?? []).map((c) => c.id)),
+      firsts: ctx.firsts,
+    }),
     recurring: ctx.recurring && quote ? { label: ctx.recurring.label, times: ctx.recurring.times, quote } : null,
     calibration: ctx.calibration,
     secondTake: ctx.secondTake,

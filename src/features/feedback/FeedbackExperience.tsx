@@ -13,9 +13,7 @@ import { LevelNeedsCard } from './components/LevelNeedsCard';
 import type { MarkingLevel } from '../../domain/learn/marking/markingLevel';
 import { BeforeAfterDiff } from './components/BeforeAfterDiff';
 import { ReportView } from './components/ReportView';
-import { FIX_FIRST_HEADING, coachPointGroups } from './coachPoints';
-import { VocabularyCard } from './components/VocabularyCard';
-import { ExpansionIdeasCard } from './components/ExpansionIdeasCard';
+import { FIX_FIRST_HEADING, coachPointGroups, hasGoFurther } from './coachPoints';
 import { PronunciationCard } from './components/PronunciationCard';
 import { AzurePronunciationCard } from './components/AzurePronunciationCard';
 import { HowItSounded } from '../pronunciation/HowItSounded';
@@ -130,6 +128,8 @@ interface Props {
     answerBlob: Blob | null;
     onPractiseOpened?: () => void;
   };
+  /** What "Get new feedback" costs, for its confirm dialog (Learn says how many answers are left). */
+  retryNote?: string;
 }
 
 /** An answer at or above this overall score is offered to the notebook (the same line as `scoreTone`'s "good"). */
@@ -139,27 +139,33 @@ export type PronunciationStatus = 'idle' | 'pending' | 'done' | 'failed' | 'sign
 
 function FeedbackContent({
   feedback, transcript, modelAnswer, onRetry, onComplete,
-  pronunciationResult, pronunciationStatus, learnerName, recurring, nextQuestion, firsts, notebook, markingLevel, howItSounded, checks, answers,
-}: Pick<Props, 'transcript' | 'modelAnswer' | 'onRetry' | 'onComplete' | 'pronunciationResult' | 'pronunciationStatus' | 'learnerName' | 'recurring' | 'nextQuestion' | 'firsts' | 'notebook' | 'markingLevel' | 'howItSounded'> & {
+  pronunciationResult, pronunciationStatus, learnerName, recurring, nextQuestion, firsts, notebook, markingLevel, howItSounded, retryNote, checks, answers,
+}: Pick<Props, 'transcript' | 'modelAnswer' | 'onRetry' | 'onComplete' | 'pronunciationResult' | 'pronunciationStatus' | 'learnerName' | 'recurring' | 'nextQuestion' | 'firsts' | 'notebook' | 'markingLevel' | 'howItSounded' | 'retryNote'> & {
   feedback: FeedbackV2;
   checks: readonly PredictionCheck[];
   answers: Partial<Record<PredictionCheckId, PredictionAnswer>>;
 }) {
   const { state, majorIssues, polishIssues, openCardFromIssue } = useFeedbackState(feedback);
+  const { dispatch } = useFeedbackContext();
+  // The answer as it was confirmed and marked (the backend echoes it): formatted
+  // and the text every quote was grounded in. The caller's copy can be the raw
+  // live captions (unpunctuated, lower case), which is what "Your answer" used
+  // to show (owner report 2026-11-13).
+  const answerText = feedback.gradedTranscript?.trim() ? feedback.gradedTranscript : (transcript ?? '');
   // The notebook offer appears after a Second take or a high-scoring answer.
   const [tookSecondTake, setTookSecondTake] = useState(false);
 
   // Each answered Predict check, judged against the answer and the filtered fixes.
   const calibration = useMemo(
-    () => calibrationLines(checks, answers, transcript ?? '', fixesFromGroups(coachPointGroups(feedback))),
-    [checks, answers, transcript, feedback],
+    () => calibrationLines(checks, answers, answerText, fixesFromGroups(coachPointGroups(feedback))),
+    [checks, answers, answerText, feedback],
   );
 
   // The teacher's script is built from the feedback that already passed the filters.
   const lines = useMemo(
     () =>
       buildCoachTeacherScript(feedback, {
-        transcript: transcript ?? '',
+        transcript: answerText,
         name: learnerName,
         recurring,
         calibration,
@@ -167,32 +173,28 @@ function FeedbackContent({
         nextQuestion,
         firsts,
       }),
-    [feedback, transcript, learnerName, recurring, nextQuestion, firsts, calibration],
+    [feedback, answerText, learnerName, recurring, nextQuestion, firsts, calibration],
   );
 
+  // Vocabulary, extension ideas and the model answer live only in the Full
+  // report (owner, 2026-11-13: one place, not both); the script no longer
+  // places "Go further" in the conversation.
   const renderSection = (section: 'say-it-better' | 'go-further'): ReactNode =>
-    section === 'say-it-better' ? (
-      transcript ? (
-        <BeforeAfterDiff
-          transcript={transcript}
-          improvedAnswer={feedback.improved_answer}
-          changes={feedback.changes}
-          title="Say it better"
-        />
-      ) : null
-    ) : (
-      <section aria-label="Go further" className="space-y-2">
-        <p className="text-eyebrow uppercase text-ink-muted">Go further</p>
-        <VocabularyCard feedback={feedback} />
-        <ExpansionIdeasCard ideas={feedback.expansion_ideas} />
-      </section>
-    );
+    section === 'say-it-better' && answerText ? (
+      <BeforeAfterDiff
+        transcript={answerText}
+        improvedAnswer={feedback.improved_answer}
+        changes={feedback.changes}
+        title="Say it better"
+      />
+    ) : null;
+  const hasReportExtras = hasGoFurther(feedback) || !!modelAnswer;
 
   if (feedback.responseTier === 0 || feedback.responseTier === 1) {
     return (
       <MinimalResponseCard
         feedback={feedback}
-        transcript={transcript ?? ''}
+        transcript={answerText}
         onRetry={onRetry}
         onComplete={onComplete}
         modelAnswer={modelAnswer}
@@ -211,14 +213,14 @@ function FeedbackContent({
         <ViewModeToggle />
         <ReportView
           feedback={feedback}
-          transcript={transcript}
+          transcript={answerText}
           majorIssues={majorIssues}
           polishIssues={polishIssues}
           onIssueClick={openCardFromIssue}
           markingLevel={markingLevel}
           predictions={<PredictionResults lines={calibration} />}
         />
-        <FeedbackFooter onRetry={onRetry} onComplete={onComplete} modelAnswer={modelAnswer} />
+        <FeedbackFooter onRetry={onRetry} onComplete={onComplete} modelAnswer={modelAnswer} retryNote={retryNote} />
       </motion.div>
     );
   }
@@ -266,7 +268,7 @@ function FeedbackContent({
       <SnapshotCard feedback={feedback} variant="line" markingLevel={markingLevel} />
       {/* learn-marking §6.1 — Coach style only (the Examiner style never gets a marking level). */}
       {markingLevel && (
-        <LevelNeedsCard feedback={feedback} markingLevel={markingLevel} transcript={transcript} />
+        <LevelNeedsCard feedback={feedback} markingLevel={markingLevel} transcript={answerText} />
       )}
 
       {howItSounded ? (
@@ -338,18 +340,25 @@ function FeedbackContent({
         </>
       )}
 
-      <FeedbackFooter
-        onRetry={onRetry}
-        onComplete={onComplete}
-        modelAnswer={modelAnswer}
-      />
+      {hasReportExtras && (
+        <button
+          type="button"
+          onClick={() => dispatch({ type: 'SET_VIEW_MODE', mode: 'report' })}
+          className="w-full rounded-xl surface p-3 text-left text-sm text-ink-muted"
+        >
+          <span className="font-semibold text-action-text">Open the Full report</span> for vocabulary upgrades, ideas to
+          extend your answer and the model answer.
+        </button>
+      )}
+
+      <FeedbackFooter onRetry={onRetry} onComplete={onComplete} retryNote={retryNote} />
     </motion.div>
   );
 }
 
 export function FeedbackExperience({
   feedback, streamPhase, transcript, modelAnswer, onRetry, onComplete,
-  pronunciationResult, pronunciationStatus, demands, learnerName, recurring, nextQuestion, firsts, notebook, markingLevel, howItSounded,
+  pronunciationResult, pronunciationStatus, demands, learnerName, recurring, nextQuestion, firsts, notebook, markingLevel, howItSounded, retryNote,
 }: Props) {
   const checks = useMemo(() => predictionChecks(demands), [demands]);
   const [answers, setAnswers] = useState<Partial<Record<PredictionCheckId, PredictionAnswer>>>({});
@@ -402,6 +411,7 @@ export function FeedbackExperience({
           nextQuestion={nextQuestion}
           markingLevel={markingLevel}
           howItSounded={howItSounded}
+          retryNote={retryNote}
           firsts={firsts}
           notebook={notebook}
           checks={checks}
