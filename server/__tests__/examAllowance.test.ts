@@ -138,3 +138,25 @@ describe('the quota day is India time (owner, 2026-11-06)', () => {
     expect(examAllowanceFrom(['2026-10-19'], now).allowed).toBe(true);
   });
 });
+
+describe('owner account (no limits)', () => {
+  const NOW_ = new Date('2026-10-26T10:00:00Z');
+  const clientFor = (user: { email?: string; app_metadata?: unknown } | null, fail = false) =>
+    ({
+      from: () => { throw new Error('unused'); },
+      rpc: () => { throw new Error('unused'); },
+      auth: { admin: { getUserById: async () => { if (fail) throw new Error('down'); return { data: { user } }; } } },
+    }) as never;
+
+  it('is unlimited only for the admin role with the owner email', async () => {
+    const plan = await loadExamPlan(clientFor({ email: 'OmJhamvar29@gmail.com', app_metadata: { role: 'admin' } }), 'u1');
+    expect(plan.unlimited).toBe(true);
+    expect(examAllowanceFrom(['2026-10-25'], NOW_, plan)).toMatchObject({ allowed: true, unlimited: true });
+  });
+
+  it('is not unlimited with the email alone, the role alone, or a failed lookup', async () => {
+    expect((await loadExamPlan(clientFor({ email: 'omjhamvar29@gmail.com', app_metadata: {} }, false), 'u1')).unlimited).toBeUndefined();
+    expect(await loadExamPlan(clientFor({ email: 'x@y.com', app_metadata: { role: 'admin' } }), 'u1').catch(() => null)).not.toMatchObject({ unlimited: true });
+    expect((await loadExamPlan(clientFor(null, true), 'u1')).unlimited).toBeUndefined();
+  });
+});

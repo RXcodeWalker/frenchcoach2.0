@@ -6,6 +6,13 @@
 /** The number the server's ai_quota_limits row holds; used when the allowance can't be read. */
 export const LEARN_ANSWERS_PER_DAY = 3;
 
+/**
+ * The owner's account (an admin: `isAdminUser`) has no daily Learn limit. The server
+ * exempts it too (backend migration 20261113090000); this only stops the setup screen
+ * from trimming the session to 3 questions.
+ */
+export const OWNER_LEARN_DAILY_LIMIT = 1000;
+
 export const LEARN_DAILY_LIMIT_MESSAGE =
   `You've used today's ${LEARN_ANSWERS_PER_DAY} AI-marked answers. Come back tomorrow for more.`;
 

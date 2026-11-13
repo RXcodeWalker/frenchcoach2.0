@@ -19,6 +19,8 @@ export const EXAM_WINDOW_DAYS = 7;
 
 export interface ExamAllowance {
   allowed: boolean;
+  /** True for the owner's account: no weekly window, no daily limit. */
+  unlimited?: boolean;
   /** True when the Premium rule (per day, no weekly window) was applied. */
   premium: boolean;
   /** UTC date (YYYY-MM-DD) of the latest exam inside the window, if any. */
@@ -55,12 +57,18 @@ export interface ExamPlan {
   premium: boolean;
   /** Exams a Premium account may sit per UTC day; only read when `premium`. */
   premiumDailyLimit: number | null;
+  /** The owner's (admin) account: never limited. */
+  unlimited?: boolean;
 }
+
+/** Same rule as backend lib/auth.py and SQL is_admin(): admin role AND the owner's email. */
+export const OWNER_EMAILS: readonly string[] = ['omjhamvar29@gmail.com'];
 
 export const FREE_EXAM_PLAN: ExamPlan = { premium: false, premiumDailyLimit: null };
 
 /** Pure: the allowance given the UTC grant dates of the account's other exams. */
 export function examAllowanceFrom(grantDates: string[], now: Date, plan: ExamPlan = FREE_EXAM_PLAN): ExamAllowance {
+  if (plan.unlimited) return { allowed: true, unlimited: true, premium: false, lastExamDate: null, nextAvailableAt: null };
   const start = windowStart(now);
   const inWindow = grantDates.filter((d) => d >= start).sort();
   const last = inWindow.length > 0 ? inWindow[inWindow.length - 1] : null;
@@ -83,7 +91,8 @@ export function examAllowanceFrom(grantDates: string[], now: Date, plan: ExamPla
  * keeps POST /score working if this service deploys before migration 20261104230000 (the
  * column would not exist yet).
  */
-export async function loadExamPlan(client: Pick<SupabaseClient, 'from' | 'rpc'>, userId: string): Promise<ExamPlan> {
+export async function loadExamPlan(client: Pick<SupabaseClient, 'from' | 'rpc'> & Partial<Pick<SupabaseClient, 'auth'>>, userId: string): Promise<ExamPlan> {
+  if (await isOwnerAccount(client, userId)) return { premium: false, premiumDailyLimit: null, unlimited: true };
   try {
     const { data, error } = await client
       .from('ai_quota_limits')
@@ -99,6 +108,22 @@ export async function loadExamPlan(client: Pick<SupabaseClient, 'from' | 'rpc'>,
   } catch (err) {
     console.warn('[examAllowance] Premium lookup failed; applying the free rule:', err);
     return FREE_EXAM_PLAN;
+  }
+}
+
+/**
+ * True only for the owner: app_metadata.role = 'admin' AND the owner's email. Any lookup
+ * error or missing auth client reads as "not the owner" (the stricter rule).
+ */
+export async function isOwnerAccount(client: Partial<Pick<SupabaseClient, 'auth'>>, userId: string): Promise<boolean> {
+  try {
+    const res = await client.auth?.admin.getUserById(userId);
+    const user = res?.data?.user;
+    if (!user) return false;
+    const role = (user.app_metadata as { role?: string } | undefined)?.role;
+    return role === 'admin' && OWNER_EMAILS.includes((user.email ?? '').trim().toLowerCase());
+  } catch {
+    return false;
   }
 }
 

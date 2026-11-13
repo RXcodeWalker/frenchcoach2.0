@@ -22,7 +22,7 @@ import {
   type SavedAnswerFeedback,
 } from '../services/offline/savedAnswers';
 import { getAIFeedback, streamFeedback, getExaminerFeedback, isExaminerQuotaExceededError, getLearnAllowance, isLearnDailyLimitError, SIGNED_OUT_FEEDBACK_REASON } from '../services/api/apiClient';
-import { LEARN_ANSWERS_PER_DAY, dailySessionLength, learnDailyLimit, learnDailyLimitMessage } from '../features/learn/dailyAllowance';
+import { LEARN_ANSWERS_PER_DAY, OWNER_LEARN_DAILY_LIMIT, dailySessionLength, learnDailyLimit, learnDailyLimitMessage } from '../features/learn/dailyAllowance';
 import { isAuthRequiredError } from '../lib/authToken';
 import { isConsentRequiredError } from '../lib/consentRequired';
 import { assessPronunciation } from '../services/pronunciation/pronunciationClient';
@@ -222,7 +222,7 @@ export function Learn() {
   // ADD_SESSION twice for one spoken answer would double-count it.
   const finalizedAttemptIdRef = useRef(0);
 
-  const { consentStatus, user: authUser } = useAuth();
+  const { consentStatus, user: authUser, isAdmin } = useAuth();
   const recording = useRecording(consentStatus === 'pending');
 
   // Offline support (`/learn/saved`): an answer recorded with no connection is
@@ -537,6 +537,12 @@ export function Learn() {
   useEffect(() => {
     if (learnState !== 'session_start') return;
     let cancelled = false;
+    if (isAdmin) {
+      // The owner's account has no daily limit (server-side exempt too).
+      setDailyLimit(OWNER_LEARN_DAILY_LIMIT);
+      setAnswersLeft(null);
+      return () => { cancelled = true; };
+    }
     void getLearnAllowance().then((allowance) => {
       // Never more than the daily number: a guest's backend allowance is the looser
       // per-IP guest cap (5), and a guest also has only 3 free attempts in all.
@@ -547,7 +553,7 @@ export function Learn() {
       setAnswersLeft(allowance ? Math.min(allowance.remaining, limit) : null);
     });
     return () => { cancelled = true; };
-  }, [learnState]);
+  }, [learnState, isAdmin]);
 
   // docs §14 UX #1 — the same read sessionBuilder.ts's adaptive path selects
   // from (belief snapshot + AppState's tier as the cold-start seed), so the
@@ -1950,6 +1956,11 @@ export function Learn() {
                   modelAnswer={currentQuestion?.modelAnswer}
                   onRetry={handleRetry}
                   onComplete={handleFeedbackComplete}
+                  retryNote={
+                    homeworkActive
+                      ? 'You’ll answer this question again, and the new answer is marked by the same AI coach, so it counts as another homework answer.'
+                      : `You’ll answer this question again, and the new answer is marked by the same AI coach, so it uses one of your ${dailyLimit} Learn answers for today.`
+                  }
                   pronunciationResult={pronunciationResult}
                   pronunciationStatus={pronunciationStatus}
                   demands={followUpTurn ? null : currentQuestion?.demands}
