@@ -3,14 +3,16 @@ import {
   isExaminerFeedbackEmpty,
   type ExaminerFailureKind,
   type ExaminerFeedback,
+  type ExaminerTurnKind,
 } from '../../../services/coaching/examinerFeedback';
 import { examinerGroups } from './examinerGroups';
 import { FeedbackPointList } from './FeedbackPointList';
+import { SHORT_ANSWER_NOTES } from './shortAnswerNotes';
 
 interface Props {
   /**
    * 'quota-exhausted': today's AI feedback allowance is used up (HTTP 429) — no retry offered.
-   * 'skipped': the answer was too short to comment on, so no call was made (the rail's tier gate).
+   * 'skipped': the answer was silent, so no call was made (the rail's tier gate).
    */
   status: 'pending' | 'done' | 'failed' | 'quota-exhausted' | 'skipped';
   result: ExaminerFeedback | null;
@@ -28,6 +30,21 @@ interface Props {
   variant?: 'full' | 'compact';
   /** The quote the learner clicked in the transcript; its row is highlighted. */
   highlightedQuote?: string | null;
+  /**
+   * Set for a 1–3-word rail answer (the part it was in): adds a "develop your
+   * answer" note, so a short answer always gets commentary even when the
+   * model found nothing it could quote. Practice advice only — never a mark.
+   */
+  shortAnswer?: ExaminerTurnKind;
+}
+
+function ShortAnswerNote({ kind }: { kind: ExaminerTurnKind }) {
+  return (
+    <div className="rounded-xl surface-raised p-3 space-y-1">
+      <p className="text-xs font-bold text-ink">Develop your answer</p>
+      <p className="text-xs text-ink-muted">{SHORT_ANSWER_NOTES[kind]}</p>
+    </div>
+  );
 }
 
 /**
@@ -47,6 +64,7 @@ export function ExaminerFeedbackCard({
   hideSwitchToCoach,
   variant = 'full',
   highlightedQuote,
+  shortAnswer,
 }: Props) {
   const compact = variant === 'compact';
   const stateBox = compact ? 'rounded-xl surface-raised p-4' : 'rounded-xl surface-raised p-6';
@@ -73,9 +91,14 @@ export function ExaminerFeedbackCard({
     return (
       <div className={`${stateBox} space-y-1 text-center`}>
         <p className="text-sm text-ink-muted font-semibold">No commentary for this answer.</p>
-        <p className="text-xs text-ink-muted">It's too short to comment on (three words or fewer).</p>
+        <p className="text-xs text-ink-muted">Nothing was heard, so there is nothing to comment on.</p>
       </div>
     );
+  }
+
+  // A short answer the model could not quote from still gets its note, not a failure.
+  if (shortAnswer && status === 'failed' && failureKind === 'ungrounded') {
+    return <ShortAnswerNote kind={shortAnswer} />;
   }
 
   if (status === 'failed' || !result) {
@@ -132,7 +155,8 @@ export function ExaminerFeedbackCard({
 
       <FeedbackPointList groups={examinerGroups(result, compact)} compact={compact} highlightedQuote={highlightedQuote} />
 
-      {isEmpty && <p className="text-xs text-ink-muted text-center py-4">{emptyMessage}</p>}
+      {isEmpty && !shortAnswer && <p className="text-xs text-ink-muted text-center py-4">{emptyMessage}</p>}
+      {shortAnswer && <ShortAnswerNote kind={shortAnswer} />}
     </div>
   );
 }

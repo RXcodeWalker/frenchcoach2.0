@@ -182,8 +182,8 @@ describe('useExamCorrectionsRail', () => {
     expect(result.current.entries).toEqual([]);
   });
 
-  it('tier gate: a <=3-word turn never spends a call, but shows a skipped card', () => {
-    const entries = [examinerEntry(1, 'Question?'), candidateEntry(2, 'Oui bien')];
+  it('tier gate: a silent turn never spends a call, but shows a skipped card', () => {
+    const entries = [examinerEntry(1, 'Question?'), candidateEntry(2, '')];
     const { result } = renderHook(() => useExamCorrectionsRail(entries, true));
 
     expect(getExaminerFeedback).not.toHaveBeenCalled();
@@ -196,6 +196,16 @@ describe('useExamCorrectionsRail', () => {
     });
     expect(getExaminerFeedback).not.toHaveBeenCalled();
     expect(result.current.entries[0].status).toBe('skipped');
+  });
+
+  it('a 1–3-word answer is still commented on, flagged as a short answer', () => {
+    const entries = [examinerEntry(1, 'Question?'), candidateEntry(2, 'Oui bien')];
+    const { result } = renderHook(() => useExamCorrectionsRail(entries, true));
+
+    expect(getExaminerFeedback).toHaveBeenCalledTimes(1);
+    expect(result.current.entries).toEqual([
+      expect.objectContaining({ turnKey: 2, status: 'pending', shortAnswer: 'topic' }),
+    ]);
   });
 
   it('a request failure is marked unavailable; a grounding failure is marked ungrounded', async () => {

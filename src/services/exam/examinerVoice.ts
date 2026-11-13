@@ -165,30 +165,33 @@ export function primeExaminerVoice(): void {
  * `getExaminerVoiceGeneration()`) for speech scheduled behind a delay, so a
  * `stopExaminerVoice()` in the meantime drops it rather than letting it play
  * on the next screen. `recorded: true` plays the line's recording (see above).
+ * `onStart` fires when the line actually starts sounding (recording or browser
+ * voice), so a caller can show its text at that moment; it never fires for a
+ * line that is muted, stale or silent, so a caller must not rely on it alone.
  */
 export async function speakExaminerText(
   text: string,
   issuedGeneration?: number,
-  opts: { recorded?: boolean } = {},
+  opts: { recorded?: boolean; onStart?: () => void } = {},
 ): Promise<void> {
   if (muted || text.trim().length === 0) return;
   if (issuedGeneration !== undefined && issuedGeneration !== generation) return;
 
   const gen = issuedGeneration ?? generation;
   if (opts.recorded && recordedVoicesEnabled()) {
-    const turn = recordedQueue.then(() => speakRecorded(text, gen)).catch(() => {});
+    const turn = recordedQueue.then(() => speakRecorded(text, gen, opts.onStart)).catch(() => {});
     recordedQueue = turn;
     return turn;
   }
   if (!isTtsAvailable()) return;
-  return speakBrowser(text, gen);
+  return speakBrowser(text, gen, opts.onStart);
 }
 
-async function speakRecorded(text: string, gen: number): Promise<void> {
+async function speakRecorded(text: string, gen: number, onStart?: () => void): Promise<void> {
   if (gen !== generation || muted) return;
   let result;
   try {
-    result = await playRecorded(text);
+    result = await playRecorded(text, { onStart });
   } catch {
     result = 'missing' as const;
   }
@@ -197,10 +200,10 @@ async function speakRecorded(text: string, gen: number): Promise<void> {
   if (!isTtsAvailable()) return;
   await ensureVoiceReady();
   if (!hasFrenchVoice()) return;
-  return speakBrowser(text, gen);
+  return speakBrowser(text, gen, onStart);
 }
 
-async function speakBrowser(text: string, gen: number): Promise<void> {
+async function speakBrowser(text: string, gen: number, onStart?: () => void): Promise<void> {
   await ensureVoiceReady();
   if (gen !== generation || muted) return;
 
@@ -209,6 +212,7 @@ async function speakBrowser(text: string, gen: number): Promise<void> {
     utterance.lang = 'fr-FR';
     utterance.rate = EXAMINER_VOICE_RATE;
     if (selectedVoice) utterance.voice = selectedVoice;
+    if (onStart) utterance.onstart = () => onStart();
     utterance.onend = () => resolve();
     utterance.onerror = () => resolve();
     // Chrome can leave the queue paused after an idle period; speak() on a

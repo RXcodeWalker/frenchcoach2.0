@@ -3,6 +3,7 @@ import type { ComponentProps } from 'react';
 import { afterEach, describe, it, expect, vi } from 'vitest';
 import { cleanup, render, screen, fireEvent } from '@testing-library/react';
 import { ExaminerFeedbackCard } from '../ExaminerFeedbackCard';
+import { SHORT_ANSWER_NOTES } from '../shortAnswerNotes';
 import type {
   LearnExaminerFeedback,
   RailRolePlayExaminerFeedback,
@@ -129,7 +130,23 @@ describe('ExaminerFeedbackCard — shared states (both variants)', () => {
     expect(screen.getByText("Couldn't produce evidence-backed examiner feedback for this answer.")).not.toBeNull();
   });
 
-  it('skipped says the answer was too short and offers no retry', () => {
+  it('a short answer always gets its develop note: with fixes, with nothing to fix, and when nothing could be quoted', () => {
+    renderCard({ result: RAIL_TOPIC, variant: 'compact', shortAnswer: 'topic' });
+    expect(screen.getByText(SHORT_ANSWER_NOTES.topic)).not.toBeNull();
+    expect(screen.getByText('je suis allé')).not.toBeNull();
+    cleanup();
+
+    renderCard({ result: { ...RAIL_TOPIC, errors: [] }, variant: 'compact', shortAnswer: 'topic' });
+    expect(screen.getByText(SHORT_ANSWER_NOTES.topic)).not.toBeNull();
+    expect(screen.queryByText('No clear mistakes to fix in this answer.')).toBeNull();
+    cleanup();
+
+    renderCard({ status: 'failed', result: null, failureKind: 'ungrounded', variant: 'compact', shortAnswer: 'rolePlay' });
+    expect(screen.getByText(SHORT_ANSWER_NOTES.rolePlay)).not.toBeNull();
+    expect(screen.queryByText('Try again')).toBeNull();
+  });
+
+  it('skipped says the answer was silent and offers no retry', () => {
     renderCard({ status: 'skipped', result: null, variant: 'compact' });
     expect(screen.getByText('No commentary for this answer.')).not.toBeNull();
     expect(screen.queryByText('Try again')).toBeNull();

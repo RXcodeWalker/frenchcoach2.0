@@ -32,6 +32,13 @@ import type { CandidateInputMode, ContentProvenance, SessionTranscript, Utteranc
 import { speakExaminerText } from './examinerVoice';
 import { wait, INTER_ACTION_PAUSE_MS } from './examinerPacing';
 
+/**
+ * Longest an examiner line's text waits for its voice to start: covers a
+ * recording's start timeout and its browser-voice fallback, so text never
+ * waits forever on a voice that doesn't report its start.
+ */
+const MAX_TEXT_BEFORE_VOICE_MS = 7000;
+
 export interface SimulationTurnInput {
   transcript: string;
   responseDurationS: number;
@@ -171,10 +178,25 @@ export class SimulationSession {
       const action = actions[i];
       const atS = this.getClockS();
       await this.callbacks.beforeExaminerAction?.(action);
-      this.entries.push(examinerActionToLogEntry(action, this.seq, atS));
+      const entry = examinerActionToLogEntry(action, this.seq, atS);
       this.seq += 1;
-      this.callbacks.onExaminerAction?.(action);
-      if (action.text) await speakExaminerText(action.text, undefined, { recorded: true });
+      // The line's text appears when its voice starts, not before (a slow
+      // recording used to leave the text up with no voice) and not after (an
+      // unrelated re-render could show a logged line early). Logged with the
+      // same `atS` either way. A line that never sounds (muted, no voice) is
+      // shown when speaking resolves; the timer guards a voice that never
+      // reports its start.
+      let revealed = false;
+      const reveal = () => {
+        if (revealed) return;
+        revealed = true;
+        clearTimeout(revealTimer);
+        this.entries.push(entry);
+        this.callbacks.onExaminerAction?.(action);
+      };
+      const revealTimer = setTimeout(reveal, MAX_TEXT_BEFORE_VOICE_MS);
+      if (action.text) await speakExaminerText(action.text, undefined, { recorded: true, onStart: reveal });
+      reveal();
       if (i < actions.length - 1) await wait(INTER_ACTION_PAUSE_MS);
       last = action;
     }

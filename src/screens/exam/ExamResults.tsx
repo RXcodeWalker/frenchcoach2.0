@@ -425,6 +425,7 @@ export function ExamResults({
                 status={entry.status}
                 result={entry.result}
                 failureKind={entry.failureKind}
+                shortAnswer={entry.shortAnswer}
                 onRetry={() => {}}
                 onSwitchToCoach={() => {}}
                 hideSwitchToCoach

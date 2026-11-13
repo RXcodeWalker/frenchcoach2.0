@@ -74,7 +74,7 @@ describe('playRecorded', () => {
     expect(audio.plays).toHaveLength(1);
   });
 
-  it('no "playing" within 3 s resolves "missing" and is remembered', async () => {
+  it('no "playing" within 3 s resolves "missing" but is NOT remembered (the output may just be slow after the mic)', async () => {
     const { result, audio } = await start('Trop lent.');
     vi.advanceTimersByTime(2999);
     await settle();
@@ -86,8 +86,25 @@ describe('playRecorded', () => {
     await expect(result).resolves.toBe('missing');
     expect(audio.paused).toBe(true);
 
-    await expect(rv.playRecorded('Trop lent.')).resolves.toBe('missing');
-    expect(audio.plays).toHaveLength(1);
+    const again = await start('Trop lent.');
+    expect(again.audio.plays).toHaveLength(2);
+    again.audio.emit('playing');
+    again.audio.emit('ended');
+    await expect(again.result).resolves.toBe('played');
+  });
+
+  it('a file that has loaded gets extra time to start before giving up', async () => {
+    const { result, audio } = await start('Déjà chargé.');
+    (audio as unknown as { readyState: number }).readyState = 4;
+    vi.advanceTimersByTime(3000);
+    await settle();
+    let settled = false;
+    void result.then(() => (settled = true));
+    await settle();
+    expect(settled).toBe(false);
+    audio.emit('playing');
+    audio.emit('ended');
+    await expect(result).resolves.toBe('played');
   });
 
   it('an autoplay refusal resolves "missing" but is NOT remembered', async () => {

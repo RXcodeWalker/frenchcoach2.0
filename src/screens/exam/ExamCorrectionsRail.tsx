@@ -114,6 +114,7 @@ function CorrectionsRailBody({ coached, entries, disabledReason, onRetry, highli
               status={entry.status}
               result={entry.result}
               failureKind={entry.failureKind}
+              shortAnswer={entry.shortAnswer}
               onRetry={() => onRetry(entry.turnKey)}
               onSwitchToCoach={() => {}}
               hideSwitchToCoach

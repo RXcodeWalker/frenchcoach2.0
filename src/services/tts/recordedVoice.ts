@@ -17,8 +17,18 @@ export type RecordedPlayResult = 'played' | 'missing' | 'stopped';
 
 /** `ttsService`'s default browser rate: a caller's `rate` is relative to it. */
 const BROWSER_DEFAULT_RATE = 0.9;
-/** No `playing` event within this long ⇒ treat the file as missing. */
+/**
+ * No `playing` event within this long ⇒ give up on this play (the caller may
+ * fall back). A timeout is never remembered as missing: right after the mic
+ * closes the audio output can take seconds to come back, and remembering the
+ * line that was playing then (the examiner's « D'accord. ») put it on the
+ * browser voice for the rest of the page's life. Only a real load error is.
+ */
 const START_TIMEOUT_MS = 3000;
+/** Extra wait when the file has already loaded but the output hasn't started yet. */
+const LOADED_START_GRACE_MS = 3000;
+/** `HTMLMediaElement.HAVE_CURRENT_DATA`: data for the current position is loaded. */
+const HAVE_CURRENT_DATA = 2;
 /** Extra time past the file's length before a stalled playback is ended anyway (it must never hang an exam turn). */
 const STALL_GRACE_MS = 4000;
 /** 0.1 s of silence (22 kHz mono MP3), played once inside a user gesture to unlock iOS Safari. */
@@ -49,7 +59,7 @@ export function recordedPlaybackRate(rate?: number): number {
   return Math.min(1, Math.max(0.5, rate / BROWSER_DEFAULT_RATE));
 }
 
-/** URLs that 404'd, errored or never started this session: later calls skip straight to `'missing'`. */
+/** URLs that 404'd or errored this session: later calls skip straight to `'missing'`. */
 const missing = new Set<string>();
 
 /**
@@ -152,7 +162,14 @@ export async function playRecorded(text: string, options: PlayRecordedOptions = 
     el.addEventListener('playing', onPlaying);
     el.addEventListener('ended', onEnded);
     el.addEventListener('error', onError);
-    startTimer = setTimeout(() => finish('missing', true), START_TIMEOUT_MS);
+    startTimer = setTimeout(() => {
+      // The file is here, the output is just slow to start: wait a little longer.
+      if (el.readyState >= HAVE_CURRENT_DATA) {
+        startTimer = setTimeout(() => finish('missing'), LOADED_START_GRACE_MS);
+        return;
+      }
+      finish('missing');
+    }, START_TIMEOUT_MS);
 
     try {
       el.src = src;

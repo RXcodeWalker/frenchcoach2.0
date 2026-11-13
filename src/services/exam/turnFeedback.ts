@@ -20,8 +20,10 @@
  *
  * Engine: getExaminerFeedback (feedbackMode: 'examiner', profile 'rail') —
  * the only mark-free path (ADR-0005), metered per turn under the backend's
- * `exam_turn_feedback` quota row. classifyTier gates it so a silent or <=3-word turn never
- * spends a call. Exam Sim (coached === false) makes zero calls at all, not a
+ * `exam_turn_feedback` quota row. classifyTier gates it so a silent turn never
+ * spends a call; a 1–3-word answer is still commented on (owner, 2026-11-13) and
+ * its card adds a "develop your answer" note (`shortAnswer`). Exam Sim
+ * (coached === false) makes zero calls at all, not a
  * hidden one — the effect below returns before touching the network.
  *
  * Fire-and-forget: nothing here blocks ExamMode's submitTurn flow, which
@@ -43,7 +45,7 @@ import type { ConductLogEntry } from '../../domain/igcse/session/types';
 import type { CandidateInputMode } from '../../domain/igcse/stt/types';
 import type { Question } from '../../types';
 
-/** 'skipped': a silent or <=3-word answer — shown so the turn isn't silently missing, but no call is made. */
+/** 'skipped': a silent answer — shown so the turn isn't silently missing, but no call is made. */
 export type RailEntryStatus = 'pending' | 'done' | 'failed' | 'skipped';
 
 export type RailDisabledReason = 'signed-out' | 'quota-exhausted' | null;
@@ -57,6 +59,8 @@ export interface RailEntry {
   result: ExaminerFeedback | null;
   /** Set on a 'failed' entry: did the request fail, or did the reply fail grounding? */
   failureKind?: ExaminerFailureKind;
+  /** Set on a 1–3-word answer: which part it was in, so the card can add its "develop your answer" note. */
+  shortAnswer?: ExaminerTurnKind;
 }
 
 export interface UseExamCorrectionsRail {
@@ -192,9 +196,11 @@ export function useExamCorrectionsRail(
       // A button/verbal repeat request isn't an answer to comment on.
       if (entry.requestedRepeat) return;
       const turnKey = entry.seq;
-      // Tier 0 (silent) / tier 1 (<=3 words): never spends a call, but gets a
-      // 'skipped' card so the turn isn't silently missing from the rail.
-      if (classifyTier(entry.transcript) <= 1) {
+      // Tier 0 (silent): never spends a call, but gets a 'skipped' card so the
+      // turn isn't silently missing from the rail. A 1–3-word answer is still
+      // sent (owner, 2026-11-13) and flagged so its card says to develop it.
+      const tier = classifyTier(entry.transcript);
+      if (tier === 0) {
         setRailEntries((prev) => [
           ...prev,
           { turnKey, transcript: entry.transcript, inputMode: entry.inputMode, status: 'skipped', result: null },
@@ -206,6 +212,7 @@ export function useExamCorrectionsRail(
 
       const { question: questionText, contextQuestion } = resolveRailPrompt(entries, i);
       const turnKind: ExaminerTurnKind = entry.part === 'rolePlay' ? 'rolePlay' : 'topic';
+      const shortAnswer = tier === 1 ? turnKind : undefined;
       const context: ExaminerFeedbackContext = {
         profile: 'rail',
         turnKind,
@@ -217,7 +224,14 @@ export function useExamCorrectionsRail(
 
       setRailEntries((prev) => [
         ...prev,
-        { turnKey, transcript: entry.transcript, inputMode: entry.inputMode, status: 'pending', result: null },
+        {
+          turnKey,
+          transcript: entry.transcript,
+          inputMode: entry.inputMode,
+          status: 'pending',
+          result: null,
+          ...(shortAnswer ? { shortAnswer } : {}),
+        },
       ]);
 
       const requestId = (requestIdRef.current.get(turnKey) ?? 0) + 1;
