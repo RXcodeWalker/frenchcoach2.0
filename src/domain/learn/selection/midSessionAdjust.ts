@@ -15,6 +15,7 @@
 import type { ActiveSession, Question, SessionQuestion } from '../../../types';
 import type { CognitiveDemand } from '../demand/types';
 import { selectQuestions } from './selectQuestions';
+import { deriveDemandScore } from '../demand/deriveDemandLevel';
 import { bandFor } from './planSlots';
 import type { SelectedQuestion, SessionSlot } from './types';
 import type { EvidenceBeliefSnapshot } from '../../../types/beliefs';
@@ -110,10 +111,18 @@ function fillSlot(
       // band, or the raised slot's own target band), so its centre is the
       // level "Why this question?" compares against (Batch 1d).
       targetLevel: bandCentre(slot.band),
+      // An "Easier" session keeps its promise after an ease too.
+      holdToLevel: args.session.aim === 'comfortable',
     },
     { beliefSnapshot: args.beliefSnapshot },
   );
   return selected.length > 0 ? selected[0] : null;
+}
+
+/** True when `next` has a higher demand score than `current` (no demands on either = unknown, treated as not harder). */
+function isHarder(next: Question, current: Question): boolean {
+  if (!next.demands || !current.demands) return !!current.demands && !next.demands;
+  return deriveDemandScore(next.demands) > deriveDemandScore(current.demands);
 }
 
 function replacementSessionQuestion(pick: SelectedQuestion, slotBand: SessionQuestion['slotBand']): SessionQuestion {
@@ -205,6 +214,9 @@ export function midSessionAdjust(args: MidSessionAdjustArgs): MidSessionAdjustRe
     if (!pick || pick.question.id === sq.question.id) {
       continue; // no candidate fits the adjusted band, or the pick is unchanged -> leave as-is (§8.4 fallback)
     }
+    // An ease never makes a slot harder: when nothing fits the eased band the
+    // ladder's last rung can return a question above the one it would replace.
+    if (direction === 'ease' && isHarder(pick.question, sq.question)) continue;
 
     chosenIds.delete(sq.question.id);
     chosenIds.add(pick.question.id);

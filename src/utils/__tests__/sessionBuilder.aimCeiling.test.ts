@@ -47,8 +47,7 @@ describe('Today\'s aim holds across the real question bank', () => {
         expect(slot.slotType, `${topic}/${tier}/${count}`).not.toBe('stretch');
         if (!q.demands) continue;
         const score = deriveDemandScore(q.demands);
-        // Only when the topic has nothing easier left may a pick be above (rung 5, the easiest left).
-        if (slot.rung === 5) continue;
+        // No rung excuse: "Easier" never goes above (sessionBuilder.easierNeverAbove.test.ts).
         expect(score, `${topic}/${tier}/${count}: ${q.id}`).toBeLessThanOrEqual(target + 0.5);
         expect(LEVEL_RANK[demandScoreToLevel(score)], `${topic}/${tier}/${count}: ${q.id}`).toBeLessThanOrEqual(LEVEL_RANK[demandScoreToLevel(target)]);
       }
@@ -83,8 +82,9 @@ describe('Today\'s aim holds across the real question bank', () => {
     for (const topic of topics) {
       const built = build(topic, 'beginner', 'comfortable', 'quick', 3);
       for (const [i, q] of built.questions.entries()) {
-        if (!q.demands || built.slots![i].rung === 5) continue;
-        expect(demandScoreToLevel(deriveDemandScore(q.demands)), `${topic}: ${q.id}`).toBe('A1');
+        expect(q.demands, `${topic}: ${q.id}`).toBeTruthy();
+        expect(built.slots![i].slotType).not.toBe('stretch');
+        expect(demandScoreToLevel(deriveDemandScore(q.demands!)), `${topic}: ${q.id}`).toBe('A1');
       }
     }
   });

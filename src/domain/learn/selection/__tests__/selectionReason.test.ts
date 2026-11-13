@@ -105,6 +105,40 @@ describe('selectQuestions returns the ladder rung', () => {
   });
 });
 
+describe(`"Easier" (holdToLevel) never goes above today's level (owner report 2026-11-13)`, () => {
+  const slots: SessionSlot[] = [{ type: 'target', band: bandFor('target', 1.5) }];
+  const a2 = () => makeQuestion('a2', { demands: makeDemands({ cognitiveDemand: 'explain' }) });
+  const a1 = () => makeQuestion('a1', { demands: makeDemands({ cognitiveDemand: 'describe' }) });
+
+  it(`rung 5 never takes a question above today's level: the slot stays empty`, () => {
+    const { selected } = selectQuestions(baseArgs({ pool: [a2()], slots, targetLevel: 1.5, holdToLevel: true }));
+    expect(selected).toEqual([]);
+  });
+
+  it(`rung 5 may still take a question above the band at today's displayed level`, () => {
+    // Target 1.0: the band's top is 1.5, so a 2.0 describe is above the ceiling but still A1.
+    const tight: SessionSlot[] = [{ type: 'target', band: bandFor('target', 1.0) }];
+    const { selected } = selectQuestions(baseArgs({ pool: [a1(), a2()], slots: tight, targetLevel: 1.0, holdToLevel: true }));
+    expect(selected.map((s) => s.question.id)).toEqual(['a1']);
+  });
+
+  it('a question with no demands has no level to promise, so it is not used', () => {
+    const { selected } = selectQuestions(baseArgs({ pool: [makeQuestion('n')], slots, targetLevel: 1.5, holdToLevel: true }));
+    expect(selected).toEqual([]);
+  });
+
+  it(`a due review question above today's level is dropped and its slot backfilled at today's level`, () => {
+    const { selected } = selectQuestions(baseArgs({
+      pool: [a1()],
+      slots: [{ type: 'review', band: null }],
+      targetLevel: 1.5,
+      holdToLevel: true,
+      getReviewQuestion: () => a2(),
+    }));
+    expect(selected.map((s) => [s.question.id, s.slot])).toEqual([['a1', 'target']]);
+  });
+});
+
 describe('explainSelection', () => {
   const slots: SlotType[] = ['warmup', 'review', 'target', 'stretch', 'choice'];
 

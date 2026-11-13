@@ -70,6 +70,23 @@ function fitsStretch(score: number, slot: SessionSlot, targetLevel: number | und
   );
 }
 
+/**
+ * The "Easier" promise (`holdToLevel`, owner 2026-11-13): no question whose
+ * displayed level is above today's. Unlike `underCeiling` this has no
+ * fallback — a question without `demands` has no level to promise, so it is
+ * out too. Every slot, every ladder rung and the review slot obey it; a topic
+ * that runs out gives a shorter session, never a harder question.
+ */
+export function withinHeldLevel(question: Question, targetLevel: number): boolean {
+  if (!question.demands) return false;
+  return LEVEL_RANK[demandScoreToLevel(deriveDemandScore(question.demands))] <= LEVEL_RANK[demandScoreToLevel(targetLevel)];
+}
+
+/** True when this selection must obey {@link withinHeldLevel}. */
+function holdsLevel(args: SelectQuestionsArgs): args is SelectQuestionsArgs & { targetLevel: number } {
+  return !!args.holdToLevel && args.targetLevel !== undefined;
+}
+
 function scoreOf(q: Question): number | null {
   return q.demands ? deriveDemandScore(q.demands) : null;
 }
@@ -201,12 +218,18 @@ function fillNonStretchSlot(
   if (hit) return { question: hit, rung: 3 };
 
   // Rung 4: allow questions without demands (bandFit omitted for them by scoreCandidate).
-  hit = pickBest(available.filter((q) => !q.demands), noBand, focus, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
+  // Not under "Easier": a question with no level can't keep its promise.
+  if (!holdsLevel(args)) hit = pickBest(available.filter((q) => !q.demands), noBand, focus, activeDemandProblem, seenIds, usedCognitiveDemands, snapshot);
   if (hit) return { question: hit, rung: 4 };
 
   // Rung 5: every question left is above the ceiling — take the easiest, never a
-  // harder one, unseen before seen, ties by fnv1a(id) for determinism.
-  const easiest = [...allWithDemands].sort((a, b) => {
+  // harder one, unseen before seen, ties by fnv1a(id) for determinism. Under
+  // "Easier" only questions still at today's displayed level qualify; with none
+  // the slot stays empty (rung 6) — a shorter session, never a harder question.
+  const rung5Pool = holdsLevel(args)
+    ? allWithDemands.filter((q) => withinHeldLevel(q, args.targetLevel))
+    : allWithDemands;
+  const easiest = [...rung5Pool].sort((a, b) => {
     const diff = deriveDemandScore(a.demands!) - deriveDemandScore(b.demands!);
     if (diff !== 0) return diff;
     const seenDiff = Number(seenIds.has(a.id)) - Number(seenIds.has(b.id));
@@ -324,7 +347,10 @@ export function selectQuestions(
     const slotsOfType = bySlotType.get(slotType) ?? [];
     for (const slot of slotsOfType) {
       if (slotType === 'review') {
-        const reviewQuestion = getReviewQuestion(chosenIds);
+        const due = getReviewQuestion(chosenIds);
+        // "Easier": a due review question above today's level is not shown (the
+        // caller should already have skipped it; this is the backstop).
+        const reviewQuestion = due && (!holdsLevel(args) || withinHeldLevel(due, args.targetLevel)) ? due : null;
         if (!reviewQuestion) {
           unfilledReviewSlots += 1; // backfilled below, after every planned slot has had first pick
           continue;

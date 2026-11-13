@@ -545,13 +545,27 @@ Future topic has no A1 question — every one is past/future, floored at A2), th
 **easiest** question left, unseen first, and "Why this question?" says *"The easiest question left in
 this topic."* "Return fewer" is now rung 6.
 
+**"Easier" has no exceptions (amended 2026-11-13, owner report: an A1 learner on "Easier" still got
+A2 questions).** On an "Easier" session no question whose displayed level is above T's is ever
+shown, by any slot or rung (`withinHeldLevel`, `holdToLevel`):
+- rung 5 takes the easiest question left *only among those still at T's displayed level* (a question
+  above the band but still A1 is allowed; an A2 one is not); with none, the slot is left empty;
+- rung 4 (questions without `demands`) is skipped — a question with no level can't keep the promise;
+- the review slot accepts a due question only at T's displayed level (the builder's `accept`
+  skips a harder due item, and `selectQuestions` drops one as a backstop), else it is backfilled;
+- so a topic with few questions at that level (Future has 3 at A1, Shopping 1) gives a **shorter
+  session**, shown as such in the setup preview, never a harder one.
+Pinned by `sessionBuilder.easierNeverAbove.test.ts` over the real bank, every tier and length.
+
 ### 8.4 Mid-session adjustment — bounded, safe, and announced
 
 `midSessionAdjust(session, history)` — pure, **at most one per session**, never before question 3.
 
 - **Ease** — 2 consecutive attempts with score < 5 *or* zero demands met → remaining `stretch`
   slots become `target` (under the target band, not the stretch band relabelled); remaining
-  `target` bands drop 1.0.
+  `target` bands drop 1.0. An ease **never replaces a question with a harder one** (when nothing
+  fits the eased band the ladder could otherwise return one), and on "Easier" the replacement is
+  held to the level too (§8.3 "Easier" amendment).
 - **Raise** — 3 consecutive attempts with score ≥ 8 *and* all measurable demands met → one
   remaining `target` slot becomes `stretch` (subject to the §8.1 provenance rule and the §8.3
   ceiling). Never on an "Easier" session (§8.1 amendment).

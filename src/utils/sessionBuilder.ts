@@ -11,7 +11,7 @@ import { resolveFeatureStatus } from '../config/featureFlags';
 import { deriveAbility, coldStart, type AbilityResult } from '../domain/learn/ability/deriveAbility';
 import { computeSessionTarget, type Aim } from '../domain/learn/selection/sessionTarget';
 import { planSlots, bandFor } from '../domain/learn/selection/planSlots';
-import { selectQuestions, presentationOrder } from '../domain/learn/selection/selectQuestions';
+import { selectQuestions, presentationOrder, withinHeldLevel } from '../domain/learn/selection/selectQuestions';
 import { filterPool, matchesFilters, NO_FILTERS, type LearnFilters } from '../domain/learn/selection/filters';
 import type { DemandBand, SelectionReason, SlotType } from '../domain/learn/selection/types';
 import type { CognitiveDemand } from '../domain/learn/demand/types';
@@ -275,7 +275,12 @@ function buildSessionQuestionsAdaptive(
       // meant spaced review never fired (Learn overhaul Batch 1b).
       getReviewQuestion: (chosenIds) => {
         if (!topicKey) return null;
-        return getEligibleReviewQuestion(topicKey, new Set(chosenIds), (q) => matchesFilters(q, filters));
+        // "Easier": a due question above today's level is skipped, so a lower-level
+        // due question behind it can still take the slot.
+        const accept = aim === 'comfortable'
+          ? (q: Question) => matchesFilters(q, filters) && withinHeldLevel(q, sessionTarget)
+          : (q: Question) => matchesFilters(q, filters);
+        return getEligibleReviewQuestion(topicKey, new Set(chosenIds), accept);
       },
     },
     { beliefSnapshot: snapshot },
