@@ -115,6 +115,16 @@ html:not(.dark) {
 .topic-chip { background: oklch(0.30 0.045 var(--h)); color: oklch(0.80 0.11 var(--h)); }
 html:not(.dark) .topic-chip { background: oklch(0.955 0.03 var(--h)); color: oklch(0.50 0.13 var(--h)); }
 
+/* Junior pictures (features/junior/art): the topic-chip wash plus a tilted twin plate behind it.
+   Hue appears only inside the picture, as on topic chips. */
+.junior-plate { background: oklch(0.30 0.045 var(--h)); color: oklch(0.80 0.11 var(--h)); }
+.junior-plate-back { background: oklch(0.36 0.07 var(--h)); }
+html:not(.dark) .junior-plate { background: oklch(0.955 0.03 var(--h)); color: oklch(0.50 0.13 var(--h)); }
+html:not(.dark) .junior-plate-back { background: oklch(0.90 0.06 var(--h)); }
+/* A picture's colour on a plain surface plate, for sitting on a hue wash. */
+.junior-ink { color: oklch(0.80 0.11 var(--h)); }
+html:not(.dark) .junior-ink { color: oklch(0.50 0.13 var(--h)); }
+
 /* ============================================================
    LIGHT MODE OVERRIDES
    ============================================================ */

@@ -13,6 +13,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Mic, PartyPopper, Play, Star, Target, Medal, Volume2, type LucideIcon } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
+import { JuniorArt } from './art/JuniorArt';
 import type { Postcard, PostcardItem } from '../../domain/junior/postcard';
 import { matchAnswer, type FrameTarget } from '../../domain/junior/matchAnswer';
 import { isSilent } from '../../domain/junior/warmup';
@@ -170,9 +171,7 @@ export function PostcardView({ postcard, voice, blocked, recordingUrl, linesFor,
               <PractiseCard item={item} voice={voice} blocked={blocked} url={recordingUrl(item.recordingId)} lines={linesFor(item.sentence)} tryAgain={practiseTry} />
             ) : item.kind === 'sticker' ? (
               <div className="flex items-center gap-4">
-                <span aria-hidden="true" className="flex h-16 w-16 shrink-0 items-center justify-center rounded-card bg-progress-soft text-4xl leading-none">
-                  {item.sticker.emoji}
-                </span>
+                <JuniorArt picture={item.sticker.emoji} size={64} />
                 <div className="flex flex-col gap-1">
                   <ItemLabel kind="sticker">{item.label}</ItemLabel>
                   <p className="text-subtitle text-ink">{item.gold ? 'Gold ' : ''}{item.sticker.name}</p>

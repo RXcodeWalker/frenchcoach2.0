@@ -11,6 +11,7 @@ import { SpeakingConsentGate } from '../../components/SpeakingConsentGate';
 import { useHideDock } from '../../components/layout/shellChrome';
 import { Button } from '../../components/ui/Button';
 import { WARMUP_PROMPT } from '../../data/junior';
+import { JuniorArt } from '../../features/junior/art/JuniorArt';
 import { JuniorDemo } from '../../features/junior/JuniorDemo';
 import { JuniorTopBar } from '../../features/junior/JuniorTopBar';
 import { Leo } from '../../features/junior/Leo';
@@ -140,7 +141,7 @@ export function MissionPlayer() {
             {turn.kind === 'question' && (
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col items-center gap-3 rounded-card border border-hairline bg-surface px-4 py-5">
-                  <span aria-hidden="true" className="text-5xl leading-none">{turn.question.emoji}</span>
+                  <JuniorArt picture={turn.question.emoji} size={72} />
                   <LeoLine line={turn.question.prompt} voice={voice} emphasis />
                 </div>
                 {turn.question.frames.map((frame, i) => {

@@ -5,11 +5,14 @@
  * An unfinished mission can be continued for 24 h; once it has expired it is
  * simply not offered — never a "you lost it" message.
  */
+import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronRight, Lock, Search } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
 import { enter } from '../../components/motion/variants';
+import { JuniorArt, ThemeScene } from '../../features/junior/art/JuniorArt';
+import { themeHue } from '../../features/junior/art/pictures';
 import { JuniorTopBar } from '../../features/junior/JuniorTopBar';
 import { Leo } from '../../features/junior/Leo';
 import { leoLook } from '../../features/junior/look';
@@ -36,25 +39,40 @@ export function JuniorHome() {
     JUNIOR_BANK.themes[0];
   const upNextContinuing = isContinuing(upNext.id);
 
+  const heroHue = themeHue(upNext.id);
+
   return (
     <>
       <JuniorTopBar title="Junior" subtitle="Missions with Léo" />
       <main data-testid="junior-home">
         <PageShell maxWidth="md" gap={24}>
-          <motion.section variants={enter} aria-label="Up next" className="flex flex-col items-center gap-4 rounded-card border border-hairline bg-surface p-5 text-center sm:flex-row sm:text-left">
-            <Leo state="happy" size="lg" accessory={look.accessory} />
-            <div className="flex min-w-0 flex-1 flex-col items-center gap-3 sm:items-start">
+          <motion.section
+            variants={enter}
+            aria-label="Up next"
+            style={{ '--h': heroHue } as CSSProperties}
+            className="junior-plate relative flex flex-col items-center gap-4 overflow-hidden rounded-card border border-hairline p-6 text-center text-ink sm:flex-row sm:gap-6 sm:text-left"
+          >
+            {/* soft shapes behind Léo: static, decorative */}
+            <span aria-hidden="true" className="junior-plate-back absolute -left-10 -top-10 h-36 w-36 rounded-full" />
+            <span aria-hidden="true" className="junior-plate-back absolute -bottom-12 right-6 h-28 w-28 rounded-full" />
+            <span aria-hidden="true" className="junior-plate-back absolute right-24 top-5 h-8 w-8 rounded-full" />
+            <div className="relative shrink-0">
+              <span aria-hidden="true" className="absolute inset-3 rounded-full bg-surface" />
+              <Leo state="happy" size="lg" accessory={look.accessory} />
+            </div>
+            <div className="relative flex min-w-0 flex-1 flex-col items-center gap-3 sm:items-start">
               <div className="flex flex-col gap-1">
                 <p className="text-eyebrow uppercase text-action-text">{upNextContinuing ? 'Pick up where you left off' : 'Up next'}</p>
-                <h2 lang="fr" className="text-title text-ink">{upNext.title.fr}</h2>
-                <p className="text-body-s text-ink-muted">{upNext.title.en}</p>
+                <h2 lang="fr" className="text-h2 text-ink">{upNext.title.fr}</h2>
+                <p className="text-body-base text-ink-muted">{upNext.title.en}</p>
               </div>
               <Link to={`/junior/${upNext.id}`} className={PRIMARY_LINK_CLASS}>
                 {upNextContinuing ? 'Continue mission' : 'Start mission'} <ChevronRight size={18} aria-hidden="true" />
               </Link>
               {look.background && (
-                <p data-testid="junior-background" className="rounded-pill bg-track px-3 py-1 text-label text-ink-muted">
-                  {look.background.emoji} {look.background.name}
+                <p data-testid="junior-background" className="flex items-center gap-2 rounded-pill bg-surface py-1 pl-1 pr-3 text-label text-ink-muted">
+                  <JuniorArt picture={look.background.emoji} size={24} variant="badge" />
+                  {look.background.name}
                 </p>
               )}
             </div>
@@ -72,49 +90,46 @@ export function JuniorHome() {
                     key={theme.id}
                     data-testid="junior-theme"
                     data-theme-id={theme.id}
-                    className="relative flex flex-col gap-3 rounded-card border border-hairline bg-surface p-4 transition-colors duration-state ease-smooth hover:border-hairline-strong hover:bg-track focus-within:border-action"
+                    className="group relative flex flex-col overflow-hidden rounded-card border border-hairline bg-surface transition-colors duration-state ease-smooth hover:border-hairline-strong focus-within:border-action"
                   >
-                    <div className="flex items-center gap-3">
-                      <span aria-hidden="true" className="flex h-14 w-14 shrink-0 items-center justify-center rounded-card bg-surface-recessed text-4xl leading-none">
-                        {theme.emoji}
+                    <div style={{ '--h': themeHue(theme.id) } as CSSProperties} className="junior-plate relative flex h-28 items-center justify-between overflow-hidden px-5">
+                      <span aria-hidden="true" className="junior-plate-back absolute -right-8 -top-10 h-32 w-32 rounded-full" />
+                      <span aria-hidden="true" className="junior-plate-back absolute bottom-3 right-20 h-6 w-6 rounded-full" />
+                      <ThemeScene themeId={theme.id} fallback={theme.emoji} />
+                      <span className="relative flex items-center gap-0.5 rounded-pill bg-surface px-3 py-1.5 text-label text-action-text">
+                        {continuing ? 'Continue' : complete ? 'Play again' : 'Play'}
+                        <ChevronRight size={16} aria-hidden="true" />
                       </span>
-                      <div className="flex min-w-0 flex-1 flex-col">
+                    </div>
+                    <div className="flex flex-col gap-3 p-4">
+                      <div className="flex min-w-0 flex-col">
                         <Link
                           to={`/junior/${theme.id}`}
                           aria-label={`${theme.title.en}${continuing ? ' — continue' : ''}`}
-                          className="text-subtitle text-ink after:absolute after:inset-0 after:content-[''] focus-visible:outline-none"
+                          className="text-title text-ink after:absolute after:inset-0 after:content-[''] focus-visible:outline-none"
                         >
                           <span lang="fr">{theme.title.fr}</span>
                         </Link>
                         <span className="text-body-s text-ink-muted">{theme.title.en}</span>
                       </div>
-                      <span className="flex shrink-0 items-center gap-0.5 text-label text-action-text">
-                        {continuing ? 'Continue' : complete ? 'Play again' : 'Play'}
-                        <ChevronRight size={16} aria-hidden="true" />
-                      </span>
+                      <ul className="flex flex-wrap gap-2" aria-label="Stickers">
+                        {theme.stickers.map((s) => {
+                          const got = owned.includes(s.id);
+                          return (
+                            <li key={s.id} data-testid="junior-sticker" data-earned={got} className="flex h-10 w-10 items-center justify-center">
+                              {got ? (
+                                <JuniorArt picture={s.emoji} size={40} variant="badge" />
+                              ) : (
+                                <span className="flex h-10 w-10 items-center justify-center rounded-full border border-hairline bg-surface-recessed">
+                                  <Lock size={14} className="text-ink-subtle" aria-hidden="true" />
+                                </span>
+                              )}
+                              <span className="sr-only">{got ? s.name : 'Not yet'}</span>
+                            </li>
+                          );
+                        })}
+                      </ul>
                     </div>
-                    <ul className="flex flex-wrap gap-2" aria-label="Stickers">
-                      {theme.stickers.map((s) => {
-                        const got = owned.includes(s.id);
-                        return (
-                          <li
-                            key={s.id}
-                            data-testid="junior-sticker"
-                            data-earned={got}
-                            className={`flex h-10 w-10 items-center justify-center rounded-full text-xl leading-none ${
-                              got ? 'bg-progress-soft' : 'border border-hairline bg-surface-recessed'
-                            }`}
-                          >
-                            {got ? (
-                              <span aria-hidden="true">{s.emoji}</span>
-                            ) : (
-                              <Lock size={14} className="text-ink-subtle" aria-hidden="true" />
-                            )}
-                            <span className="sr-only">{got ? s.name : 'Not yet'}</span>
-                          </li>
-                        );
-                      })}
-                    </ul>
                   </li>
                 );
               })}

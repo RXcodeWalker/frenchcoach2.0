@@ -61,7 +61,7 @@ describe('JuniorHome', () => {
     const [moi, couleurs] = JUNIOR_BANK.themes;
     app.state = { ...app.state, junior: { ...emptyJuniorState(), unlocks: [moi.unlock.id, couleurs.unlock.id] } };
     view();
-    expect(screen.getByTestId('leo-accessory').textContent).toBe(moi.unlock.emoji);
+    expect(screen.getByTestId('leo-accessory').getAttribute('data-accessory')).toBe(moi.unlock.emoji);
     expect(screen.getByTestId('junior-background').textContent).toContain(couleurs.unlock.name);
   });
 

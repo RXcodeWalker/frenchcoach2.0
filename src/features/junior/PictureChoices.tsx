@@ -5,6 +5,7 @@
  */
 import { Check } from 'lucide-react';
 import { slotText } from '../../data/junior/sentence';
+import { JuniorArt } from './art/JuniorArt';
 import type { JuniorSlotOption } from '../../data/junior/types';
 
 interface Props {
@@ -31,7 +32,7 @@ export function PictureChoices({ options, chosenId, showWords, disabled = false,
             aria-pressed={selected}
             disabled={disabled}
             onClick={() => onPick(o.id)}
-            className={`relative flex min-h-[96px] flex-col items-center justify-center gap-1.5 rounded-card border p-3
+            className={`relative flex min-h-[112px] flex-col items-center justify-center gap-2.5 rounded-card border p-3
               transition-[background-color,border-color,transform] duration-state ease-smooth active:scale-[.97] active:duration-press
               disabled:cursor-default disabled:active:scale-100 ${
                 selected
@@ -44,7 +45,7 @@ export function PictureChoices({ options, chosenId, showWords, disabled = false,
                 <Check size={12} strokeWidth={3} />
               </span>
             )}
-            <span aria-hidden="true" className="text-4xl leading-none">{o.emoji}</span>
+            <JuniorArt picture={o.emoji} size={56} />
             {showWords && (
               <span lang="fr" className="text-body-s font-semibold text-ink">
                 {slotText(o)}

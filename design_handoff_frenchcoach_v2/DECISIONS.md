@@ -493,11 +493,15 @@ voice" describe the earlier palette.
   showing "0 XP" to a nine-year-old would be a lie. It reads no app state.
 - **No numbers anywhere.** Mission progress is a row of bars, one per turn (`role="progressbar"`), and sticker slots
   are a filled medal or a recessed lock — never a count, never a faded or greyscale item ("locked is recessed").
-- **Chrome is lucide; the pictures are content.** The 👂 🎙 🔊 ▶ ✨ ❔ used as buttons and labels are now Ear, Mic,
-  Volume2, Play, a drawn four-point star and Lock. Theme pictures, answer pictures and sticker art stay emoji (they
-  are game content, like Emoji Master's prompts); the domain's Postcard items still carry icon literals that the view
-  ignores. `juniorUi.guards.test.ts` bans emoji chrome in `.tsx`, looping animation, glow/gradient, hover scale and
-  text under 12px.
+- **No emoji is drawn anywhere (second pass).** The bank keeps its emoji as the *key* of a picture; screens never print
+  it. `features/junior/art/pictures.ts` maps each key to a drawing and `JuniorArt` renders it: a lucide (or custom,
+  same grammar) icon on a hue-washed plate with a tilted twin, a real-colour paint drop for colour words, or big
+  lettering for numbers. Theme banners fan three of the theme's pictures. An illustration saved as
+  `src/assets/junior/<id>.png|webp|svg` replaces the drawing with no code change (`src/assets/junior/README.md` has the
+  ids and a style brief for generating them). `juniorUi.guards.test.ts` bans emoji in any Junior `.tsx` and rendering a
+  `.emoji` field as text; `pictures.coverage.test.ts` fails when the bank uses a picture with no drawing.
+- **Léo is a fox** (violet scarf in the action role colour, fixed orange fur as character art), five poses, shades drawn
+  over the face when the unlock is worn; `leo-<state>` assets replace him the same way.
 - **Léo no longer pulses or bounces.** The listening glow (a looping pulse), the celebrating bounce and the
   pulsing mic were not among the eight named motions. Listening is a still ring on Léo and on the mic plus the live
   waveform (`record`, `LevelBars` fed by the new optional `JuniorCapture.micLevel`); a state change is a single

@@ -79,11 +79,17 @@ describe('Junior UI guards', () => {
     expect(bad).toEqual([]);
   });
 
-  it('draws its interface chrome with lucide icons, not emoji (the pictures and stickers are content)', () => {
-    // These were the emoji used as buttons and labels before the v2 rebuild. Screens only: the
-    // domain's Postcard items still carry their own icon literals, which the Postcard view ignores.
-    const CHROME_EMOJI = /[👂🎙🔊▶👇👆❔✨]/u;
-    const bad = SOURCES.filter((f) => f.endsWith('.tsx') && CHROME_EMOJI.test(strip(read(f))));
+  it('prints no emoji at all: pictures are drawn by JuniorArt from the bank emoji key', () => {
+    // The bank keeps an emoji as the KEY of a picture; no screen may render it as text.
+    const EMOJI = /\p{Extended_Pictographic}|⃣/u;
+    const bad = SOURCES.filter((f) => f.endsWith('.tsx') && EMOJI.test(strip(read(f))));
+    expect(bad).toEqual([]);
+  });
+
+  it('never renders a bank emoji field directly', () => {
+    // A child expression ({x.emoji}), not a prop (picture={x.emoji}), which is how JuniorArt gets its key.
+    const RENDERS = /(?<!=)\{[^{}]*\.emoji\s*\}/;
+    const bad = SOURCES.filter((f) => f.endsWith('.tsx') && RENDERS.test(strip(read(f))));
     expect(bad).toEqual([]);
   });
 });
