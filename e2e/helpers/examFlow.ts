@@ -16,9 +16,12 @@ export async function bodyText(page: Page): Promise<string> {
 }
 
 export async function skipOnboardingIfShown(page: Page) {
+  // Locator waits are polled from Node, so they still finish when a test has
+  // installed page.clock (that pauses the page's own timers). 15s covers a
+  // cold dev server; the goal survey is not always on screen by 4s.
   const skip = page.getByRole('button', { name: 'Skip for now' });
   try {
-    await skip.first().waitFor({ state: 'visible', timeout: 4000 });
+    await skip.first().waitFor({ state: 'visible', timeout: 15000 });
     await skip.first().click({ force: true });
   } catch {
     // already past onboarding
@@ -96,7 +99,32 @@ export async function submitSpokenAnswer(page: Page, text: string, holdMs = 250)
  * own setInterval, then auto-advancing at 0:00 into a COUNTING attempt) is
  * covered on its own, much shorter, in the dedicated test below.
  */
+/**
+ * A first Exam Sim opens the exam guide (`shouldOpenGuideBeforeSim`). These
+ * flows are about the exam itself, so they start as a learner who has already
+ * opened it. The flag is account-scoped: guest for the offline project, and
+ * whatever user the page's Supabase session names (the pronunciation project).
+ * Must be installed before the first navigation.
+ */
+export async function markExamGuideSeen(page: Page) {
+  await page.addInitScript(() => {
+    const seen = 'true';
+    localStorage.setItem('frenchCoach_examGuideSeen::guest', seen);
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith('sb-') || !key.endsWith('-auth-token')) continue;
+      try {
+        const userId = (JSON.parse(localStorage.getItem(key) ?? '') as { user?: { id?: string } })?.user?.id;
+        if (userId) localStorage.setItem(`frenchCoach_examGuideSeen::${userId}`, seen);
+      } catch {
+        // a non-session value under a similar name is ignored
+      }
+    }
+  });
+}
+
 export async function enterExam(page: Page, mode: 'sim' | 'coached') {
+  await markExamGuideSeen(page);
   await page.goto('/exam');
   await skipOnboardingIfShown(page);
   await page.waitForSelector('text=Choose an Exam', { timeout: 15000 });

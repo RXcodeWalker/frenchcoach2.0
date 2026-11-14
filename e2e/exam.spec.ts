@@ -23,6 +23,7 @@ import {
   bodyText,
   clickButton,
   enterExam,
+  markExamGuideSeen,
   skipOnboardingIfShown,
   submitSpokenAnswer,
 } from './helpers/examFlow';
@@ -34,6 +35,7 @@ test.describe('Exam Sim prep countdown (D3)', () => {
     // created — a clock installed after that point can't see, or fast-forward,
     // a timer the real (unfaked) window.setInterval already scheduled. No
     // pauseAt: the clock auto-ticks with real time until explicitly advanced.
+    await markExamGuideSeen(page);
     await page.clock.install();
     await page.goto('/exam');
     await skipOnboardingIfShown(page);

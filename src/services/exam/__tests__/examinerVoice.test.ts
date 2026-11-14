@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import {
   isTtsAvailable,
   isExaminerVoiceMuted,
@@ -58,7 +58,7 @@ describe('examinerVoice cancellation (fake speechSynthesis)', () => {
       constructor(public text: string) {}
     }
     const synthesis = {
-      getVoices: () => [],
+      getVoices: () => [{ lang: 'fr-FR', localService: true }],
       speak: (u: FakeUtterance) => {
         spoken.push({ text: u.text, volume: u.volume });
         u.onend?.();
@@ -90,6 +90,42 @@ describe('examinerVoice cancellation (fake speechSynthesis)', () => {
 
     await speakExaminerText('Bonjour', getExaminerVoiceGeneration());
     expect(spoken.map((u) => u.text)).toEqual(['Bonjour']);
+  });
+
+  it('resolves when the browser never fires onend, so a silent voice cannot hold the mic', async () => {
+    vi.useFakeTimers();
+    class SilentUtterance {
+      lang = '';
+      rate = 1;
+      volume = 1;
+      voice: unknown = null;
+      onend: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      onstart: (() => void) | null = null;
+      constructor(public text: string) {}
+    }
+    let cancelled = 0;
+    const synthesis = {
+      getVoices: () => [{ lang: 'fr-FR', localService: true }],
+      speak: () => {},
+      cancel: () => {
+        cancelled += 1;
+      },
+      resume: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    };
+    (globalThis as Record<string, unknown>).window = { speechSynthesis: synthesis };
+    (globalThis as Record<string, unknown>).SpeechSynthesisUtterance = SilentUtterance;
+
+    try {
+      const pending = speakExaminerText('Bonjour.');
+      await vi.advanceTimersByTimeAsync(400);
+      await pending;
+      expect(cancelled).toBe(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('primes the engine with a silent utterance, once', () => {

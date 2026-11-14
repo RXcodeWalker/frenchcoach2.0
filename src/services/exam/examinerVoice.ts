@@ -203,20 +203,72 @@ async function speakRecorded(text: string, gen: number, onStart?: () => void): P
   return speakBrowser(text, gen, onStart);
 }
 
+/**
+ * A line that never starts within this long is Chrome staying silent (headless
+ * Chromium does this: the API exists, but no `onstart`/`onend`). Waiting on it
+ * leaves the mic disabled for the rest of the exam.
+ */
+const BROWSER_SPEECH_START_MS = 400;
+/**
+ * Slower than the examiner's rate, so a line that really plays still finishes
+ * through `onend`. This only releases a line that started and then never ended.
+ */
+const BROWSER_SPEECH_MS_PER_CHAR = 120;
+const BROWSER_SPEECH_MIN_MS = 4_000;
+const BROWSER_SPEECH_MAX_MS = 20_000;
+
+function browserSpeechCapMs(text: string): number {
+  return Math.min(BROWSER_SPEECH_MAX_MS, Math.max(BROWSER_SPEECH_MIN_MS, text.length * BROWSER_SPEECH_MS_PER_CHAR));
+}
+
 async function speakBrowser(text: string, gen: number, onStart?: () => void): Promise<void> {
   await ensureVoiceReady();
-  if (gen !== generation || muted) return;
+  // Stay text-only when nothing will actually be heard. Headless Chromium
+  // (Playwright sets `navigator.webdriver`) still has the API, and a speak()
+  // that never fires onend freezes the page's timers, so the mic would stay
+  // disabled for the rest of the exam. A missing French voice is the same
+  // outcome for a real browser: text only, rather than an English voice.
+  selectedVoice = selectedVoice ?? selectVoice();
+  const automated = typeof navigator !== 'undefined' && navigator.webdriver === true;
+  if (gen !== generation || muted || !selectedVoice || automated) return;
 
   return new Promise((resolve) => {
+    let settled = false;
+    let started = false;
+    let startWatch = 0;
+    let endWatch = 0;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(startWatch);
+      clearTimeout(endWatch);
+      resolve();
+    };
+    const giveUp = () => {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {
+        // The cap still releases the turn.
+      }
+      finish();
+    };
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'fr-FR';
     utterance.rate = EXAMINER_VOICE_RATE;
     if (selectedVoice) utterance.voice = selectedVoice;
-    if (onStart) utterance.onstart = () => onStart();
-    utterance.onend = () => resolve();
-    utterance.onerror = () => resolve();
+    utterance.onstart = () => {
+      started = true;
+      onStart?.();
+    };
+    utterance.onend = () => finish();
+    utterance.onerror = () => finish();
     // Chrome can leave the queue paused after an idle period; speak() on a
-    // paused queue silently never fires.
+    // paused queue silently never fires. Cancel so the next line is not stuck
+    // behind this one.
+    startWatch = setTimeout(() => {
+      if (!started) giveUp();
+    }, BROWSER_SPEECH_START_MS);
+    endWatch = setTimeout(giveUp, browserSpeechCapMs(text));
     window.speechSynthesis.resume();
     window.speechSynthesis.speak(utterance);
   });

@@ -48,7 +48,8 @@ async function installAdminSession(page: Page) {
           id: '00000000-0000-4000-8000-000000000001',
           aud: 'authenticated',
           role: 'authenticated',
-          email: 'e2e-admin@example.test',
+          // isAdminUser accepts only the allow-listed owner email together with the admin role.
+          email: 'omjhamvar29@gmail.com',
           app_metadata: { role: 'admin', provider: 'email' },
           user_metadata: {},
           created_at: '2026-01-01T00:00:00Z',
