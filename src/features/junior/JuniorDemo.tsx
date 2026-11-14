@@ -5,7 +5,8 @@
  * Shown once (`junior.demoSeen`); the screen marks it seen when it ends.
  */
 import { useEffect, useState } from 'react';
-import { ArrowRight, Mic } from 'lucide-react';
+import { ArrowRight, Hand, Mic, PenLine } from 'lucide-react';
+import { Button } from '../../components/ui/Button';
 import type { JuniorQuestion } from '../../data/junior/types';
 import { DEMO_STEPS, STEP_MS } from './demoSteps';
 import { Leo } from './Leo';
@@ -18,17 +19,23 @@ interface Props {
   onDone: () => void;
 }
 
-const CAPTION: Record<(typeof DEMO_STEPS)[number], string> = {
-  pictures: '👇 Tap a picture',
-  frame: '👆 The sentence fills in',
-  mic: '🎙 Tap, then say it',
+const CAPTION: Record<(typeof DEMO_STEPS)[number], { text: string; Icon: typeof Hand }> = {
+  pictures: { text: 'Tap a picture', Icon: Hand },
+  frame: { text: 'The sentence fills in', Icon: PenLine },
+  mic: { text: 'Tap, then say it', Icon: Mic },
 };
+
+/** The step being pointed at gets an action outline set off from the card; nothing fades or moves. */
+const stage = (on: boolean) =>
+  `w-full rounded-card outline outline-2 outline-offset-4 transition-colors duration-state ease-smooth ${on ? 'outline-action' : 'outline-transparent'}`;
 
 export function JuniorDemo({ sample, onDone }: Props) {
   const [step, setStep] = useState(0);
   const frame = sample.frames[0];
   const chosen = frame.slotOptions[0];
   const current = DEMO_STEPS[step];
+  const last = step >= DEMO_STEPS.length - 1;
+  const { text, Icon } = CAPTION[current];
 
   useEffect(() => {
     const id = setTimeout(() => {
@@ -38,35 +45,38 @@ export function JuniorDemo({ sample, onDone }: Props) {
     return () => clearTimeout(id);
   }, [step, onDone]);
 
-  const advance = () => (step >= DEMO_STEPS.length - 1 ? onDone() : setStep(step + 1));
+  const advance = () => (last ? onDone() : setStep(step + 1));
 
   return (
     <section data-testid="junior-demo" data-step={current} aria-label="How it works" className="flex flex-col items-center gap-6">
-      <Leo state="happy" size="md" />
-      <p role="status" className="text-subtitle text-ink">{CAPTION[current]}</p>
+      <div className="flex flex-col items-center gap-3">
+        <Leo state="happy" size="md" />
+        <p role="status" className="flex items-center gap-2 text-subtitle text-ink">
+          <Icon size={20} className="text-action-text" aria-hidden="true" /> {text}
+        </p>
+        <div aria-hidden="true" className="flex gap-1.5">
+          {DEMO_STEPS.map((s, i) => (
+            <span key={s} className={`h-1.5 w-8 rounded-pill ${i <= step ? 'bg-action' : 'bg-track'}`} />
+          ))}
+        </div>
+      </div>
 
-      <div className={`w-full rounded-card p-3 ${current === 'pictures' ? 'ring-2 ring-action' : 'opacity-70'}`}>
+      <div className={stage(current === 'pictures')}>
         <PictureChoices options={frame.slotOptions.slice(0, 4)} chosenId={step >= 1 ? chosen.id : null} showWords disabled onPick={() => {}} />
       </div>
-      <div className={`w-full rounded-card p-3 ${current === 'frame' ? 'ring-2 ring-action' : 'opacity-70'}`}>
+      <div className={stage(current === 'frame')}>
         <SentenceFrame frame={frame} chosen={step >= 1 ? chosen : null} />
       </div>
       <div
         data-testid="demo-mic"
-        className={`flex h-20 w-20 items-center justify-center rounded-full bg-action text-action-ink ${current === 'mic' ? 'ring-4 ring-action-soft motion-safe:animate-pulse' : 'opacity-60'}`}
+        className={`flex h-[72px] w-[72px] items-center justify-center rounded-full bg-action text-action-ink outline outline-2 outline-offset-4 ${current === 'mic' ? 'outline-action' : 'outline-transparent'}`}
       >
-        <Mic size={32} aria-hidden="true" />
+        <Mic size={30} aria-hidden="true" />
       </div>
 
-      <button
-        type="button"
-        data-testid="demo-next"
-        aria-label={step >= DEMO_STEPS.length - 1 ? 'Start' : 'Next'}
-        onClick={advance}
-        className="flex h-12 items-center gap-2 rounded-pill bg-action px-6 text-label text-action-ink"
-      >
-        <ArrowRight size={20} aria-hidden="true" />
-      </button>
+      <Button type="button" size="lg" data-testid="demo-next" aria-label={last ? 'Start' : 'Next'} onClick={advance} className="min-w-[160px]">
+        {last ? 'Start' : 'Next'} <ArrowRight size={18} aria-hidden="true" />
+      </Button>
     </section>
   );
 }

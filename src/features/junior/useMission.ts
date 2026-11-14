@@ -89,6 +89,8 @@ export interface UseMission {
   look: LeoLook;
   theme: JuniorTheme | null;
   bank: JuniorBank;
+  /** How many turns the mission has (warm-up, questions, « Et toi ? »), for the progress bar. */
+  turnCount: number;
   pick: (frameIndex: number, optionId: string) => void;
   showHelp: () => void;
   next: () => void;
@@ -453,7 +455,7 @@ export function useMission(themeId: string, bank: JuniorBank = JUNIOR_BANK): Use
     status: !mission ? 'error' : run ? 'running' : 'postcard',
     run, result, capture, blocked, voice,
     look: leoLook(bank, state.junior),
-    theme, bank, pick, showHelp, next, finishDemo, recordingUrl, linesFor,
+    theme, bank, turnCount: mission?.turns.length ?? 0, pick, showHelp, next, finishDemo, recordingUrl, linesFor,
   };
 }
 

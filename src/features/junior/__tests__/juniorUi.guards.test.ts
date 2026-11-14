@@ -63,8 +63,27 @@ describe('Junior UI guards', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('Léo animates only under motion-safe (reduced-motion friendly)', () => {
-    const bad = SOURCES.filter((f) => /(?<![\w:-])animate-(pulse|bounce|spin|ping)/.test(strip(read(f))));
+  it('uses only the design-system motion: nothing loops, bounces, pulses, glows or scales on hover', () => {
+    const LOOPING = /(?<![\w-])(?:motion-safe:|motion-reduce:)?animate-(pulse|bounce|spin|ping)/;
+    const GLOW = /(?<![\w-])(?:drop-shadow|shadow-(?:lg|xl|2xl)|blur-|backdrop-blur|bg-gradient|from-|via-|to-(?!bottom))/;
+    const HOVER_SCALE = /hover:scale-/;
+    const bad = SOURCES.filter((f) => {
+      const code = strip(read(f));
+      return LOOPING.test(code) || GLOW.test(code) || HOVER_SCALE.test(code);
+    });
+    expect(bad).toEqual([]);
+  });
+
+  it('has no text under 12px', () => {
+    const bad = SOURCES.filter((f) => /text-\[(?:[0-9]|1[01])(?:\.\d+)?px\]/.test(strip(read(f))));
+    expect(bad).toEqual([]);
+  });
+
+  it('draws its interface chrome with lucide icons, not emoji (the pictures and stickers are content)', () => {
+    // These were the emoji used as buttons and labels before the v2 rebuild. Screens only: the
+    // domain's Postcard items still carry their own icon literals, which the Postcard view ignores.
+    const CHROME_EMOJI = /[👂🎙🔊▶👇👆❔✨]/u;
+    const bad = SOURCES.filter((f) => f.endsWith('.tsx') && CHROME_EMOJI.test(strip(read(f))));
     expect(bad).toEqual([]);
   });
 });

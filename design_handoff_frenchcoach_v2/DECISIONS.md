@@ -258,8 +258,7 @@ handoff left a gap or clashed with the codebase. Newest phase last.
 - **Out of scope, still on the old style:** feedback (`FeedbackExperience`,
   examiner feedback, Say-it-again, pronunciation cards and badges),
   `SessionComplete`/`SessionSummary` (confetti, emoji), Exam mode screens
-  (warm-paper voice, untouched apart from the serif face), the Junior track,
-  and every hidden (launch-scope) screen. They pick up the new tokens and
+  (warm-paper voice, untouched apart from the serif face), and every hidden (launch-scope) screen. They pick up the new tokens and
   font automatically but keep their own layouts and some legacy motion.
 
 ## Scenarios (role-play flow)
@@ -482,3 +481,32 @@ handoff left a gap or clashed with the codebase. Newest phase last.
 Owner: the exam voice's ground changes from warm cream to plain white (`src/styles/exam-voice.css`); surfaces and
 hairlines become neutral greys. The dark-green accent and the exam serif stay. References above to the "warm-paper
 voice" describe the earlier palette.
+
+## Junior track (Grades 4–7)
+
+- **Scope:** `/junior` (`screens/junior/JuniorHome.tsx`), the mission (`MissionPlayer.tsx`: first-run demo,
+  warm-up, question turns, « Et toi ? », Postcard) and the Profile "Learner track" switch are rebuilt on the v2
+  tokens and shared parts (`PageShell`, `Button`, the `enter` motion, `LevelBars`). Behaviour, the domain and the
+  isolation rules (ADR 0012, `docs/systems/junior-track.md`) are unchanged.
+- **Own top bar, not `TopContextBar`.** `features/junior/JuniorTopBar.tsx` is the same 56px card (title, subtitle,
+  back) without the streak and XP pills: Junior writes no XP, streak or mark, so there is nothing to count, and
+  showing "0 XP" to a nine-year-old would be a lie. It reads no app state.
+- **No numbers anywhere.** Mission progress is a row of bars, one per turn (`role="progressbar"`), and sticker slots
+  are a filled medal or a recessed lock — never a count, never a faded or greyscale item ("locked is recessed").
+- **Chrome is lucide; the pictures are content.** The 👂 🎙 🔊 ▶ ✨ ❔ used as buttons and labels are now Ear, Mic,
+  Volume2, Play, a drawn four-point star and Lock. Theme pictures, answer pictures and sticker art stay emoji (they
+  are game content, like Emoji Master's prompts); the domain's Postcard items still carry icon literals that the view
+  ignores. `juniorUi.guards.test.ts` bans emoji chrome in `.tsx`, looping animation, glow/gradient, hover scale and
+  text under 12px.
+- **Léo no longer pulses or bounces.** The listening glow (a looping pulse), the celebrating bounce and the
+  pulsing mic were not among the eight named motions. Listening is a still ring on Léo and on the mic plus the live
+  waveform (`record`, `LevelBars` fed by the new optional `JuniorCapture.micLevel`); a state change is a single
+  `enter`; celebrating adds two drawn sparkles.
+- **Selected is a 1px action border on `--action-soft`** (picture choices, Track switch), as in the Card kit; the mic
+  uses the primary fill idle and an action outline while listening; disabled controls use the track fill, not 40%
+  opacity.
+- **The mic is docked** (sticky at the bottom of the mission, the mobile dock hidden while a mission runs, as in a
+  Learn session); the Postcard's "One more try" mic sits in a recessed panel.
+- **Not done:** Léo's ▶ buttons are still plain `voice.speak` buttons, not `PlayButton` (no pause/resume);
+  they could move once `leoVoice` attaches to `playbackControl`.
+

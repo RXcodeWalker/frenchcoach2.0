@@ -3,6 +3,7 @@
  * a picture removes the hardest A1 barrier — remembering the word. In the Free
  * step the pictures stay as a visual aid but carry no word under them.
  */
+import { Check } from 'lucide-react';
 import { slotText } from '../../data/junior/sentence';
 import type { JuniorSlotOption } from '../../data/junior/types';
 
@@ -17,7 +18,7 @@ interface Props {
 
 export function PictureChoices({ options, chosenId, showWords, disabled = false, onPick }: Props) {
   return (
-    <div role="group" aria-label="Pick a picture" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div role="group" aria-label="Pick a picture" className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
       {options.map((o) => {
         const selected = o.id === chosenId;
         return (
@@ -30,13 +31,22 @@ export function PictureChoices({ options, chosenId, showWords, disabled = false,
             aria-pressed={selected}
             disabled={disabled}
             onClick={() => onPick(o.id)}
-            className={`flex min-h-[88px] flex-col items-center justify-center gap-1 rounded-card border-2 p-3 transition-colors ${
-              selected ? 'border-action bg-action-soft' : 'border-hairline surface'
-            }`}
+            className={`relative flex min-h-[96px] flex-col items-center justify-center gap-1.5 rounded-card border p-3
+              transition-[background-color,border-color,transform] duration-state ease-smooth active:scale-[.97] active:duration-press
+              disabled:cursor-default disabled:active:scale-100 ${
+                selected
+                  ? 'border-action bg-action-soft'
+                  : `border-hairline surface ${disabled ? '' : 'hover:border-hairline-strong hover:bg-track'}`
+              }`}
           >
+            {selected && (
+              <span aria-hidden="true" className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-action text-action-ink">
+                <Check size={12} strokeWidth={3} />
+              </span>
+            )}
             <span aria-hidden="true" className="text-4xl leading-none">{o.emoji}</span>
             {showWords && (
-              <span lang="fr" className="text-label text-ink">
+              <span lang="fr" className="text-body-s font-semibold text-ink">
                 {slotText(o)}
               </span>
             )}

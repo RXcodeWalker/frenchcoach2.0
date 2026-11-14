@@ -14,11 +14,15 @@ interface Props {
 export function SentenceFrame({ frame, chosen }: Props) {
   const [before, after = ''] = frame.template.split(SLOT_MARKER);
   return (
-    <p data-testid="sentence-frame" lang="fr" className="text-title text-ink text-center">
+    <p data-testid="sentence-frame" lang="fr" className="rounded-card border border-hairline bg-surface-recessed px-4 py-4 text-center text-title text-ink">
       {before}
       <span
         data-testid="sentence-slot"
-        className={chosen ? 'rounded-control bg-progress-soft px-1.5 font-bold text-progress-text' : 'border-b-2 border-hairline-strong px-4 text-ink-subtle'}
+        className={
+          chosen
+            ? 'rounded-control bg-progress-soft px-2 py-0.5 text-progress-text'
+            : 'inline-block min-w-[72px] border-b-2 border-hairline-strong px-2 align-baseline text-ink-subtle'
+        }
       >
         {chosen ? slotText(chosen) : ' '}
       </span>

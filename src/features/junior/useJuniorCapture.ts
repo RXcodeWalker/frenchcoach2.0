@@ -21,6 +21,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { startCaptureWatch, tickCapture, type CaptureWatch } from '../../domain/junior/capture';
 import { useRecording } from '../recording/useRecording';
+import type { MicLevelController } from '../recording/useMicLevel';
 
 export interface CaptureResult {
   transcript: string;
@@ -41,6 +42,8 @@ export interface JuniorCapture {
   toggle: () => void;
   /** Ends a live capture, or drops one still being read, without delivering a result (leaving the screen, a new turn). */
   cancel: () => void;
+  /** The live mic level, for the listening waveform (the `record` motion). */
+  micLevel?: MicLevelController;
 }
 
 /** How often the mic level is looked at. */
@@ -150,5 +153,5 @@ export function useJuniorCapture(
     };
   }, []);
 
-  return { listening, busy, toggle, cancel };
+  return { listening, busy, toggle, cancel, micLevel: recording.micLevel };
 }

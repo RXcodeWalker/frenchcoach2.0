@@ -1,10 +1,13 @@
 /**
- * Léo, the Junior character (junior-track §7): five animated states — listening,
- * happy, celebrating, curious ("hmm?"), thinking. The state IS the per-turn
- * feedback: a learner who cannot read the one optional line still knows how it
- * went. Animation is reduced-motion friendly (`motion-safe:` only). Colour comes
- * from role tokens (§12), never raw Tailwind colours or hex.
+ * Léo, the Junior character (junior-track §7): five states — listening, happy,
+ * celebrating, curious ("hmm?"), thinking. The state IS the per-turn feedback: a
+ * learner who cannot read the one optional line still knows how it went. Colour
+ * comes from role tokens (§12), never raw Tailwind colours or hex. Motion is the
+ * design system's `enter` only (Design System v2): Léo settles in when his state
+ * changes — nothing loops, bounces or glows, and reduced motion drops the rise.
  */
+import { motion } from 'framer-motion';
+import { enter } from '../../components/motion/variants';
 import type { LeoState } from '../../domain/junior/types';
 
 const LABEL: Record<LeoState, string> = {
@@ -39,6 +42,11 @@ function Mouth({ state }: { state: LeoState }) {
   }
 }
 
+/** A four-point star: the celebrating state's only decoration, drawn in the reward role colour. */
+function Sparkle({ cx, cy }: { cx: number; cy: number }) {
+  return <path d={`M${cx} ${cy - 11} L${cx + 3} ${cy - 3} L${cx + 11} ${cy} L${cx + 3} ${cy + 3} L${cx} ${cy + 11} L${cx - 3} ${cy + 3} L${cx - 11} ${cy} L${cx - 3} ${cy - 3} Z`} className="fill-reward" />;
+}
+
 export function Leo({ state, size = 'md', accessory = null }: Props) {
   return (
     <div
@@ -51,11 +59,11 @@ export function Leo({ state, size = 'md', accessory = null }: Props) {
       {state === 'listening' && (
         <span
           aria-hidden="true"
-          data-testid="leo-glow"
-          className="absolute inset-0 rounded-full bg-action-soft motion-safe:animate-pulse"
+          data-testid="leo-ring"
+          className="absolute inset-0 rounded-full border-2 border-action"
         />
       )}
-      <svg viewBox="0 0 120 120" className={`relative h-full w-full ${state === 'celebrating' ? 'motion-safe:animate-bounce' : ''}`} aria-hidden="true">
+      <motion.svg key={state} variants={enter} initial="hidden" animate="show" viewBox="0 0 120 120" className="relative h-full w-full" aria-hidden="true">
         {/* ears — in the listening state the ear is the cue (§4) */}
         <circle cx="14" cy="64" r={state === 'listening' ? 13 : 9} className="fill-action stroke-hairline-strong" strokeWidth="2" />
         <circle cx="106" cy="64" r="9" className="fill-action stroke-hairline-strong" strokeWidth="2" />
@@ -76,21 +84,21 @@ export function Leo({ state, size = 'md', accessory = null }: Props) {
         <Mouth state={state} />
         {state === 'celebrating' && (
           <>
-            <text x="6" y="26" fontSize="20" aria-hidden="true">✨</text>
-            <text x="92" y="22" fontSize="20" aria-hidden="true">✨</text>
+            <Sparkle cx={16} cy={24} />
+            <Sparkle cx={104} cy={20} />
           </>
         )}
         {state === 'thinking' && (
-          <text x="82" y="30" fontSize="22" className="fill-ink-muted" aria-hidden="true">…</text>
+          <text x="92" y="34" fontSize="24" fontWeight="700" className="fill-ink-muted" aria-hidden="true">…</text>
         )}
-      </svg>
+      </motion.svg>
       {state === 'curious' && (
-        <span aria-hidden="true" className="absolute -top-1 -right-2 rounded-pill bg-info-soft px-2 py-0.5 text-label text-info-text">
+        <span aria-hidden="true" className="absolute -right-3 -top-1 rounded-pill bg-info-soft px-2 py-0.5 text-label text-info-text">
           hmm?
         </span>
       )}
       {accessory && (
-        <span aria-hidden="true" data-testid="leo-accessory" className="absolute left-1/2 top-[34%] -translate-x-1/2 text-3xl leading-none">
+        <span aria-hidden="true" data-testid="leo-accessory" className="absolute left-1/2 top-[30%] -translate-x-1/2 text-3xl leading-none">
           {accessory}
         </span>
       )}
