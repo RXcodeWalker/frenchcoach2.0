@@ -2,7 +2,7 @@
 
 A standalone Explore game that teaches Grade 6–7 learners **what each French question word asks for**. Answers are 1–3 words. It awards **no XP**, writes **no Session**, and stores only its own local ladder, mix-ups, cases and bests. Cite as `question-detective §N` — do not renumber.
 
-Flag: `questionDetective` (`coming-soon` until switched live; preview `?ff_questionDetective=live`). Route: `/question-detective`. Teacher filter: `?words=quand,combien`.
+Flag: `questionDetective` (`live`; rollback `coming-soon`). Route: `/question-detective`. Teacher filter: `?words=quand,combien`.
 
 ## §1 The eight tools
 
