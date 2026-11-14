@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, CloudOff, Pause, Play, Trash2 } from 'lucide-react';
+import { CheckCircle2, CloudOff, Trash2 } from 'lucide-react';
+import { PlayButton } from '../../components/ui/PlayButton';
+import { playBlob } from '../../services/audio/playBlob';
 import { TopContextBar } from '../../components/TopContextBar';
 import { PageShell } from '../../components/layout/PageShell';
 import { Button } from '../../components/ui/Button';
@@ -162,43 +164,9 @@ function SavedAnswerCard({ item, online, onFeedback, onSeeFeedback }: {
   );
 }
 
+/** ▶ Listen to the saved recording; tapping again pauses, ↺ starts it over. */
 function ListenButton({ item }: { item: SavedAnswer }) {
-  const [playing, setPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const urlRef = useRef<string | null>(null);
-
-  const stop = () => {
-    audioRef.current?.pause();
-    audioRef.current = null;
-    if (urlRef.current) URL.revokeObjectURL(urlRef.current);
-    urlRef.current = null;
-    setPlaying(false);
-  };
-  useEffect(() => stop, []);
-
-  const toggle = () => {
-    if (playing) {
-      stop();
-      return;
-    }
-    const url = URL.createObjectURL(savedAnswerBlob(item));
-    urlRef.current = url;
-    const audio = new Audio(url);
-    audioRef.current = audio;
-    audio.onended = stop;
-    audio.onerror = stop;
-    setPlaying(true);
-    void audio.play().catch(stop);
-  };
-
-  return (
-    <Button size="sm" variant="secondary" onClick={toggle} aria-pressed={playing}>
-      <span className="flex items-center gap-1.5">
-        {playing ? <Pause size={14} aria-hidden="true" /> : <Play size={14} aria-hidden="true" />}
-        {playing ? 'Stop' : 'Listen'}
-      </span>
-    </Button>
-  );
+  return <PlayButton label="Listen" play={() => playBlob(savedAnswerBlob(item))} />;
 }
 
 /**

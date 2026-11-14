@@ -4,6 +4,7 @@ import { Play, Volume2, CheckCircle2, XCircle, ArrowRight, RotateCcw, ChevronLef
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
 import { useApp, dispatchAddXP } from '../context/AppContext';
+import { PlayButton } from '../components/ui/PlayButton';
 import { TTS } from '../services/tts/ttsService';
 import { getRandomListeningQuestion, ListeningQuestion } from '../data/listeningQuestions';
 import { TopicGrid } from './learn/TopicGrid';
@@ -38,9 +39,9 @@ export function ListeningMode() {
     setState('answering');
   };
 
-  const replayAudio = () => {
+  const replayAudio = async () => {
     if (!currentQuestion) return;
-    TTS.speak(currentQuestion.audioText, { recorded: true });
+    await TTS.speak(currentQuestion.audioText, { recorded: true });
   };
 
   const checkAnswer = (answer: string) => {
@@ -187,13 +188,7 @@ export function ListeningMode() {
                 className="space-y-8"
               >
                 <div className="flex justify-center gap-4">
-                   <button
-                    onClick={replayAudio}
-                    className="p-4 rounded-2xl surface hover:bg-white/5 text-pink-500 transition-all"
-                    title="Replay Audio"
-                  >
-                    <RotateCcw size={24} />
-                  </button>
+                  <PlayButton key={currentQuestion.id} label="Replay audio" icon={<RotateCcw size={16} aria-hidden="true" />} play={replayAudio} />
                 </div>
 
                 {currentQuestion.type === 'dictation' ? (

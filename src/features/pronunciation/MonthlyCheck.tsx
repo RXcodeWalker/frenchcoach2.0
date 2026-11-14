@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Play, Volume2 } from 'lucide-react';
+import { Volume2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
+import { PlayButton } from '../../components/ui/PlayButton';
 import { GuardianConsentNotice } from '../../components/GuardianConsentNotice';
 import { SpeakingConsentGate } from '../../components/SpeakingConsentGate';
 import { useSpaceToRecord } from '../../lib/useSpaceToRecord';
@@ -313,12 +314,8 @@ export function MonthlyCheck({ onDone }: Props) {
         <div className="space-y-4">
           <p className="text-[20px] leading-relaxed text-ink" lang="fr">{sentence}</p>
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="secondary" size="sm" onClick={() => { stopAudio(); void native(sentence); }}>
-              <Volume2 size={16} aria-hidden="true" /> Listen
-            </Button>
-            <Button variant="secondary" size="sm" onClick={() => { stopAudio(); void native(sentence, 0.75); }}>
-              <Volume2 size={16} aria-hidden="true" /> Slowly
-            </Button>
+            <PlayButton label="Listen" icon={<Volume2 size={16} aria-hidden="true" />} play={() => { stopAudio(); return native(sentence); }} />
+            <PlayButton label="Slowly" icon={<Volume2 size={16} aria-hidden="true" />} play={() => { stopAudio(); return native(sentence, 0.75); }} />
           </div>
           <SpeakingConsentGate>
             <RecordControl
@@ -347,9 +344,7 @@ export function MonthlyCheck({ onDone }: Props) {
           <Legend hasExtra={state.take.counts.extra > 0} />
           <p className="text-caption text-ink-muted">Tap a word to hear you, then the native speaker.</p>
           <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" size="sm" onClick={() => void playBoth()}>
-              <Play size={16} aria-hidden="true" /> Play both
-            </Button>
+            <PlayButton label="Play both" play={playBoth} />
             <Button size="sm" onClick={() => { stopAudio(); dispatch({ type: 'next' }); }}>
               {state.index + 1 < SENTENCE_COUNT ? 'Next sentence' : 'See my check'}
             </Button>

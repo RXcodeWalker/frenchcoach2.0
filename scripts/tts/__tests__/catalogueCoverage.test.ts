@@ -207,7 +207,7 @@ describe('recorded-voices catalogue coverage', () => {
   it('catalogues every Accent Analyzer drill as ▶ Native says it, and every word of its word map', () => {
     for (const d of PRONUNCIATION_DRILLS) {
       const spoken = drillSpokenText(d);
-      expect(spoken).not.toMatch(/vs/i);
+      expect(spoken).not.toMatch(/\bvs\b/i);
       expect(KEYS.has(normalizeSpokenText(spoken)), spoken).toBe(true);
       for (const token of tokenizeSentence(d.french)) {
         if (token.norm === 'vs' || !isRecordableWord(token.norm)) continue;

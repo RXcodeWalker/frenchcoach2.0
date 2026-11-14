@@ -53,7 +53,24 @@ describe('calibrationLines — every answered check gets a verdict', () => {
 
   it('confirms with the words found, quoted verbatim', () => {
     const lines = calibrationLines(checks, { linking: 'yes' }, LIBRARY_ANSWER, NO_FIXES);
-    expect(lines).toEqual([{ id: 'linking', answer: 'yes', verdict: 'right', quote: 'aussi', text: 'You said you linked your ideas, and you did: « aussi ».' }]);
+    expect(lines).toEqual([
+      {
+        id: 'linking',
+        prompt: checks.find((c) => c.id === 'linking')!.prompt,
+        answer: 'yes',
+        verdict: 'right',
+        quote: 'aussi',
+        text: 'You said you linked your ideas, and you did: « aussi ».',
+      },
+    ]);
+  });
+
+  it('carries the Predict question it answers, so the reply can show it above the verdict', () => {
+    const lines = calibrationLines(checks, { linking: 'no', mistakes: 'yes' }, LIBRARY_ANSWER, NO_FIXES);
+    expect(lines.map((l) => l.prompt)).toEqual(
+      lines.map((l) => checks.find((c) => c.id === l.id)!.prompt),
+    );
+    expect(lines.every((l) => l.prompt.endsWith('?'))).toBe(true);
   });
 
   it('tells a learner who said no that they did it', () => {
