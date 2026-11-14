@@ -36,22 +36,6 @@ export interface NewsGlossaryEntry {
   en: string;
 }
 
-/**
- * One fact the learner's retelling should carry. Covered when EVERY group in
- * `cues` has at least one alternative in the transcript (daily-news §3), so a
- * fact can never be ticked by one lucky keyword. Alternatives are matched as
- * whole words after normalisation (case, accents, apostrophes, hyphens); an
- * alternative ending in `*` matches any word starting with it ("recycl*").
- */
-export interface NewsFact {
-  id: string;
-  /** Shown on Review: what the fact is, in English. */
-  en: string;
-  /** Index into the level's `sentences` holding this fact (shown in French when missed). */
-  sentence: number;
-  cues: string[][];
-}
-
 /** A listening-comprehension question, in English so it tests the ear, not reading. */
 export interface NewsCheck {
   q: string;
@@ -61,20 +45,84 @@ export interface NewsCheck {
   sentence: number;
 }
 
-export interface NewsLevel {
+/** The story itself: what Henri reads (editions/*.ts). */
+export interface NewsStoryLevel {
   headline: string;
   sentences: NewsSentence[];
   glossary: NewsGlossaryEntry[];
-  facts: NewsFact[];
+  /** Listening questions — used by Sunday's weekly quiz (daily-news §10). */
   check: NewsCheck[];
-  opinion: { fr: string; en: string };
-  /** 2–3 French sentence starters for the opinion. */
-  starters: string[];
-  /** A model French retelling, sent to the feedback engine as the model answer. */
-  modelRetell: string;
 }
 
-export interface NewsEdition {
+/** A French line with its English, for prompts shown with an English toggle. */
+export interface NewsPrompt {
+  fr: string;
+  en: string;
+}
+
+/**
+ * « Intox ou info ? » (daily-news §7): Henri reads the story again with sentence
+ * `sentence` swapped for `fr`, one detail changed. The learner picks which
+ * detail changed from `options` (English); `answer` is the right one.
+ */
+export interface NewsFake {
+  sentence: number;
+  fr: string;
+  en: string;
+  options: string[];
+  answer: number;
+}
+
+export type InterviewKind = 'describe' | 'past' | 'future' | 'opinion';
+
+export interface NewsInterviewQuestion extends NewsPrompt {
+  kind: InterviewKind;
+  /** 2–3 French ways to start the answer. */
+  starters: string[];
+  /** A short model answer, in role. */
+  model: string;
+}
+
+/** « L'interview » (daily-news §7): the learner is someone in the story; Henri, the journalist, asks three questions. */
+export interface NewsInterview {
+  /** Who the learner plays, second person: « Tu es Léa, 14 ans, … ». */
+  role: NewsPrompt;
+  questions: NewsInterviewQuestion[];
+}
+
+export interface NewsDebateSide {
+  starters: string[];
+  model: string;
+}
+
+/** « Pour ou contre » (daily-news §7): argue one side of the story's issue, then the other. */
+export interface NewsDebate {
+  motion: NewsPrompt;
+  for: NewsDebateSide;
+  against: NewsDebateSide;
+}
+
+/** The show's segments for one level (segments/*.ts). */
+export interface NewsLevelSegments {
+  fake: NewsFake;
+  interview: NewsInterview;
+  debate: NewsDebate;
+}
+
+/** IGCSE topic areas (Cambridge 0520 syllabus): A everyday activities … E the international world. */
+export type ExamTopicArea = 'A' | 'B' | 'C' | 'D' | 'E';
+
+/** An edition's segments and links, kept apart from the story so a story's file stays readable. */
+export interface NewsEditionSegments {
+  examArea: ExamTopicArea;
+  /** A core Learn topic key (data/topics.ts) the story leads into. */
+  learnTopic?: string;
+  levels: Record<NewsLevelId, NewsLevelSegments>;
+}
+
+export interface NewsLevel extends NewsStoryLevel, NewsLevelSegments {}
+
+export interface NewsStory {
   /** Stable kebab-case id, e.g. `bees-on-roofs`. Never reused for another story. */
   id: string;
   topicArea: NewsTopicArea;
@@ -85,10 +133,17 @@ export interface NewsEdition {
    */
   pinDate?: string;
   /**
-   * False until a French speaker has checked every level (content-authoring §16).
-   * Unreviewed editions still run (the bank would otherwise be empty); the lint
-   * lists them as warnings.
+   * False until a French speaker has checked every level, segments included
+   * (content-authoring §16). Unreviewed editions still run (the bank would
+   * otherwise be empty); the lint lists them as warnings.
    */
   reviewed: boolean;
+  levels: Record<NewsLevelId, NewsStoryLevel>;
+}
+
+/** A story joined with its segments (data/news/index.ts) — what the show plays. */
+export interface NewsEdition extends Omit<NewsStory, 'levels'> {
+  examArea: ExamTopicArea;
+  learnTopic?: string;
   levels: Record<NewsLevelId, NewsLevel>;
 }

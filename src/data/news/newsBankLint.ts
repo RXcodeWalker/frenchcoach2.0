@@ -1,12 +1,20 @@
 /**
- * Deterministic lint over the Daily News bank — docs/systems/daily-news.md §1.
+ * Deterministic lint over the Daily News bank — docs/systems/daily-news.md §1 and §7.
  * Run by `src/data/news/__tests__/newsBankLint.test.ts` (errors fail the suite),
  * never at runtime. Modelled on src/data/learnBankLint.ts: rules the data
  * contract states are errors; `unreviewed` is a warning, because the real check
  * on the French is a human one (content-authoring §16).
  */
-import { cueOccurs, matchFacts } from '../../features/news/matchFacts';
-import { NEWS_LEVELS, type NewsEdition, type NewsLevel, type NewsLevelId } from './types';
+import { phraseOccurs } from '../../features/news/newsMatch';
+import { TOPICS } from '../topics';
+import {
+  NEWS_LEVELS,
+  type NewsEdition,
+  type NewsEditionSegments,
+  type NewsLevel,
+  type NewsLevelId,
+  type NewsStory,
+} from './types';
 
 export type NewsLintSeverity = 'error' | 'warning';
 
@@ -19,11 +27,14 @@ export interface NewsLintIssue {
 }
 
 /** Per level: sentence count range and the word ceiling for the whole story. */
-export const LEVEL_LIMITS: Record<NewsLevelId, { minSentences: number; maxSentences: number; maxWords: number }> = {
-  a2: { minSentences: 3, maxSentences: 5, maxWords: 45 },
-  b1: { minSentences: 4, maxSentences: 6, maxWords: 65 },
-  b2: { minSentences: 4, maxSentences: 7, maxWords: 85 },
+export const LEVEL_LIMITS: Record<NewsLevelId, { minSentences: number; maxSentences: number; maxWords: number; maxModelWords: number }> = {
+  a2: { minSentences: 3, maxSentences: 5, maxWords: 45, maxModelWords: 30 },
+  b1: { minSentences: 4, maxSentences: 6, maxWords: 65, maxModelWords: 40 },
+  b2: { minSentences: 4, maxSentences: 7, maxWords: 85, maxModelWords: 50 },
 };
+
+const EXAM_AREAS = new Set(['A', 'B', 'C', 'D', 'E']);
+const CORE_TOPICS = new Set(TOPICS.filter(t => !t.isAdvanced).map(t => t.key));
 
 /**
  * Words that would take a story somewhere this bank never goes (under-13s use
@@ -72,7 +83,19 @@ function lintLevel(id: NewsLevelId, level: NewsLevel | undefined, push: (i: Omit
     if (!s.fr.trim() || !s.en.trim()) err('sentence-empty', `sentence ${i} has an empty fr or en`);
   });
 
-  const allFrench = [level.headline, text, level.opinion.fr, level.modelRetell, ...level.starters, ...level.glossary.map(g => g.fr)];
+  const allFrench = [
+    level.headline,
+    text,
+    ...level.glossary.map(g => g.fr),
+    level.fake.fr,
+    level.interview.role.fr,
+    ...level.interview.questions.flatMap(q => [q.fr, q.model, ...q.starters]),
+    level.debate.motion.fr,
+    level.debate.for.model,
+    level.debate.against.model,
+    ...level.debate.for.starters,
+    ...level.debate.against.starters,
+  ];
   for (const fr of allFrench) {
     if (CURLY_RE.test(fr)) err('curly-apostrophe', `use straight ' in « ${fr.slice(0, 40)} »`);
     if (CONTROL_RE.test(fr)) err('control-character', `control character in « ${fr.slice(0, 40)} »`);
@@ -84,25 +107,8 @@ function lintLevel(id: NewsLevelId, level: NewsLevel | undefined, push: (i: Omit
 
   if (level.glossary.length < 3 || level.glossary.length > 8) err('glossary-count', `${level.glossary.length} glossary entries; needs 3–8`);
   for (const g of level.glossary) {
-    if (!cueOccurs(text, g.fr)) err('glossary-not-in-text', `glossary « ${g.fr} » is not in the story`);
+    if (!phraseOccurs(text, g.fr)) err('glossary-not-in-text', `glossary « ${g.fr} » is not in the story`);
   }
-
-  if (level.facts.length < 3 || level.facts.length > 4) err('fact-count', `${level.facts.length} facts; needs 3–4`);
-  const factIds = new Set<string>();
-  for (const f of level.facts) {
-    if (factIds.has(f.id)) err('fact-id-duplicate', `fact id ${f.id} repeats`);
-    factIds.add(f.id);
-    if (f.cues.length < 2) err('fact-cues', `fact ${f.id} needs at least 2 cue groups (one keyword must never cover a fact)`);
-    if (f.sentence < 0 || f.sentence >= n) err('fact-sentence', `fact ${f.id} points at sentence ${f.sentence}`);
-    f.cues.forEach((group, gi) => {
-      if (group.length === 0) err('fact-cues', `fact ${f.id} group ${gi} is empty`);
-      else if (!group.some(alt => cueOccurs(text, alt))) {
-        err('fact-cue-not-in-text', `fact ${f.id} group ${gi} (${group.join(' / ')}) never occurs in the story`);
-      }
-    });
-  }
-  const retold = matchFacts(level.modelRetell, level.facts);
-  if (retold.missed.length > 0) err('model-retell-misses', `modelRetell misses fact(s) ${retold.missed.join(', ')}`);
 
   if (level.check.length !== 3) err('check-count', `${level.check.length} check questions; needs 3`);
   level.check.forEach((c, i) => {
@@ -112,8 +118,66 @@ function lintLevel(id: NewsLevelId, level: NewsLevel | undefined, push: (i: Omit
     if (new Set(c.options).size !== c.options.length) err('check-options', `check ${i} repeats an option`);
   });
 
-  if (!level.opinion.fr.trim() || !level.opinion.en.trim()) err('opinion', 'opinion prompt is empty');
-  if (level.starters.length < 2 || level.starters.length > 3) err('starters', `${level.starters.length} starters; needs 2–3`);
+  lintSegments(id, level, err);
+}
+
+function nonEmpty(...xs: string[]): boolean {
+  return xs.every(x => x.trim().length > 0);
+}
+
+function startersOk(starters: readonly string[]): boolean {
+  return starters.length >= 2 && starters.length <= 3 && starters.every(x => x.trim().length > 0);
+}
+
+/** The show's segments for one level (daily-news §7). */
+function lintSegments(id: NewsLevelId, level: NewsLevel, err: (code: string, message: string) => void) {
+  const n = level.sentences.length;
+  const maxModel = LEVEL_LIMITS[id].maxModelWords;
+
+  const { fake } = level;
+  if (fake.sentence < 0 || fake.sentence >= n) err('fake-sentence', `fake points at sentence ${fake.sentence}`);
+  else if (fake.fr.trim() === level.sentences[fake.sentence].fr.trim()) err('fake-unchanged', 'fake sentence is the same as the real one');
+  if (!nonEmpty(fake.fr, fake.en)) err('fake-empty', 'fake fr/en is empty');
+  if (fake.options.length !== 3 || new Set(fake.options).size !== 3 || !nonEmpty(...fake.options)) {
+    err('fake-options', 'fake needs 3 different, non-empty options');
+  }
+  if (fake.answer < 0 || fake.answer >= fake.options.length) err('fake-answer', `fake answer ${fake.answer} is out of range`);
+
+  const { interview } = level;
+  if (!nonEmpty(interview.role.fr, interview.role.en)) err('interview-role', 'interview role is empty');
+  if (interview.questions.length !== 3) err('interview-count', `${interview.questions.length} interview questions; needs 3`);
+  interview.questions.forEach((q, i) => {
+    if (!nonEmpty(q.fr, q.en, q.model)) err('interview-empty', `interview question ${i} has an empty field`);
+    // A question, or an imperative prompt (« Racontez-nous… »).
+    if (!/[?.]$/.test(q.fr.trim())) err('interview-question-mark', `interview prompt ${i} must end with « ? » (or « . » for « Racontez-nous… »)`);
+    if (!startersOk(q.starters)) err('interview-starters', `interview question ${i} needs 2–3 starters`);
+    if (wordCount(q.model) > maxModel) err('model-too-long', `interview model ${i}: ${wordCount(q.model)} words; ${id} allows ${maxModel}`);
+  });
+  const kinds = new Set(interview.questions.map(q => q.kind));
+  if (!kinds.has('past')) err('interview-tenses', 'the interview needs a question in the past');
+  if (id !== 'a2' && !kinds.has('future')) err('interview-tenses', `a ${id} interview needs a question about the future`);
+
+  const { debate } = level;
+  if (!nonEmpty(debate.motion.fr, debate.motion.en)) err('debate-motion', 'debate motion is empty');
+  if (!debate.motion.fr.trim().endsWith('?')) err('debate-motion', 'debate motion must be a question ending with « ? »');
+  for (const [side, d] of [['for', debate.for], ['against', debate.against]] as const) {
+    if (!startersOk(d.starters)) err('debate-starters', `debate ${side} needs 2–3 starters`);
+    if (!nonEmpty(d.model)) err('debate-model', `debate ${side} model is empty`);
+    if (wordCount(d.model) > maxModel) err('model-too-long', `debate ${side} model: ${wordCount(d.model)} words; ${id} allows ${maxModel}`);
+  }
+}
+
+/** Every story needs its segments, and every segments entry its story. */
+export function lintSegmentCoverage(stories: readonly NewsStory[], segments: Readonly<Record<string, NewsEditionSegments>>): NewsLintIssue[] {
+  const issues: NewsLintIssue[] = [];
+  const ids = new Set(stories.map(s => s.id));
+  for (const s of stories) {
+    if (!segments[s.id]) issues.push({ severity: 'error', editionId: s.id, code: 'missing-segments', message: 'story has no segments entry (segments/*.ts)' });
+  }
+  for (const id of Object.keys(segments)) {
+    if (!ids.has(id)) issues.push({ severity: 'error', editionId: id, code: 'orphan-segments', message: 'segments entry has no story' });
+  }
+  return issues;
 }
 
 export function lintNewsBank(bank: readonly NewsEdition[]): NewsLintIssue[] {
@@ -131,6 +195,10 @@ export function lintNewsBank(bank: readonly NewsEdition[]): NewsLintIssue[] {
       pins.add(e.pinDate);
     }
     if (!e.reviewed) push({ severity: 'warning', code: 'unreviewed', message: 'French not yet checked by a French speaker' });
+    if (!EXAM_AREAS.has(e.examArea)) push({ severity: 'error', code: 'exam-area', message: `examArea ${e.examArea} must be A–E` });
+    if (e.learnTopic !== undefined && !CORE_TOPICS.has(e.learnTopic)) {
+      push({ severity: 'error', code: 'learn-topic', message: `learnTopic ${e.learnTopic} is not a core Learn topic` });
+    }
     for (const id of NEWS_LEVELS) lintLevel(id, e.levels[id], push);
   }
   if (bank.filter(e => !e.pinDate).length < 7) {

@@ -343,6 +343,16 @@ interface MysteryBoxOpenedProps {
   xp?: number;
 }
 
+interface NewsSegmentCompletedProps {
+  /** One finished Daily News speaking segment (daily-news §7). Ids and counts only — never the answers. */
+  segment: 'interview' | 'debate';
+  level: 'a2' | 'b1' | 'b2';
+  /** True for the day's featured segment, false for one played as practice. */
+  featured: boolean;
+  /** Turns the learner answered (an empty or skipped turn is not counted). */
+  answered: number;
+}
+
 interface EarTrainingRoundProps {
   /** One finished round of the listen-only minimal-pair game (Stage 5). Counts only — never the words. */
   correct: number;
@@ -499,6 +509,7 @@ export type TelemetryEvent =
   | { name: 'lab_focus_word_used';     props: LabFocusWordUsedProps }
   | { name: 'monthly_check_done';      props: MonthlyCheckDoneProps }
   | { name: 'ear_training_round';      props: EarTrainingRoundProps }
+  | { name: 'news_segment_completed';  props: NewsSegmentCompletedProps }
   | { name: 'mystery_box_opened';      props: MysteryBoxOpenedProps }
   | { name: 'learn_session_completed'; props: LearnSessionCompletedProps }
   | { name: 'learn_session_abandoned'; props: LearnSessionAbandonedProps }
@@ -586,6 +597,7 @@ const DECLARED_PROPS = {
   lab_focus_word_used: ['verdict'],
   monthly_check_done: ['words_clear', 'words_total', 'sentences_measured', 'first_check'],
   ear_training_round: ['correct', 'total'],
+  news_segment_completed: ['segment', 'level', 'featured', 'answered'],
   mystery_box_opened: ['outcome', 'xp'],
   learn_session_completed: ['topic_key', 'questions_answered', 'avg_score', 'duration_ms', 'ended_early'],
   learn_session_abandoned: ['topic_key', 'questions_answered', 'last_step', 'elapsed_ms'],

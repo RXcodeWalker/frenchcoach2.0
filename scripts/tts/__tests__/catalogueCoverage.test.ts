@@ -304,13 +304,25 @@ describe('recorded-voices catalogue coverage', () => {
     expect(missing).toEqual([]);
   });
 
+  it("catalogues every line Henri says in the news show (the fake sentence, interview and debate questions)", () => {
+    const spoken = NEWS_EDITIONS.flatMap((e) =>
+      NEWS_LEVELS.flatMap((l) => {
+        const lvl = e.levels[l];
+        return [lvl.fake.fr, ...lvl.interview.questions.map((q) => q.fr), lvl.debate.motion.fr];
+      }),
+    );
+    expect(spoken.filter((fr) => !KEYS.has(normalizeSpokenText(fr)))).toEqual([]);
+  });
+
   // Owner decision (2026-11-02, Learn Batch 4): the cap was 450k; 160 new Learn questions took the full
   // catalogue to ~470k, and the owner chose to keep the full model answers and raise it to 480k. A full
   // re-record (a VOICE_KEY_VERSION bump) still fits F0's 500k, but leaves no room that month for
   // /api/native-voice's 50k share — the recorder resumes across runs, so it may spill into a second month.
   // 2026-11-11 (Daily News bank, ~28k): the full catalogue is ~498k, so the guard is now F0's 500k itself. A normal
   // run records only missing lines; a full re-record now always takes two months.
-  it('keeps the recording budget inside Azure F0 (500k characters a month)', () => {
+  // 2026-11-14 (news show prompts, ~22k): the owner raised the guard to 545k and records the new lines over the
+  // following month(s). The catalogue is now above one F0 month: a full re-record takes two or more months.
+  it('keeps the recording budget under the owner-set guard', () => {
     const chars = CATALOGUE.reduce((n, l) => n + l.text.length, 0);
     expect(chars).toBeLessThan(BUDGET_LIMIT_CHARS);
   });

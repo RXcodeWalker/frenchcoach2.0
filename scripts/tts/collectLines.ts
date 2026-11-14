@@ -152,12 +152,24 @@ export function accentLines(): string[] {
 }
 
 /**
- * Daily News (docs/systems/daily-news.md §5): the hand-written bank, one line
- * per sentence, because `useBroadcast` plays a story sentence by sentence and
- * finds each recording by that sentence's exact text.
+ * Daily News (docs/systems/daily-news.md §5, §7): the hand-written bank, one
+ * line per sentence, because `useBroadcast` plays a story sentence by sentence
+ * and finds each recording by that sentence's exact text. Also every line
+ * Henri says in the show: the « Intox ou info ? » fake sentence, the interview
+ * questions and the debate question (SegmentTurns speaks each prompt as is).
  */
 export function newsLines(): string[] {
-  return NEWS_EDITIONS.flatMap((e) => NEWS_LEVELS.flatMap((l) => e.levels[l].sentences.map((s) => s.fr)));
+  return NEWS_EDITIONS.flatMap((e) =>
+    NEWS_LEVELS.flatMap((l) => {
+      const lvl = e.levels[l];
+      return [
+        ...lvl.sentences.map((s) => s.fr),
+        lvl.fake.fr,
+        ...lvl.interview.questions.map((q) => q.fr),
+        lvl.debate.motion.fr,
+      ];
+    }),
+  );
 }
 
 /**
@@ -181,7 +193,7 @@ export function collectLines(): CatalogueLine[] {
     ['lab-guide', labGuideLines()],
     ['lab-words', labWordLines()],
     ['lab-sentences', labSentenceLines()],
-    // Daily News (daily-news §5): every sentence of every level, exactly as useBroadcast speaks it.
+    // Daily News (daily-news §5, §7): every sentence of every level, plus the show's spoken prompts.
     ['news', newsLines()],
   ];
 

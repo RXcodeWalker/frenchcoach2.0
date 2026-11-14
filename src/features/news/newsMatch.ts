@@ -1,13 +1,11 @@
 /**
- * Which of a story's facts a spoken retelling carries — docs/systems/daily-news.md §3.
+ * Deterministic word matching for the news show — docs/systems/daily-news.md §7.
  *
- * Deterministic and instant (no AI call): a fact is covered when every one of
- * its cue groups has a match, so naming one keyword is never enough. Both sides
- * are normalised the same way — lower case, accents, apostrophes and hyphens
- * removed, numbers written as digits turned into French words (the recogniser
- * writes "10" where the learner said « dix »).
+ * Used for "story words you used" and by the bank lint (a glossary entry must
+ * be in its story). Both sides are normalised the same way — lower case,
+ * accents, apostrophes and hyphens removed, numbers written as digits turned
+ * into French words (the recogniser writes "10" where the learner said « dix »).
  */
-import type { NewsFact } from '../../data/news/types';
 
 const UNITS = ['zero', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix',
   'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize'];
@@ -68,26 +66,23 @@ function escape(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-/** True when every cue group of `fact` has at least one alternative in `transcript`. */
-export function factCovered(transcript: string, fact: Pick<NewsFact, 'cues'>): boolean {
-  const text = normalizeForMatch(transcript);
-  if (!text || fact.cues.length === 0) return false;
-  return fact.cues.every(group => group.some(alt => matchesAlternative(text, alt)));
+/**
+ * True when `phrase` occurs in `text` as whole words. A phrase ending in `*`
+ * matches any word starting with it (« recycl* »).
+ */
+export function phraseOccurs(text: string, phrase: string): boolean {
+  return matchesAlternative(normalizeForMatch(text), phrase);
 }
 
-/** True when `alternative` (one cue) occurs in `text` — used by the lint to prove a cue is in its story. */
-export function cueOccurs(text: string, alternative: string): boolean {
-  return matchesAlternative(normalizeForMatch(text), alternative);
-}
-
-export interface FactMatch {
-  covered: string[];
-  missed: string[];
-}
-
-export function matchFacts(transcript: string, facts: readonly NewsFact[]): FactMatch {
-  const covered: string[] = [];
-  const missed: string[] = [];
-  for (const fact of facts) (factCovered(transcript, fact) ? covered : missed).push(fact.id);
-  return { covered, missed };
+/**
+ * A glossary word's stem for "did the learner use it": the last word may take
+ * an ending (« ruches » → « ruche* »), so plurals and verb forms still count.
+ */
+export function usedPhrase(text: string, phrase: string): boolean {
+  if (phraseOccurs(text, phrase)) return true;
+  const words = normalizeForMatch(phrase).split(' ');
+  const last = words[words.length - 1];
+  if (last.length < 5) return false;
+  words[words.length - 1] = `${last.slice(0, last.length - 2)}*`;
+  return phraseOccurs(text, words.join(' '));
 }

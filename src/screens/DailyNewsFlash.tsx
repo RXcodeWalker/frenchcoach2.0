@@ -1,23 +1,18 @@
 /**
- * Daily News Flash — "Le Journal" (docs/systems/daily-news.md).
+ * Daily News Flash — "Le Journal", the daily news show (docs/systems/daily-news.md).
  *
- * One hand-written story a day, at three levels: Listen (Henri's recorded
- * voice, sentence by sentence) → Check (three listening questions) → Report
- * (retell it as the news anchor, facts lit as they're heard) → Your take
- * (optional opinion) → Review. XP is earned once per edition-day; the streak
- * and the archive are derived from the session history.
+ * One hand-written story a day, at three levels: Les titres (Henri reads it) →
+ * « Intox ou info ? » (spot the changed detail) → the day's featured speaking
+ * segment (L'interview or Pour ou contre, by weekday) → Review, with feedback
+ * that carries no marks. XP is earned once per edition-day, for the featured
+ * segment; the story's other segment is practice. The streak and the archive
+ * are derived from the session history.
  */
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Check, ChevronRight, Ear, Eye, Lock, Newspaper, RotateCcw, Zap } from 'lucide-react';
+import { Check, ChevronRight, Eye, Lock, Mic, Newspaper, RotateCcw, Zap } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { useAuth } from '../context/AuthContext';
-import { SpeakingConsentGate } from '../components/SpeakingConsentGate';
-import { useRecording } from '../features/recording/useRecording';
-import { RecordingPanel } from './learn/RecordingPanel';
-import { FeedbackPanel } from './learn/FeedbackPanel';
-import { getAIFeedback } from '../services/api/apiClient';
 import { PageShell } from '../components/layout/PageShell';
 import { TopContextBar } from '../components/TopContextBar';
 import { Button } from '../components/ui/Button';
@@ -30,24 +25,32 @@ import type { NewsEdition, NewsLevelId } from '../data/news/types';
 import { NewsPlayer } from '../features/news/NewsPlayer';
 import { useBroadcast } from '../features/news/useBroadcast';
 import { StoryTranscript } from '../features/news/StoryTranscript';
-import { ComprehensionCheck } from '../features/news/ComprehensionCheck';
-import { FactChecklist } from '../features/news/FactChecklist';
-import { BroadcastReplay } from '../features/news/BroadcastReplay';
 import { WeekStrip } from '../features/news/WeekStrip';
-import { matchFacts } from '../features/news/matchFacts';
 import {
-  defaultNewsLevel, earnsXp, isNewsLevel, newsContentId, newsDays, newsScore, newsStreak,
+  defaultNewsLevel, earnsXp, isNewsLevel, newsContentId, newsDays, newsStreak,
 } from '../features/news/newsProgress';
-import type { FeedbackV2, Question, Session } from '../types';
+import { IntoxOuInfo } from '../features/news/show/segments/IntoxOuInfo';
+import { SegmentTurns, type TurnAnswer } from '../features/news/show/segments/SegmentTurns';
+import { NewsCoachFeedback } from '../features/news/show/NewsCoachFeedback';
+import { StoryLinks } from '../features/news/show/StoryLinks';
+import { YourAnswers } from '../features/news/show/YourAnswers';
+import { segmentTurns } from '../features/news/show/segmentPrompts';
+import { segmentFeedback, segmentQuestion } from '../features/news/show/segmentFeedback';
+import { wordsUsed } from '../features/news/show/wordsUsed';
+import {
+  SEGMENT_INFO, featuredSegment, practiceSegments, showScore, type SegmentId,
+} from '../features/news/show/showPlan';
+import type { FeedbackV2, Session } from '../types';
 import { STORAGE_KEYS, storageGet, storageRemove, storageSet } from '../services/persistence/storage';
 import { awardXP, checkAchievements, getProgressionState } from '../services/progression/progressionService';
 import { getSessionHistory, recordSession as persistSession } from '../services/analytics/analyticsService';
 import { buildAchievementContext } from '../services/coach/achievementContextBuilder';
 import { observeAttempt } from '../services/coach/sessionOrchestrator';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
+import { track } from '../services/telemetry/telemetryService';
 import { localDay } from '../lib/localDay';
 
-type Phase = 'listen' | 'check' | 'report' | 'opinion' | 'processing' | 'review';
+type Phase = 'listen' | 'intox' | 'segment' | 'processing' | 'review';
 
 /** How far back the archive reaches (daily-news §6). */
 export const ARCHIVE_DAYS = 14;
@@ -58,18 +61,6 @@ const LEVEL_OPTIONS: { id: NewsLevelId; label: string; note: string }[] = [
   { id: 'b2', label: 'Harder', note: 'B2' },
 ];
 
-const STEPS: Array<{ id: 'listen' | 'check' | 'report' | 'review'; label: string }> = [
-  { id: 'listen', label: 'Listen' },
-  { id: 'check', label: 'Check' },
-  { id: 'report', label: 'Report' },
-  { id: 'review', label: 'Review' },
-];
-
-function stepOf(phase: Phase): (typeof STEPS)[number]['id'] {
-  if (phase === 'opinion' || phase === 'processing') return 'report';
-  return phase;
-}
-
 function formatDay(day: string): string {
   const [y, m, d] = day.split('-').map(Number);
   return new Date(y, m - 1, d).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -79,16 +70,19 @@ function wordCount(text: string): number {
   return text.split(/\s+/).filter(Boolean).length;
 }
 
-/** Listen → Check → Report → Review, as a quiet four-step track. */
-function StepTrack({ phase }: { phase: Phase }) {
-  const at = STEPS.findIndex(s => s.id === stepOf(phase));
+const cardClass = 'rounded-card border border-hairline bg-surface p-5 md:p-8';
+
+/** Listen → Intox ou info → the segment → Review, as a quiet four-step track. */
+function StepTrack({ phase, segmentLabel }: { phase: Phase; segmentLabel: string }) {
+  const steps = ['Listen', 'Intox ou info', segmentLabel, 'Review'];
+  const at = phase === 'listen' ? 0 : phase === 'intox' ? 1 : phase === 'review' ? 3 : 2;
   return (
     <ol className="flex items-center gap-2" aria-label="Progress">
-      {STEPS.map((step, i) => {
+      {steps.map((label, i) => {
         const done = i < at;
         const current = i === at;
         return (
-          <li key={step.id} className="flex flex-1 items-center gap-2" aria-current={current ? 'step' : undefined}>
+          <li key={label} className="flex flex-1 items-center gap-2" aria-current={current ? 'step' : undefined}>
             <span
               className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-pill text-caption font-semibold font-numeral
                 transition-colors duration-state ease-smooth
@@ -96,9 +90,9 @@ function StepTrack({ phase }: { phase: Phase }) {
             >
               {done ? <Check size={12} aria-hidden="true" /> : i + 1}
             </span>
-            <span className={`hidden text-label sm:inline ${current ? 'text-ink' : done ? 'text-ink-muted' : 'text-ink-subtle'}`}>{step.label}</span>
-            {current && <span className="text-label text-ink sm:hidden">{step.label}</span>}
-            {i < STEPS.length - 1 && <span aria-hidden="true" className="h-px flex-1 bg-hairline" />}
+            <span className={`hidden whitespace-nowrap text-label md:inline ${current ? 'text-ink' : done ? 'text-ink-muted' : 'text-ink-subtle'}`}>{label}</span>
+            {current && <span className="whitespace-nowrap text-label text-ink md:hidden">{label}</span>}
+            {i < steps.length - 1 && <span aria-hidden="true" className="h-px min-w-2 flex-1 bg-hairline" />}
           </li>
         );
       })}
@@ -106,14 +100,17 @@ function StepTrack({ phase }: { phase: Phase }) {
   );
 }
 
-interface Result {
-  covered: string[];
-  checkCorrect: number;
-  score: number;
-  /** XP actually awarded; 0 on a replay of an edition-day already finished. */
+interface SegmentResult {
+  segment: SegmentId;
+  answers: TurnAnswer[];
+  feedback: FeedbackV2 | null;
+  /** True when there was something to mark but no feedback came back. */
+  feedbackFailed: boolean;
+  /** XP actually awarded; 0 for practice or a replay. */
   xp: number;
-  practiceRun: boolean;
-  earOnly: boolean;
+  featured: boolean;
+  /** The featured segment on an edition-day already finished: kept, no XP. */
+  replay: boolean;
 }
 
 export function DailyNewsFlash() {
@@ -130,8 +127,6 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
   const reduced = useReducedMotion();
   const item = reduced ? enterReduced : enter;
   const { state, dispatch } = useApp();
-  const { consentStatus } = useAuth();
-  const recording = useRecording(consentStatus === 'pending');
 
   const edition: NewsEdition = useMemo(() => editionForDay(day, NEWS_EDITIONS), [day]);
   const [level, setLevelState] = useState<NewsLevelId>(() => {
@@ -140,17 +135,15 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
   });
   const lvl = edition.levels[level];
   const sentenceTexts = useMemo(() => lvl.sentences.map(s => s.fr), [lvl]);
+  const featured = featuredSegment(day);
 
   const [phase, setPhase] = useState<Phase>('listen');
+  const [active, setActive] = useState<SegmentId>(featured);
   const [stopSignal, setStopSignal] = useState(0);
   const broadcast = useBroadcast(sentenceTexts, stopSignal);
   const [showTranscript, setShowTranscript] = useState(false);
-  const [openedTranscript, setOpenedTranscript] = useState(false);
-  const [checkCorrect, setCheckCorrect] = useState(0);
-  const [report, setReport] = useState<{ transcript: string; blob: Blob | null; seconds: number } | null>(null);
-  const [feedback, setFeedback] = useState<FeedbackV2 | null>(null);
-  const [feedbackFailed, setFeedbackFailed] = useState(false);
-  const [result, setResult] = useState<Result | null>(null);
+  const [intoxRight, setIntoxRight] = useState<boolean | null>(null);
+  const [result, setResult] = useState<SegmentResult | null>(null);
   const [history, setHistory] = useState(() => getSessionHistory());
   const finishing = useRef(false);
 
@@ -160,7 +153,7 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
   }, []);
 
   const week = useMemo(() => newsDays(history, today, NEWS_EDITIONS, 7), [history, today]);
-  const streak = useMemo(() => newsStreak(history, today, NEWS_EDITIONS), [history, today]);
+  const streak = useMemo(() => newsStreak(history, today), [history, today]);
   const archive = useMemo(
     () => newsDays(history, today, NEWS_EDITIONS, ARCHIVE_DAYS + 1).filter(d => d.day !== today && d.day !== day).reverse(),
     [history, today, day],
@@ -168,6 +161,8 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
   const contentId = newsContentId(edition.id, day);
   const doneBefore = !earnsXp(history, contentId);
   const isArchive = day !== today;
+  const turns = useMemo(() => segmentTurns(lvl, active), [lvl, active]);
+  const others = practiceSegments(featured);
 
   const setLevel = (l: NewsLevelId) => {
     setLevelState(l);
@@ -177,125 +172,97 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
   const stopAudio = () => setStopSignal(n => n + 1);
   const transcriptUnlocked = broadcast.listened || broadcast.unavailable;
 
-  const revealTranscript = () => {
-    setShowTranscript(true);
-    setOpenedTranscript(true);
-  };
-
-  const goCheck = () => {
+  const goIntox = () => {
     stopAudio();
-    setPhase('check');
+    setPhase('intox');
   };
 
-  const onCheckDone = (correct: number) => {
-    stopAudio();
-    setCheckCorrect(correct);
-    setPhase('report');
+  const onIntoxDone = (right: boolean) => {
+    setIntoxRight(right);
+    setActive(featured);
+    setPhase('segment');
   };
 
-  const handleReportStop = async () => {
-    const seconds = recording.elapsedTime;
-    const transcript = await recording.stop();
-    const blob = await recording.audioBlobPromise().catch(() => null);
-    setReport({ transcript, blob, seconds });
-    setPhase('opinion');
-  };
-
-  const finish = async (opinion: string, opinionSeconds: number) => {
-    if (!report || finishing.current) return;
+  const finishSegment = async (answers: TurnAnswer[]) => {
+    if (finishing.current) return;
     finishing.current = true;
     stopAudio();
     setPhase('processing');
 
-    const full = [report.transcript, opinion].map(t => t.trim()).filter(Boolean).join(' ');
-    const facts = matchFacts(report.transcript, lvl.facts);
-    const score = newsScore(checkCorrect, lvl.check.length, facts.covered.length, lvl.facts.length);
-    const first = earnsXp(getSessionHistory(), contentId);
-    const question: Question = {
-      id: `${edition.id}-${level}`,
-      text: opinion
-        ? `Résumez cette nouvelle : « ${lvl.headline} ». Puis : ${lvl.opinion.fr}`
-        : `Résumez cette nouvelle : « ${lvl.headline} »`,
-      topicKey: 'news',
-      hint: 'Qui ? Quoi ? Où ? Quand ?',
-      difficulty: level === 'a2' ? 1 : level === 'b1' ? 2 : 3,
-      followUps: [lvl.opinion.fr],
-      modelAnswer: lvl.modelRetell,
-      keyVocab: lvl.glossary.map(g => ({ fr: g.fr, en: g.en })),
-    };
-
-    let fb: FeedbackV2 | null = null;
-    if (full) {
-      try {
-        fb = await getAIFeedback(full, question, undefined, report.blob ?? undefined);
-      } catch (error) {
-        console.error('Daily News feedback unavailable:', error);
-      }
-    }
-
-    const session: Session = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      mode: 'daily_news',
-      topicKey: 'news',
-      questionText: question.text,
-      transcript: full,
-      wordCount: wordCount(full),
-      score,
-      xpEarned: 0,
-      durationSec: Math.max(1, Math.round(report.seconds + opinionSeconds)),
-      feedback: fb ?? undefined,
-      createdAt: new Date().toISOString(),
-      contentId,
-    };
+    const texts = answers.map(a => a.text);
+    const answered = texts.filter(t => t.trim()).length;
+    const isFeatured = active === featured;
+    const question = segmentQuestion(edition, level, active);
+    const fb = answered > 0 ? await segmentFeedback(texts, question) : null;
+    const full = texts.filter(Boolean).join(' ');
 
     let xp = 0;
-    if (first) {
-      const xpResult = awardXP(score, state.profile.streak_days, 'daily_news');
-      xp = xpResult.gain;
-      persistSession({ ...session, xpEarned: xp });
-      const { level: newLevel } = getProgressionState();
-      const newUnlockedAchievementIds = checkAchievements(
-        buildAchievementContext({
-          finalScore: score,
-          streakDays: state.profile.streak_days,
-          totalSessionsAfter: state.profile.sessions_count + 1,
-          topicsUsed: [],
-          beliefSnapshot: null,
-          examCompleted: false,
-          examType: null,
-        }),
-      );
-      dispatch({ type: 'ADD_SESSION', session: { ...session, xpEarned: xp }, xpResult, newUnlockedAchievementIds, newLevelName: newLevel.name });
-    } else {
-      // A replay of an edition-day already finished: kept in the history, no XP (daily-news §4).
-      persistSession(session);
-    }
-
-    if (fb) {
-      observeAttempt({
-        sessionId: session.id,
-        question,
-        feedback: fb,
-        transcript: full,
-        finalScore: score,
-        mode: 'daily-news',
+    let replay = false;
+    if (isFeatured && answered > 0) {
+      const score = showScore(intoxRight ?? false, answered, SEGMENT_INFO[active].turns);
+      const first = earnsXp(getSessionHistory(), contentId);
+      replay = !first;
+      const session: Session = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        mode: 'daily_news',
         topicKey: 'news',
-      });
-      dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
+        questionText: question.text,
+        transcript: full,
+        wordCount: wordCount(full),
+        score,
+        xpEarned: 0,
+        durationSec: Math.max(1, Math.round(answers.reduce((n, a) => n + a.seconds, 0))),
+        feedback: fb ?? undefined,
+        createdAt: new Date().toISOString(),
+        contentId,
+      };
+      if (first) {
+        const xpResult = awardXP(score, state.profile.streak_days, 'daily_news');
+        xp = xpResult.gain;
+        persistSession({ ...session, xpEarned: xp });
+        const { level: newLevel } = getProgressionState();
+        const newUnlockedAchievementIds = checkAchievements(
+          buildAchievementContext({
+            finalScore: score,
+            streakDays: state.profile.streak_days,
+            totalSessionsAfter: state.profile.sessions_count + 1,
+            topicsUsed: [],
+            beliefSnapshot: null,
+            examCompleted: false,
+            examType: null,
+          }),
+        );
+        dispatch({ type: 'ADD_SESSION', session: { ...session, xpEarned: xp }, xpResult, newUnlockedAchievementIds, newLevelName: newLevel.name });
+      } else {
+        // A replay of an edition-day already finished: kept in the history, no XP (daily-news §4).
+        persistSession(session);
+      }
+      if (fb) {
+        observeAttempt({
+          sessionId: session.id,
+          question,
+          feedback: fb,
+          transcript: full,
+          finalScore: score,
+          mode: 'daily-news',
+          topicKey: 'news',
+        });
+        dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
+      }
+      setHistory(getSessionHistory());
     }
 
-    setFeedback(fb);
-    setFeedbackFailed(Boolean(full) && !fb);
-    setResult({ covered: facts.covered, checkCorrect, score, xp, practiceRun: !first, earOnly: !openedTranscript });
-    setHistory(getSessionHistory());
+    if (answered > 0) track({ name: 'news_segment_completed', props: { segment: active, level, featured: isFeatured, answered } });
+    setResult({ segment: active, answers, feedback: fb, feedbackFailed: answered > 0 && !fb, xp, featured: isFeatured, replay });
     setPhase('review');
     finishing.current = false;
   };
 
-  const handleOpinionStop = async () => {
-    const seconds = recording.elapsedTime;
-    const transcript = await recording.stop();
-    await finish(transcript, seconds);
+  const playPractice = (segment: SegmentId) => {
+    stopAudio();
+    setActive(segment);
+    setResult(null);
+    setPhase('segment');
   };
 
   const restart = (nextLevel?: NewsLevelId) => {
@@ -303,34 +270,29 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
     if (nextLevel) setLevel(nextLevel);
     setPhase('listen');
     setShowTranscript(false);
-    setOpenedTranscript(false);
-    setReport(null);
-    setFeedback(null);
-    setFeedbackFailed(false);
+    setIntoxRight(null);
+    setActive(featured);
     setResult(null);
-    setCheckCorrect(0);
   };
 
-  const liveFacts = phase === 'report' ? matchFacts(recording.transcript, lvl.facts).covered : [];
-  const busy = recording.isRecording || phase === 'processing';
   const chipStyle = { '--h': categoryHue('Speak & Listen') } as CSSProperties;
   const nextLevel: NewsLevelId | null = level === 'a2' ? 'b1' : level === 'b1' ? 'b2' : null;
-  const missedSentences = result
-    ? new Set(lvl.facts.filter(f => !result.covered.includes(f.id)).map(f => f.sentence))
-    : undefined;
+  const activeInfo = SEGMENT_INFO[active];
+  const answered = result ? result.answers.filter(a => a.text.trim()).length : 0;
+  const story = result ? wordsUsed(lvl.glossary, result.answers.map(a => a.text)) : [];
 
   return (
     <>
       <TopContextBar
         title="Le Journal du Jour"
-        subtitle="Listen, check, then report the news in French"
+        subtitle="Today's story, then your turn on air"
         showBack
         backLabel="Back to Explore"
         onBack={() => navigate('/explore')}
       />
 
       <PageShell maxWidth="md" gap={16}>
-        <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-8" aria-labelledby="news-headline">
+        <motion.section variants={item} className={cardClass} aria-labelledby="news-headline">
           <div className="flex items-start gap-3">
             <span aria-hidden="true" className="topic-chip flex h-10 w-10 shrink-0 items-center justify-center text-xl" style={{ ...chipStyle, borderRadius: 8 }}>
               {edition.emoji || <Newspaper size={20} strokeWidth={1.75} />}
@@ -341,14 +303,14 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
               </p>
               <h2 id="news-headline" lang="fr" className="mt-1 text-title text-ink">{lvl.headline}</h2>
               {doneBefore && phase !== 'review' && (
-                <p className="mt-1 inline-flex items-center gap-1 text-caption text-progress-text">
-                  <Check size={12} aria-hidden="true" /> You’ve already reported this one. Replays are practice (no XP).
+                <p className="mt-2 inline-flex items-center gap-1.5 text-caption text-progress-text">
+                  <Check size={12} aria-hidden="true" /> You’ve done today’s segment. Replays are practice (no XP).
                 </p>
               )}
             </div>
           </div>
           {phase === 'listen' && (
-            <div className="mt-5">
+            <div className="mt-6">
               <Segmented<NewsLevelId>
                 label="Story level"
                 height={48}
@@ -361,11 +323,11 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
               />
             </div>
           )}
-          <div className="mt-5">
-            <StepTrack phase={phase} />
+          <div className="mt-6">
+            <StepTrack phase={phase} segmentLabel={activeInfo.title} />
           </div>
           {!isArchive && (
-            <div className="mt-5 border-t border-hairline pt-4">
+            <div className="mt-6 border-t border-hairline pt-5">
               <WeekStrip days={week} today={today} streak={streak} />
             </div>
           )}
@@ -373,18 +335,18 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
 
         {phase === 'listen' && (
           <motion.div key="listen" variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-4">
-            <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-8" aria-labelledby="news-listen">
-              <h2 id="news-listen" className="text-section text-ink">Listen to the story</h2>
+            <motion.section variants={item} className={cardClass} aria-labelledby="news-listen">
+              <h2 id="news-listen" className="text-section text-ink">Les titres: listen to the story</h2>
               <p className="mt-1 text-body-s text-ink-muted">
-                Play it as often as you like. Listen for the main facts: who, what, where, when.
+                Play it as often as you like. Listen closely: next, Henri reads it again with one detail changed.
               </p>
 
-              <div className="mt-4">
+              <div className="mt-5">
                 <p className="text-eyebrow uppercase text-ink-subtle">Words to know</p>
                 <WordChips glossary={lvl.glossary} />
               </div>
 
-              <div className="mt-5">
+              <div className="mt-6">
                 <NewsPlayer broadcast={broadcast} sentenceCount={sentenceTexts.length} />
               </div>
 
@@ -399,9 +361,9 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
                 ) : (
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-body-s text-ink-muted">
-                      {transcriptUnlocked ? 'Want to read along? It’s free. Reports done by ear alone get an “Ear-only” badge.' : 'Listen once all the way through to unlock the transcript.'}
+                      {transcriptUnlocked ? 'Want to read along? Open the transcript.' : 'Listen once all the way through to unlock the transcript.'}
                     </p>
-                    <Button variant="secondary" size="sm" onClick={revealTranscript} disabled={!transcriptUnlocked} className="shrink-0" data-testid="news-reveal">
+                    <Button variant="secondary" size="sm" onClick={() => setShowTranscript(true)} disabled={!transcriptUnlocked} className="shrink-0" data-testid="news-reveal">
                       {transcriptUnlocked ? <Eye size={16} aria-hidden="true" /> : <Lock size={16} aria-hidden="true" />} Show transcript
                     </Button>
                   </div>
@@ -409,13 +371,18 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
               </div>
             </motion.section>
 
-            <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-6">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-label text-ink">Got the story?</p>
-                  <p className="text-body-s text-ink-muted">Three quick questions, then you report it.</p>
-                </div>
-                <Button size="lg" onClick={goCheck} className="sm:min-w-48" data-testid="news-start">
+            <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-6" aria-labelledby="news-today-segment">
+              <p className="text-eyebrow uppercase text-ink-subtle">Today’s segment</p>
+              <h2 id="news-today-segment" className="mt-1 text-section text-ink">{activeInfo.title}</h2>
+              <p className="mt-1 text-body-s text-ink-muted">
+                {active === 'interview' ? (
+                  <><span lang="fr" className="text-ink">{lvl.interview.role.fr}</span> {lvl.interview.role.en} Henri interviews you.</>
+                ) : (
+                  <>Argue both sides of <span lang="fr" className="text-ink">« {lvl.debate.motion.fr} »</span></>
+                )}
+              </p>
+              <div className="mt-5 flex justify-end">
+                <Button size="lg" onClick={goIntox} className="w-full sm:w-auto sm:min-w-48" data-testid="news-start">
                   I’m ready <ChevronRight size={18} aria-hidden="true" />
                 </Button>
               </div>
@@ -454,64 +421,34 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
           </motion.div>
         )}
 
-        {phase === 'check' && (
-          <motion.section key="check" variants={item} initial="hidden" animate="show" className="rounded-card border border-hairline bg-surface p-5 md:p-8" aria-labelledby="news-check">
-            <h2 id="news-check" className="text-section text-ink">Did you catch it?</h2>
-            <p className="mt-1 text-body-s text-ink-muted">Your first answer counts. Miss one and you can hear that sentence again.</p>
+        {phase === 'intox' && (
+          <motion.section key="intox" variants={item} initial="hidden" animate="show" className={cardClass} aria-labelledby="news-intox">
+            <p className="text-eyebrow uppercase text-ink-subtle">Intox ou info ?</p>
+            <h2 id="news-intox" className="mt-1 text-section text-ink">One detail has changed</h2>
+            <p className="mt-1 text-body-s text-ink-muted">Henri reads the story again, but something isn’t true. Can you spot it?</p>
             <div className="mt-5">
-              <ComprehensionCheck checks={lvl.check} onReplay={broadcast.playSentence} onDone={onCheckDone} />
+              <IntoxOuInfo sentences={lvl.sentences} fake={lvl.fake} onDone={onIntoxDone} />
             </div>
           </motion.section>
         )}
 
-        {phase === 'report' && (
-          <motion.div key="report" variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-4">
-            <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-8" aria-labelledby="news-report">
-              <p className="text-eyebrow uppercase text-ink-subtle">You’re on air</p>
-              <h2 id="news-report" className="mt-1 text-section text-ink">Present the news in French</h2>
-              <p className="mt-1 text-body-s text-ink-muted">
-                Open like a newsreader: <span lang="fr" className="text-ink">« Bonsoir, voici les infos… »</span> Then give the facts in your own words. Aim for 30–45 seconds.
+        {phase === 'segment' && (
+          <motion.div key={`segment-${active}`} variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-4">
+            <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-6" aria-labelledby="news-segment">
+              <p className="inline-flex items-center gap-1.5 text-eyebrow uppercase text-ink-subtle">
+                <Mic size={12} aria-hidden="true" /> {active === featured ? 'You’re on air' : 'Practice segment · no XP'}
               </p>
-              <div className="mt-5">
-                <FactChecklist facts={lvl.facts} covered={liveFacts} mode="live" />
-              </div>
-            </motion.section>
-
-            <motion.div variants={item}>
-              <SpeakingConsentGate>
-                <RecordingPanel isActive={true} recording={recording} onStop={handleReportStop} hint="Tap and present the story" lengthMeter={false} />
-              </SpeakingConsentGate>
-            </motion.div>
-
-            <motion.div variants={item} className="flex justify-center">
-              <Button variant="quiet" size="md" onClick={() => { stopAudio(); setPhase('listen'); }} disabled={busy}>
-                Listen to the story again
-              </Button>
-            </motion.div>
-          </motion.div>
-        )}
-
-        {phase === 'opinion' && (
-          <motion.div key="opinion" variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-4">
-            <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-8" aria-labelledby="news-opinion">
-              <p className="text-eyebrow uppercase text-ink-subtle">Your take · optional</p>
-              <h2 id="news-opinion" lang="fr" className="mt-1 text-section text-ink">{lvl.opinion.fr}</h2>
-              <p className="mt-1 text-body-s text-ink-muted">{lvl.opinion.en} Give a reason: that’s what examiners listen for.</p>
-              <ul className="mt-4 flex flex-wrap gap-2" aria-label="Sentence starters">
-                {lvl.starters.map(s => (
-                  <li key={s} lang="fr" className="inline-flex min-h-8 items-center rounded-pill border border-hairline-strong px-3 text-label text-ink-muted">{s}</li>
-                ))}
-              </ul>
+              <h2 id="news-segment" className="mt-1 text-section text-ink">{activeInfo.title}</h2>
+              <p className="mt-1 text-body-s text-ink-muted">
+                {active === 'interview' ? (
+                  <><span lang="fr" className="text-ink">{lvl.interview.role.fr}</span> Answer in role, and invent details if you like.</>
+                ) : (
+                  'First argue for, then against. Give a reason each time: parce que, car, à mon avis…'
+                )}
+              </p>
             </motion.section>
             <motion.div variants={item}>
-              <SpeakingConsentGate>
-                <RecordingPanel isActive={true} recording={recording} onStop={handleOpinionStop} hint="Tap and give your opinion" lengthMeter={false} />
-              </SpeakingConsentGate>
-            </motion.div>
-            <motion.div variants={item} className="flex justify-center">
-              <Button variant="quiet" size="md" onClick={() => void finish('', 0)} disabled={busy} data-testid="news-skip-opinion">
-                Skip, show my results
-              </Button>
+              <SegmentTurns key={`${active}-${level}`} prompts={turns} onDone={answers => void finishSegment(answers)} />
             </motion.div>
           </motion.div>
         )}
@@ -519,85 +456,110 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
         {phase === 'processing' && (
           <section className="rounded-card border border-hairline bg-surface p-8 text-center" aria-busy="true" aria-live="polite" data-testid="news-processing">
             <span className="mx-auto block h-10 w-10 animate-spin rounded-pill border-4 border-action border-t-transparent" aria-hidden="true" />
-            <p className="mt-4 text-label text-ink">The editors are reviewing your report…</p>
+            <p className="mt-4 text-label text-ink">The editors are listening back…</p>
           </section>
         )}
 
         {phase === 'review' && result && (
           <motion.div key="review" variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-4">
-            <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-8" aria-labelledby="news-result">
+            <motion.section variants={item} className={cardClass} aria-labelledby="news-result">
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-eyebrow uppercase text-ink-subtle">Your report</p>
+                <div className="min-w-0">
+                  <p className="text-eyebrow uppercase text-ink-subtle">{SEGMENT_INFO[result.segment].title}</p>
                   <h2 id="news-result" className="mt-1 text-section text-ink">
-                    <span className="font-numeral">{result.covered.length}</span> of <span className="font-numeral">{lvl.facts.length}</span> facts reported
+                    {answered > 0 ? 'That’s a wrap!' : 'Nothing recorded this time'}
                   </h2>
-                  <p className="mt-1 text-body-s text-ink-muted">
-                    Listening check: <span className="font-numeral text-ink">{result.checkCorrect}</span> of <span className="font-numeral">{lvl.check.length}</span>
-                  </p>
+                  {intoxRight !== null && (
+                    <p className="mt-1 text-body-s text-ink-muted">
+                      Intox ou info: {intoxRight ? 'you spotted the fake.' : 'the fake got past you this time.'}
+                    </p>
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {result.earOnly && (
-                    <span className="inline-flex items-center gap-1 rounded-pill bg-progress-soft px-3 py-1 text-label text-progress-text" data-testid="news-ear-only">
-                      <Ear size={14} aria-hidden="true" /> Ear-only
-                    </span>
-                  )}
-                  {result.xp > 0 ? (
+                  {result.xp > 0 && (
                     <span className="inline-flex items-center gap-1 rounded-pill bg-reward-soft px-3 py-1 text-label text-reward-text" data-testid="news-xp">
                       <Zap size={14} aria-hidden="true" /> <span className="font-numeral">+{result.xp}</span> XP
                     </span>
-                  ) : (
+                  )}
+                  {(result.replay || !result.featured) && answered > 0 && (
                     <span className="inline-flex items-center rounded-pill bg-track px-3 py-1 text-label text-ink-muted" data-testid="news-practice-run">
-                      Practice run · no XP
+                      Practice · no XP
                     </span>
                   )}
                 </div>
               </div>
-              <div className="mt-5">
-                <FactChecklist facts={lvl.facts} covered={result.covered} mode="review" sentences={lvl.sentences} onReplay={broadcast.playSentence} />
-              </div>
+
+              {answered > 0 && (
+                <div className="mt-6">
+                  {result.feedback && <NewsCoachFeedback feedback={result.feedback} transcript={result.answers.map(a => a.text).filter(Boolean).join(' ')} />}
+                  {result.feedbackFailed && (
+                    <p role="status" className="rounded-control bg-reward-soft px-4 py-3 text-body-s text-reward-text" data-testid="news-feedback-unavailable">
+                      Feedback on your French isn’t available right now (you may be offline or signed out). Your answers and the model answers are below.
+                    </p>
+                  )}
+                </div>
+              )}
             </motion.section>
 
-            {report?.blob && (
-              <motion.section variants={item} aria-labelledby="news-watch">
-                <h2 id="news-watch" className="mb-2 text-label text-ink">Watch your broadcast</h2>
-                <BroadcastReplay blob={report.blob} headline={lvl.headline} emoji={edition.emoji} date={formatDay(day)} />
+            {answered > 0 && (
+              <motion.section variants={item} className={cardClass} aria-labelledby="news-words">
+                <h2 id="news-words" className="text-label text-ink">Story words you used</h2>
+                <p className="mt-1 text-body-s text-ink-muted">Borrowing the story’s words is how news builds your exam vocabulary.</p>
+                <ul className="mt-3 flex flex-wrap gap-2" data-testid="news-words-used">
+                  {story.map(w => (
+                    <li
+                      key={w.fr}
+                      className={`inline-flex min-h-8 items-center gap-1.5 rounded-pill px-3 text-label
+                        ${w.used ? 'bg-progress-soft text-progress-text' : 'border border-hairline-strong text-ink-muted'}`}
+                    >
+                      {w.used && <Check size={12} aria-hidden="true" />}
+                      <span lang="fr">{w.fr}</span>
+                      <span className="text-ink-subtle">· {w.en}</span>
+                      <span className="sr-only">{w.used ? '(used)' : '(not used)'}</span>
+                    </li>
+                  ))}
+                </ul>
               </motion.section>
             )}
 
-            <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-8" aria-labelledby="news-story">
-              <h2 id="news-story" className="text-section text-ink">The story</h2>
-              <p className="mt-1 text-body-s text-ink-muted">Highlighted lines hold the facts you missed.</p>
-              <div className="mt-3">
-                <StoryTranscript
-                  sentences={lvl.sentences}
-                  glossary={lvl.glossary}
-                  current={broadcast.current}
-                  onPlaySentence={broadcast.playSentence}
-                  showEnglish
-                  marked={missedSentences}
-                />
-              </div>
-              <div className="mt-4 rounded-control bg-surface-recessed p-4">
-                <p className="text-eyebrow uppercase text-ink-subtle">A model report</p>
-                <p lang="fr" className="mt-1 text-body-s text-ink">{lvl.modelRetell}</p>
+            <motion.section variants={item} className={cardClass} aria-labelledby="news-answers">
+              <h2 id="news-answers" className="text-label text-ink">Your answers</h2>
+              <div className="mt-4">
+                <YourAnswers turns={turns} answers={result.answers} />
               </div>
             </motion.section>
 
-            {feedback && (
-              <motion.div variants={item}>
-                <FeedbackPanel feedback={feedback} onComplete={() => navigate('/explore')} onRetry={() => restart()} hideActions />
-              </motion.div>
-            )}
-            {feedbackFailed && (
-              <motion.p variants={item} role="status" className="rounded-control bg-reward-soft px-4 py-3 text-body-s text-reward-text">
-                Feedback on your French isn’t available right now (you may be offline or signed out). Your facts and listening results above still count.
-              </motion.p>
-            )}
+            <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-6">
+              <StoryLinks examArea={edition.examArea} learnTopic={edition.learnTopic} />
+            </motion.section>
 
-            <motion.div variants={item} className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-6" aria-labelledby="news-more">
+                <h2 id="news-more" className="text-label text-ink">More from this story</h2>
+                <ul className="mt-3 flex flex-col gap-2">
+                  {[featured, ...others].filter(s => s !== result.segment).map(s => (
+                    <li key={s}>
+                      <button
+                        type="button"
+                        onClick={() => playPractice(s)}
+                        data-testid={`news-practice-${s}`}
+                        className="flex min-h-12 w-full items-center gap-3 rounded-control border border-hairline px-4 py-2 text-left hover:bg-track"
+                      >
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-label text-ink">{SEGMENT_INFO[s].title}</span>
+                          <span className="block text-caption text-ink-muted">
+                            {SEGMENT_INFO[s].skill}{s === featured ? '' : ' · practice, no XP'}
+                          </span>
+                        </span>
+                        <ChevronRight size={16} className="shrink-0 text-ink-subtle" aria-hidden="true" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </motion.section>
+
+            <motion.div variants={item} className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
               <Button variant="secondary" size="lg" onClick={() => restart()} data-testid="news-retry">
-                <RotateCcw size={16} aria-hidden="true" /> Try again
+                <RotateCcw size={16} aria-hidden="true" /> Start the show again
               </Button>
               {nextLevel && (
                 <Button variant="secondary" size="lg" onClick={() => restart(nextLevel)} data-testid="news-harder">

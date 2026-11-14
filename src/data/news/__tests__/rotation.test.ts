@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { NEWS_EDITIONS } from '..';
-import { dayNumber, editionForDay, recentDays } from '../rotation';
+import { dayNumber, editionForDay, recentDays, rotationIndex } from '../rotation';
 
 describe('news rotation', () => {
   it('gives the same edition for the same day and a different one the next day', () => {
@@ -28,6 +28,17 @@ describe('news rotation', () => {
     const pool = NEWS_EDITIONS.filter(e => !e.pinDate).length;
     const days = recentDays('2026-10-31', pool); // no pinned day in this window
     expect(new Set(days.map(d => editionForDay(d, NEWS_EDITIONS).id)).size).toBe(pool);
+  });
+
+  it('a pinned day never swallows a rotation edition: the story due then runs the next day', () => {
+    const pool = NEWS_EDITIONS.filter(e => !e.pinDate);
+    const ids = pool.map(e => e.id);
+    // 2027-07-14 is pinned (Bastille Day): 13 → 15 July must be consecutive in bank order.
+    const before = ids.indexOf(editionForDay('2027-07-13', NEWS_EDITIONS).id);
+    const after = ids.indexOf(editionForDay('2027-07-15', NEWS_EDITIONS).id);
+    expect(editionForDay('2027-07-14', NEWS_EDITIONS).id).toBe('bastille-day');
+    expect(after).toBe((before + 1) % pool.length);
+    expect(rotationIndex('2027-07-15', NEWS_EDITIONS)).toBe(rotationIndex('2027-07-13', NEWS_EDITIONS) + 1);
   });
 
   it('counts days without timezone drift and lists recent days newest first', () => {

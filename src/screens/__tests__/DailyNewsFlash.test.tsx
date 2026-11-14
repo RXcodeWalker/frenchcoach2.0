@@ -13,6 +13,7 @@ const getAIFeedback = vi.hoisted(() => vi.fn());
 const broadcastState = vi.hoisted(() => ({ listened: false }));
 const playSentence = vi.hoisted(() => vi.fn());
 const transcript = vi.hoisted(() => ({ value: '' }));
+const track = vi.hoisted(() => vi.fn());
 
 vi.mock('../../components/TopContextBar', () => ({
   TopContextBar: ({ subtitle }: { subtitle?: string }) => <header data-testid="subtitle">{subtitle}</header>,
@@ -32,7 +33,6 @@ vi.mock('../../features/recording/useRecording', () => ({
 vi.mock('../learn/RecordingPanel', () => ({
   RecordingPanel: ({ onStop }: { onStop: () => void }) => <button type="button" onClick={onStop}>stop recording</button>,
 }));
-vi.mock('../learn/FeedbackPanel', () => ({ FeedbackPanel: () => <p>language feedback</p> }));
 vi.mock('../../services/api/apiClient', () => ({ getAIFeedback }));
 vi.mock('../../features/news/useBroadcast', () => ({
   useBroadcast: () => ({
@@ -48,21 +48,30 @@ vi.mock('../../services/progression/progressionService', () => ({
 vi.mock('../../services/coach/sessionOrchestrator', () => ({ observeAttempt: vi.fn() }));
 vi.mock('../../services/coaching/diagnosticEngine', () => ({ getSkillProfile: () => ({}) }));
 vi.mock('../../services/coach/achievementContextBuilder', () => ({ buildAchievementContext: () => ({}) }));
+vi.mock('../../services/telemetry/telemetryService', () => ({ track }));
+vi.mock('../../services/tts/ttsService', () => ({ TTS: { speak: vi.fn(async () => {}), stop: vi.fn() } }));
 
 import { DailyNewsFlash } from '../DailyNewsFlash';
+import { SEGMENT_INFO, featuredSegment, practiceSegments } from '../../features/news/show/showPlan';
 
 const today = localDay();
 const edition = editionForDay(today, NEWS_EDITIONS);
 const b1 = edition.levels.b1;
+const featured = featuredSegment(today);
+const answer = `${b1.glossary[0].fr} : je pense que c'est une très bonne idée.`;
 
 beforeEach(() => {
   localStorage.clear();
   vi.clearAllMocks();
-  broadcastState.listened = false;
-  transcript.value = b1.modelRetell;
+  broadcastState.listened = true;
+  transcript.value = answer;
   getAIFeedback.mockResolvedValue({
     scores: { overall: 7, communication: 7, language: 7, fluency: 7 },
+    cefrLevel: 'B1',
     grammar: { critical: [], polish: [] }, vocabulary: [], style: [], fillers: [], wordCount: 40,
+    encouragement: 'Tu donnes ton avis clairement.',
+    strengths: [{ quote: 'je pense que', why: 'You gave an opinion.' }],
+    improved_answer: `${answer} En plus, c'est utile.`,
   });
   Object.defineProperty(window, 'matchMedia', {
     configurable: true, writable: true,
@@ -82,87 +91,114 @@ function renderScreen(path = '/daily-news') {
   );
 }
 
-function answerChecksCorrectly() {
-  b1.check.forEach((c, i) => {
-    const q = screen.getByTestId(`news-check-${i}`);
-    fireEvent.click(q.querySelectorAll('button')[c.answer]);
-  });
-  fireEvent.click(screen.getByTestId('news-check-done'));
-}
+const wrongPick = (b1.fake.answer + 1) % b1.fake.options.length;
 
-async function runToReview() {
+function playIntox(pickRight = true) {
   fireEvent.click(screen.getByTestId('news-start'));
-  answerChecksCorrectly();
-  fireEvent.click(await screen.findByText('stop recording'));
-  fireEvent.click(await screen.findByTestId('news-skip-opinion'));
-  await screen.findByText(/facts reported/);
+  fireEvent.click(screen.getByTestId(`news-intox-option-${pickRight ? b1.fake.answer : wrongPick}`));
+  fireEvent.click(screen.getByTestId('news-intox-done'));
 }
 
-describe('DailyNewsFlash', () => {
-  it("shows today's edition at the learner's level, on the Listen step, with the transcript locked", () => {
+async function answerTurns(count: number) {
+  for (let i = 0; i < count; i++) {
+    fireEvent.click(await screen.findByText('stop recording'));
+    fireEvent.click(await screen.findByTestId('news-turn-next'));
+  }
+  await screen.findByRole('heading', { name: 'That’s a wrap!' });
+}
+
+async function runShow() {
+  playIntox();
+  await answerTurns(SEGMENT_INFO[featured].turns);
+}
+
+describe('DailyNewsFlash — the news show', () => {
+  it("shows today's edition and today's segment on the Listen step, with the transcript locked until one listen", () => {
+    broadcastState.listened = false;
     renderScreen();
     expect(screen.getByRole('heading', { name: b1.headline })).toBeTruthy();
     expect(screen.getByLabelText('Progress').querySelector('[aria-current="step"]')?.textContent).toContain('Listen');
-    expect(screen.queryByTestId('news-transcript')).toBeNull();
+    expect(screen.getByRole('heading', { name: SEGMENT_INFO[featured].title })).toBeTruthy();
     expect((screen.getByTestId('news-reveal') as HTMLButtonElement).disabled).toBe(true);
   });
 
-  it('opens the transcript for free after one full listen (no XP is taken)', () => {
-    broadcastState.listened = true;
+  it('opens the transcript after one full listen, with no XP taken', () => {
     renderScreen();
     fireEvent.click(screen.getByTestId('news-reveal'));
     expect(screen.getByTestId('news-transcript').textContent).toContain(b1.sentences[0].fr);
     expect(addXP).not.toHaveBeenCalled();
   });
 
-  it('a wrong check answer offers the sentence that holds the answer', () => {
+  it('Intox ou info: a wrong pick shows the fake line and the real one', () => {
     renderScreen();
     fireEvent.click(screen.getByTestId('news-start'));
-    const c = b1.check[0];
-    const wrong = c.answer === 0 ? 1 : 0;
-    fireEvent.click(screen.getByTestId('news-check-0').querySelectorAll('button')[wrong]);
-    fireEvent.click(screen.getByRole('button', { name: /hear it again/i }));
-    expect(playSentence).toHaveBeenCalledWith(c.sentence);
+    fireEvent.click(screen.getByTestId(`news-intox-option-${wrongPick}`));
+    const result = screen.getByTestId('news-intox-result');
+    expect(result.textContent).toContain('Not quite');
+    expect(result.textContent).toContain(b1.fake.fr);
+    expect(result.textContent).toContain(b1.sentences[b1.fake.sentence].fr);
   });
 
-  it('lights the facts already said while reporting', async () => {
-    transcript.value = b1.modelRetell;
+  it('the featured segment earns XP once per edition-day; a replay is practice', async () => {
     renderScreen();
-    fireEvent.click(screen.getByTestId('news-start'));
-    answerChecksCorrectly();
-    await screen.findByText('stop recording');
-    for (const f of b1.facts) expect(screen.getByTestId(`news-fact-${f.id}`).textContent).toContain('(covered)');
-  });
-
-  it('awards XP once per edition-day: the first report earns it, a retry is a practice run', async () => {
-    renderScreen();
-    await runToReview();
-    expect(screen.getByRole('heading', { name: /facts reported/ }).textContent).toBe(`${b1.facts.length} of ${b1.facts.length} facts reported`);
+    await runShow();
     expect(awardXP).toHaveBeenCalledTimes(1);
     expect(awardXP).toHaveBeenCalledWith(10, 0, 'daily_news');
     expect(screen.getByTestId('news-xp').textContent).toContain('+25');
-    expect(screen.getByTestId('news-ear-only')).toBeTruthy();
+    expect(track).toHaveBeenCalledWith({
+      name: 'news_segment_completed',
+      props: { segment: featured, level: 'b1', featured: true, answered: SEGMENT_INFO[featured].turns },
+    });
 
     fireEvent.click(screen.getByTestId('news-retry'));
-    await runToReview();
+    await runShow();
     expect(awardXP).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('news-practice-run')).toBeTruthy();
     expect(dispatch.mock.calls.filter(([a]) => a.type === 'ADD_SESSION')).toHaveLength(1);
   });
 
-  it('says honestly when language feedback is unavailable, and still shows the facts', async () => {
+  it('a practice segment gets feedback but no XP and no session', async () => {
+    renderScreen();
+    await runShow();
+    const other = practiceSegments(featured)[0];
+    fireEvent.click(screen.getByTestId(`news-practice-${other}`));
+    await answerTurns(SEGMENT_INFO[other].turns);
+    expect(awardXP).toHaveBeenCalledTimes(1);
+    expect(dispatch.mock.calls.filter(([a]) => a.type === 'ADD_SESSION')).toHaveLength(1);
+    expect(screen.getByTestId('news-practice-run')).toBeTruthy();
+    expect(screen.getByTestId('news-coach-feedback')).toBeTruthy();
+  });
+
+  it('feedback shows what worked and a better version, never a mark, score or level', async () => {
+    renderScreen();
+    await runShow();
+    const fb = screen.getByTestId('news-coach-feedback').textContent ?? '';
+    expect(fb).toContain('Tu donnes ton avis clairement.');
+    expect(fb).toContain('je pense que');
+    expect(fb).not.toMatch(/\d/);
+    expect(fb).not.toMatch(/B1|A2|B2|CEFR|\/10/);
+  });
+
+  it('shows the story words the learner reused, and their answers beside the model', async () => {
+    renderScreen();
+    await runShow();
+    const words = screen.getByTestId('news-words-used');
+    expect(words.textContent).toContain(b1.glossary[0].fr);
+    expect(words.textContent).toContain('(used)');
+    expect(screen.getByTestId('news-your-answers').textContent).toContain(answer);
+  });
+
+  it('says honestly when feedback is unavailable, and still shows the answers', async () => {
     getAIFeedback.mockRejectedValue(new Error('offline'));
     renderScreen();
-    await runToReview();
-    expect(screen.getByText(/feedback on your french isn’t available/i)).toBeTruthy();
-    expect(screen.queryByText('language feedback')).toBeNull();
+    await runShow();
+    expect(screen.getByTestId('news-feedback-unavailable')).toBeTruthy();
+    expect(screen.getByTestId('news-your-answers')).toBeTruthy();
   });
 
   it('opens an archive day from the link, and ignores a day outside the archive', () => {
-    const [, yesterday] = (function () {
-      const d = new Date(); d.setDate(d.getDate() - 1);
-      return [today, localDay(d)];
-    })();
+    const d = new Date(); d.setDate(d.getDate() - 1);
+    const yesterday = localDay(d);
     renderScreen(`/daily-news?day=${yesterday}`);
     expect(screen.getByText(/From the archive/)).toBeTruthy();
     expect(screen.getByRole('heading', { name: editionForDay(yesterday, NEWS_EDITIONS).levels.b1.headline })).toBeTruthy();

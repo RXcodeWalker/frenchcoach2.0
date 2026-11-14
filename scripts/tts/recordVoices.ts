@@ -34,8 +34,9 @@ import {
 
 export const AZURE_MIN_INTERVAL_MS = 3400;
 export const RETRY_BACKOFF_MS = [5000, 15000, 45000] as const;
-// 480k → 500k on 2026-11-11 for the Daily News bank (catalogue ≈ 498k); see catalogueCoverage.test.ts.
-export const BUDGET_LIMIT_CHARS = 500_000;
+// 480k → 500k on 2026-11-11 for the Daily News bank (catalogue ≈ 498k); 500k → 545k on 2026-11-14 for the
+// news show's spoken prompts (owner: record them over time). See catalogueCoverage.test.ts.
+export const BUDGET_LIMIT_CHARS = 545_000;
 export const MIN_AUDIO_BYTES = 1024;
 const LIST_PAGE_SIZE = 1000;
 const PROGRESS_EVERY = 25;

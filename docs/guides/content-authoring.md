@@ -345,6 +345,21 @@ Human judgement (no machine check can do these):
 ## 17. Daily News stories
 
 Daily News stories are not exam content and follow their own contract: `docs/systems/daily-news.md`
-§1 (levels, word limits, facts with 2+ cue groups, kid-safe evergreen topics), checked by
-`src/data/news/newsBankLint.ts`. Set `reviewed: true` only after a French speaker has checked every
-level, and run "Record voices" after adding or editing a story.
+§1 (levels, word limits, kid-safe evergreen topics) and §7 (the show's segments), checked by
+`src/data/news/newsBankLint.ts`. A story lives in `src/data/news/editions/` and its segments, under
+the same id, in `src/data/news/segments/`. For each level:
+
+- **`fake`** (Intox ou info): change one *checkable* detail of one sentence (a number, a place, who,
+  when), keep everything else word for word, and name that detail plus two other details of the
+  story as the three English options.
+- **`interview`**: a `role` the learner can play (a person in the story or close to it, second
+  person), and three prompts a journalist would ask: one that describes, one in the past, and at
+  B1/B2 one about the future (A2's third may be an opinion). Model answers stay in role, at the
+  level, with one invented detail, and within the word limit.
+- **`debate`**: a yes/no question the story raises that a teenager can argue either way, starters
+  for each side, and a short model for each.
+- **`examArea`** (A–E) and, where one fits, a core Learn `learnTopic`.
+
+Set `reviewed: true` only after a French speaker has checked every level *and its segments*, and run
+"Record voices" after adding or editing a story or a segment (Henri speaks the fake sentence and the
+prompts).
