@@ -70,10 +70,12 @@ feature that is not topic-marked. It was rebuilt as the show described here.
    counts), then sees the fake line struck through beside the real one, with ▶ for the real one.
 3. **Today's segment** (§7), recorded turn by turn (`SegmentTurns`): Henri asks each prompt, the
    learner records, sees what was heard, then says it again or moves on. A turn can be skipped.
+   In Le journaliste the learner asks and Henri answers (or nudges) before they move on.
 4. **Review.** Feedback with no marks (§8); "Story words you used" (the glossary words the learner
    reused, matched deterministically by `newsMatch.ts`); every prompt with what the learner said
-   (▶ their own recording, local only) beside a model answer; the story's links (§11); the
-   story's other segment as practice; "Start the show again", a harder level, Done.
+   (▶ their own recording, local only) beside a model answer; Henri's guess after Et après ?; the
+   story's links (§11); the story's other segments as practice; "Start the show again", a harder
+   level, Done.
 
 ## §4 Score, XP and history
 
@@ -106,12 +108,13 @@ unavailable and unlocks the transcript. Intox ou info uses its own `useBroadcast
 with the fake sentence swapped in.
 
 The "Record voices" catalogue (`scripts/tts/collectLines.ts`, source `news`) holds every sentence
-of every level plus every line Henri says in the show: the fake sentence, the interview questions
-and the debate question (≈ 50k characters; `catalogueCoverage.test.ts` checks both). **New or
-edited stories or segments need a "Record voices" run**; until then those lines play in the browser
-voice. The show's prompts took the full catalogue to ≈ 521k characters, so the owner raised
-`BUDGET_LIMIT_CHARS` from 500k to 545k (2026-11-14) and records the new lines over the following
-month(s): the catalogue is now larger than one Azure F0 month.
+of every level plus every line Henri says in the show: the fake sentence, the interview questions,
+the debate question, his answers in Le journaliste, the two Et après ? prompts and his guess
+(≈ 76k characters; `catalogueCoverage.test.ts` checks both). **New or edited stories or segments
+need a "Record voices" run**; until then those lines play in the browser voice. The show's lines
+took the full catalogue to ≈ 547k characters, so the owner raised `BUDGET_LIMIT_CHARS` from 500k
+to 545k and then 560k (2026-11-14) and records the new lines over the following months: the
+catalogue is now larger than one Azure F0 month.
 
 The level choice is stored on `STORAGE_KEYS.newsLevel` (identity-scoped). The default comes from
 the Learn marking level: A1/A2 → a2, Exam standard/B1 → b1, B2 → b2.
@@ -132,12 +135,14 @@ Both are derived from `getSessionHistory()`; there is no store of their own (Cor
 
 The featured segment depends on the weekday (`FEATURED_BY_WEEKDAY` in `show/showPlan.ts`):
 
-| Day | Planned segment | Built |
-|---|---|---|
-| Mon, Thu, Sun | L'interview | yes |
-| Tue, Sat | Pour ou contre | yes |
-| Wed | Le journaliste, c'est toi | not yet — L'interview stands in |
-| Fri | Et après ? | not yet — Pour ou contre stands in |
+| Day | Featured segment |
+|---|---|
+| Mon, Thu, Sun | L'interview |
+| Tue, Sat | Pour ou contre |
+| Wed | Le journaliste, c'est toi |
+| Fri | Et après ? |
+
+The other three are open as practice from the review ("More from this story").
 
 - **« Intox ou info ? »** (every day; `fake`): one sentence index, the changed sentence (fr + en),
   3 English options naming a detail, the right one. Lint: a valid sentence, different from the
@@ -149,12 +154,26 @@ The featured segment depends on the weekday (`FEATURED_BY_WEEKDAY` in `show/show
   level and one `future` at B1/B2 — the exam's tenses.
 - **Pour ou contre** (`debate`): the story's issue as a question (`motion`, ending « ? »); the
   learner argues for, then against, each with 2–3 starters and a model. Henri asks the motion once.
-- Each segment makes **one** feedback call at the end (§8), and no AI call per turn.
-- **Le journaliste, c'est toi** (planned): 3 English goals (« Find out *when*… »); the learner asks
-  a French question; a deterministic check looks for the right question word
-  (`data/questionWords/words.ts`); a right question gets Henri's authored answer.
-- **Et après ?** (planned): predict what happens next, then hear the authored "what happened next";
-  on a multi-day story (§9) the next part opens with what the learner predicted.
+- **Le journaliste, c'est toi** (`journalist`, in `segments/reporter*.ts`): the learner is the
+  reporter and Henri, the anchor, knows the story. 3 English goals (« Find out when the train
+  leaves. »), each needing a different question word (`word`, Question Detective's ids). The
+  learner asks in French; `show/journalistCheck.ts` hears which question word was used (forms from
+  `data/questionWords/words.ts`; front, end, est-ce que and inversion all count; « quelle heure »
+  asks when; a bare « ou » counts as « où » only first, last or before « est-ce »). The right word
+  → Henri answers from the story, **in the third person** (so his voice never plays a girl or a
+  grandmother, and nothing beyond the story is invented). Another word → a nudge naming both words
+  (« « où » asks for a place. This goal needs a time: try « quand ». »); no question word → a nudge
+  that does not give the word away. Never "wrong": the learner asks again or moves on
+  (`show/journalistReply.ts`). No starters (choosing the word is the task). Lint: 3 goals, 3
+  different words, and each model question must pass the same check.
+- **Et après ?** (`predict`): two prompts, what happens next (future) and what the learner would do
+  in their place (`ifYou`, conditional at B1/B2), each with 2–3 starters and a model. Then
+  **Henri's guess** (`henri`), shown and labelled as a guess, never as what happened: the stories
+  are real-world news, so the show never invents an outcome. Lint: the guess starts « Moi, je
+  pense que… ». On a multi-day story (§9, planned) the next part will open with what the learner
+  predicted.
+- Each segment makes **one** feedback call at the end (§8), and no AI call per turn (Le
+  journaliste's check is deterministic).
 
 ## §8 Feedback without marks
 
@@ -194,12 +213,13 @@ The featured segment depends on the weekday (`FEATURED_BY_WEEKDAY` in `show/show
   `learnTopic`. Review shows « Exam topic area D: The world of work » and « Practise Jobs in
   Learn → » (`/learn?topic=…`), the link only when `topicFromDeepLink` would open that topic
   (visible, unlocked).
-- Planned: a Question Detective link after a journalist mix-up, and a weekly "news words" set in
-  Rapid Fire and Word Drop.
+- After a mix-up in Le journaliste, Review links to `/question-detective?words=<goal's word>,<word
+  used>,…` — only while the `questionDetective` flag is live.
+- Planned: a weekly "news words" set in Rapid Fire and Word Drop.
 
 ## Out of scope / not built
 
 - No Home teaser: Home's advice is the single coach brief (`coachBrain.ts`), so adding one is a
   coach-brief change.
 - Junior news is a separate mission in the Junior track (junior-track spec), not this screen.
-- Glossary words are not spoken (only sentences and the show's prompts are catalogued).
+- Glossary words are not spoken (only sentences and the show's lines are catalogued).

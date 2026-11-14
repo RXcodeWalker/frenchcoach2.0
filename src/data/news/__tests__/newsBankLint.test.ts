@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { NEWS_EDITIONS, NEWS_SEGMENTS, NEWS_STORIES } from '..';
+import { NEWS_EDITIONS, NEWS_REPORTER, NEWS_SEGMENTS, NEWS_STORIES } from '..';
 import { lintNewsBank, lintSegmentCoverage } from '../newsBankLint';
 import type { NewsEdition } from '../types';
 
 describe('news bank lint', () => {
   it('the shipped bank has no lint errors', () => {
-    const errors = [...lintNewsBank(NEWS_EDITIONS), ...lintSegmentCoverage(NEWS_STORIES, NEWS_SEGMENTS)]
+    const errors = [...lintNewsBank(NEWS_EDITIONS), ...lintSegmentCoverage(NEWS_STORIES, NEWS_SEGMENTS, NEWS_REPORTER)]
       .filter(i => i.severity === 'error');
     expect(errors.map(e => `${e.editionId}/${e.level ?? '-'} ${e.code}: ${e.message}`)).toEqual([]);
   });
@@ -29,8 +29,19 @@ describe('news bank lint', () => {
   });
 
   it('a story without segments is reported', () => {
-    const issues = lintSegmentCoverage([...NEWS_STORIES, { ...NEWS_STORIES[0], id: 'lonely-story' }], NEWS_SEGMENTS);
-    expect(issues.map(i => `${i.editionId} ${i.code}`)).toEqual(['lonely-story missing-segments']);
+    const issues = lintSegmentCoverage([...NEWS_STORIES, { ...NEWS_STORIES[0], id: 'lonely-story' }], NEWS_SEGMENTS, NEWS_REPORTER);
+    expect(issues.map(i => `${i.editionId} ${i.code}`)).toEqual(['lonely-story missing-segments', 'lonely-story missing-reporter']);
+  });
+
+  it('flags a journalist question that asks with the wrong word, repeated words, and a prediction told as fact', () => {
+    const broken: NewsEdition = structuredClone(NEWS_EDITIONS[0]) as NewsEdition;
+    broken.id = 'broken-reporter';
+    const b1 = broken.levels.b1;
+    b1.journalist.targets[0] = { ...b1.journalist.targets[0], word: 'ou' }; // question asks « quand »
+    b1.journalist.targets[1] = { ...b1.journalist.targets[1], word: 'quel' }; // repeats « quel »
+    b1.predict.henri = { fr: "L'hôtel a vendu son miel.", en: 'The hotel sold its honey.' };
+    const codes = lintNewsBank([broken]).filter(i => i.severity === 'error').map(i => i.code);
+    expect(codes).toEqual(expect.arrayContaining(['journalist-word', 'journalist-words', 'predict-henri']));
   });
 
   it('lists unreviewed editions as warnings, never errors', () => {

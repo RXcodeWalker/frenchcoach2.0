@@ -6,6 +6,7 @@
  * on the French is a human one (content-authoring §16).
  */
 import { phraseOccurs } from '../../features/news/newsMatch';
+import { checkJournalistQuestion } from '../../features/news/show/journalistCheck';
 import { TOPICS } from '../topics';
 import {
   NEWS_LEVELS,
@@ -13,6 +14,7 @@ import {
   type NewsEditionSegments,
   type NewsLevel,
   type NewsLevelId,
+  type NewsReporterSegments,
   type NewsStory,
 } from './types';
 
@@ -95,6 +97,9 @@ function lintLevel(id: NewsLevelId, level: NewsLevel | undefined, push: (i: Omit
     level.debate.against.model,
     ...level.debate.for.starters,
     ...level.debate.against.starters,
+    ...level.journalist.targets.flatMap(t => [t.question, t.answer.fr]),
+    ...[level.predict.next, level.predict.ifYou].flatMap(t => [t.fr, t.model, ...t.starters]),
+    level.predict.henri.fr,
   ];
   for (const fr of allFrench) {
     if (CURLY_RE.test(fr)) err('curly-apostrophe', `use straight ' in « ${fr.slice(0, 40)} »`);
@@ -165,16 +170,48 @@ function lintSegments(id: NewsLevelId, level: NewsLevel, err: (code: string, mes
     if (!nonEmpty(d.model)) err('debate-model', `debate ${side} model is empty`);
     if (wordCount(d.model) > maxModel) err('model-too-long', `debate ${side} model: ${wordCount(d.model)} words; ${id} allows ${maxModel}`);
   }
+
+  // « Le journaliste, c'est toi »: three goals, three different question words,
+  // and each model question must pass the very check the learner faces.
+  const { targets } = level.journalist;
+  if (targets.length !== 3) err('journalist-count', `${targets.length} journalist goals; needs 3`);
+  if (new Set(targets.map(t => t.word)).size !== targets.length) err('journalist-words', 'journalist goals must each need a different question word');
+  targets.forEach((t, i) => {
+    if (!nonEmpty(t.goal, t.question, t.answer.fr, t.answer.en)) err('journalist-empty', `journalist goal ${i} has an empty field`);
+    if (!t.question.trim().endsWith('?')) err('journalist-question-mark', `journalist model question ${i} must end with « ? »`);
+    if (checkJournalistQuestion(t.question, t.word).verdict !== 'right') {
+      err('journalist-word', `journalist model question ${i} « ${t.question} » is not heard as « ${t.word} »`);
+    }
+    if (wordCount(t.answer.fr) > maxModel) err('model-too-long', `journalist answer ${i}: ${wordCount(t.answer.fr)} words; ${id} allows ${maxModel}`);
+  });
+
+  // « Et après ? »: two prompts and Henri's own guess.
+  const { predict } = level;
+  for (const [name, t] of [['next', predict.next], ['ifYou', predict.ifYou]] as const) {
+    if (!nonEmpty(t.fr, t.en, t.model)) err('predict-empty', `predict ${name} has an empty field`);
+    if (!t.fr.trim().endsWith('?')) err('predict-question-mark', `predict ${name} must end with « ? »`);
+    if (!startersOk(t.starters)) err('predict-starters', `predict ${name} needs 2–3 starters`);
+    if (wordCount(t.model) > maxModel) err('model-too-long', `predict ${name} model: ${wordCount(t.model)} words; ${id} allows ${maxModel}`);
+  }
+  if (!nonEmpty(predict.henri.fr, predict.henri.en)) err('predict-henri', "Henri's prediction is empty");
+  else if (!predict.henri.fr.startsWith('Moi, je pense que') && !predict.henri.fr.startsWith("Moi, je pense qu'")) {
+    err('predict-henri', "Henri's prediction must read as his guess: start with « Moi, je pense que… »");
+  }
 }
 
-/** Every story needs its segments, and every segments entry its story. */
-export function lintSegmentCoverage(stories: readonly NewsStory[], segments: Readonly<Record<string, NewsEditionSegments>>): NewsLintIssue[] {
+/** Every story needs its segments (both sets), and every segments entry its story. */
+export function lintSegmentCoverage(
+  stories: readonly NewsStory[],
+  segments: Readonly<Record<string, NewsEditionSegments>>,
+  reporter?: Readonly<Record<string, NewsReporterSegments>>,
+): NewsLintIssue[] {
   const issues: NewsLintIssue[] = [];
   const ids = new Set(stories.map(s => s.id));
   for (const s of stories) {
-    if (!segments[s.id]) issues.push({ severity: 'error', editionId: s.id, code: 'missing-segments', message: 'story has no segments entry (segments/*.ts)' });
+    if (!segments[s.id]) issues.push({ severity: 'error', editionId: s.id, code: 'missing-segments', message: 'story has no segments entry (segments/week*.ts)' });
+    if (reporter && !reporter[s.id]) issues.push({ severity: 'error', editionId: s.id, code: 'missing-reporter', message: 'story has no journalist/predict entry (segments/reporter*.ts)' });
   }
-  for (const id of Object.keys(segments)) {
+  for (const id of [...Object.keys(segments), ...Object.keys(reporter ?? {})]) {
     if (!ids.has(id)) issues.push({ severity: 'error', editionId: id, code: 'orphan-segments', message: 'segments entry has no story' });
   }
   return issues;

@@ -1,26 +1,26 @@
 import { describe, expect, it } from 'vitest';
 import { NEWS_EDITIONS } from '../../../data/news';
-import { featuredSegment, practiceSegments, showScore, weekdayOf } from '../show/showPlan';
+import { SEGMENT_ORDER, featuredSegment, showScore, weekdayOf } from '../show/showPlan';
 import { segmentTurns } from '../show/segmentPrompts';
 import { segmentQuestion } from '../show/segmentFeedback';
 import { wordsUsed } from '../show/wordsUsed';
 
 describe('showPlan', () => {
-  it('features a segment by weekday, with unbuilt segments standing in for a built one', () => {
+  it('features a segment by weekday', () => {
     // 2026-11-16 is a Monday.
     expect(weekdayOf('2026-11-16')).toBe(1);
     expect(featuredSegment('2026-11-16')).toBe('interview'); // Mon
     expect(featuredSegment('2026-11-17')).toBe('debate'); // Tue
-    expect(featuredSegment('2026-11-18')).toBe('interview'); // Wed: journalist, not built yet
+    expect(featuredSegment('2026-11-18')).toBe('journalist'); // Wed
     expect(featuredSegment('2026-11-19')).toBe('interview'); // Thu
-    expect(featuredSegment('2026-11-20')).toBe('debate'); // Fri: predict, not built yet
+    expect(featuredSegment('2026-11-20')).toBe('predict'); // Fri
     expect(featuredSegment('2026-11-21')).toBe('debate'); // Sat
     expect(featuredSegment('2026-11-22')).toBe('interview'); // Sun
   });
 
-  it('offers the other segment as practice', () => {
-    expect(practiceSegments('interview')).toEqual(['debate']);
-    expect(practiceSegments('debate')).toEqual(['interview']);
+  it('features every segment on some day of the week', () => {
+    const week = ['2026-11-16', '2026-11-17', '2026-11-18', '2026-11-19', '2026-11-20', '2026-11-21', '2026-11-22'];
+    expect(new Set(week.map(featuredSegment))).toEqual(new Set(SEGMENT_ORDER));
   });
 
   it('scores taking part, never the French', () => {
@@ -42,6 +42,15 @@ describe('segment turns and feedback question', () => {
     expect(debate.map(t => t.model)).toEqual([lvl.debate.for.model, lvl.debate.against.model]);
   });
 
+  it('builds three journalist goals (English, no starters, nothing spoken) and two predict prompts', () => {
+    const journalist = segmentTurns(lvl, 'journalist');
+    expect(journalist.map(t => t.goal)).toEqual(lvl.journalist.targets.map(t => t.goal));
+    expect(journalist.every(t => t.starters.length === 0 && !t.speak)).toBe(true);
+    expect(journalist.map(t => t.model)).toEqual(lvl.journalist.targets.map(t => t.question));
+    const predict = segmentTurns(lvl, 'predict');
+    expect(predict.map(t => t.fr)).toEqual([lvl.predict.next.fr, lvl.predict.ifYou.fr]);
+  });
+
   it('puts the scenario and prompts in the question text, within the backend limit', () => {
     for (const e of NEWS_EDITIONS) {
       for (const level of ['a2', 'b1', 'b2'] as const) {
@@ -49,6 +58,7 @@ describe('segment turns and feedback question', () => {
         expect(q.text).toContain(e.levels[level].interview.role.fr);
         expect(q.text.length).toBeLessThanOrEqual(2000);
         expect(segmentQuestion(e, level, 'debate').text).toContain(e.levels[level].debate.motion.fr);
+        for (const seg of ['journalist', 'predict'] as const) expect(segmentQuestion(e, level, seg).text.length).toBeLessThanOrEqual(2000);
       }
     }
   });

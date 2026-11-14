@@ -360,6 +360,17 @@ the same id, in `src/data/news/segments/`. For each level:
   for each side, and a short model for each.
 - **`examArea`** (A–E) and, where one fits, a core Learn `learnTopic`.
 
+`segments/reporter*.ts`, also under the story's id, holds two more segments per level (built with
+`ask`, `turn` and `predict` from `reporterHelpers.ts`):
+
+- **`journalist`**: three English goals a reporter would chase (« Find out how many hives the hotel
+  has. »), each needing a **different** question word, with a model question that uses it (the lint
+  runs the learner's own check on it) and Henri's answer. Henri is the anchor, not the person in the
+  story: answer in the **third person**, short, and only with facts that level's story states.
+- **`predict`**: what happens next (future; `next`), then what the learner would do in their place
+  (`ifYou`, conditional at B1/B2), each with starters and a model, and **Henri's guess**
+  (`henri`), which must start « Moi, je pense que… »: a guess, never an outcome presented as news.
+
 Set `reviewed: true` only after a French speaker has checked every level *and its segments*, and run
-"Record voices" after adding or editing a story or a segment (Henri speaks the fake sentence and the
-prompts).
+"Record voices" after adding or editing a story or a segment (Henri speaks the fake sentence, the
+prompts, his journalist answers and his guess).

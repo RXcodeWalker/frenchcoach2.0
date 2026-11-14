@@ -345,7 +345,7 @@ interface MysteryBoxOpenedProps {
 
 interface NewsSegmentCompletedProps {
   /** One finished Daily News speaking segment (daily-news §7). Ids and counts only — never the answers. */
-  segment: 'interview' | 'debate';
+  segment: 'interview' | 'debate' | 'journalist' | 'predict';
   level: 'a2' | 'b1' | 'b2';
   /** True for the day's featured segment, false for one played as practice. */
   featured: boolean;

@@ -17,11 +17,11 @@ export function YourAnswers({ turns, answers }: Props) {
         return (
           <li key={t.key} className="flex flex-col gap-2">
             <p className="text-eyebrow uppercase text-ink-subtle">{t.eyebrow}</p>
-            <p lang="fr" className="text-label text-ink">{t.fr}</p>
+            {t.goal ? <p className="text-label text-ink">{t.goal}</p> : <p lang="fr" className="text-label text-ink">{t.fr}</p>}
             <div className="flex items-start gap-2 rounded-control bg-surface-recessed p-3">
               {a?.blob && <PlayIconButton play={() => playBlob(a.blob!)} label="Hear your answer" size={14} className="mt-0.5" />}
               <div className="min-w-0 flex-1">
-                <p className="text-caption text-ink-subtle">You said</p>
+                <p className="text-caption text-ink-subtle">{t.goal ? 'You asked' : 'You said'}</p>
                 {a?.text ? (
                   <p lang="fr" className="text-body-s text-ink">« {a.text} »</p>
                 ) : (
@@ -30,7 +30,7 @@ export function YourAnswers({ turns, answers }: Props) {
               </div>
             </div>
             <div className="rounded-control border border-hairline p-3">
-              <p className="text-caption text-ink-subtle">A model answer</p>
+              <p className="text-caption text-ink-subtle">{t.modelLabel ?? 'A model answer'}</p>
               <p lang="fr" className="text-body-s text-ink">{t.model}</p>
             </div>
           </li>

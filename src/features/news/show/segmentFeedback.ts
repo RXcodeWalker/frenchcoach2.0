@@ -37,6 +37,28 @@ export function segmentQuestion(edition: NewsEdition, level: NewsLevelId, segmen
       modelAnswer: qs.map(q => q.model).join(' '),
     };
   }
+  if (segment === 'journalist') {
+    const ts = lvl.journalist.targets;
+    return {
+      ...base,
+      text: `Exercice de journaliste à partir de l'actualité « ${lvl.headline} ». L'élève pose trois questions en français à un présentateur pour obtenir ces informations : ${ts
+        .map((t, i) => `${i + 1}) ${t.goal}`)
+        .join(' ')} Les réponses de l'élève sont donc des questions, pas des affirmations : chacune doit utiliser le bon mot interrogatif et être correcte.`,
+      hint: "Pose une vraie question avec le bon mot interrogatif : qui, où, quand, combien, comment, pourquoi, quel, qu'est-ce que.",
+      followUps: ts.map(t => t.question),
+      modelAnswer: ts.map(t => t.question).join(' '),
+    };
+  }
+  if (segment === 'predict') {
+    const p = lvl.predict;
+    return {
+      ...base,
+      text: `Prédiction à partir de l'actualité « ${lvl.headline} ». 1) ${p.next.fr} 2) ${p.ifYou.fr} L'élève répond d'abord en imaginant la suite (au futur), puis dit ce qu'il ferait à leur place (au conditionnel).`,
+      hint: "Utilise le futur (je pense que… va…, il y aura…), puis le conditionnel (je ferais, j'aimerais…).",
+      followUps: [p.next.fr, p.ifYou.fr],
+      modelAnswer: `${p.next.model} ${p.ifYou.model}`,
+    };
+  }
   const d = lvl.debate;
   return {
     ...base,

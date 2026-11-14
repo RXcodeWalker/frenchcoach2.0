@@ -3,15 +3,15 @@
  *
  * One hand-written story a day, at three levels: Les titres (Henri reads it) →
  * « Intox ou info ? » (spot the changed detail) → the day's featured speaking
- * segment (L'interview or Pour ou contre, by weekday) → Review, with feedback
- * that carries no marks. XP is earned once per edition-day, for the featured
- * segment; the story's other segment is practice. The streak and the archive
- * are derived from the session history.
+ * segment (L'interview, Pour ou contre, Le journaliste or Et après ?, by
+ * weekday) → Review, with feedback that carries no marks. XP is earned once per
+ * edition-day, for the featured segment; the story's other segments are
+ * practice. The streak and the archive are derived from the session history.
  */
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Check, ChevronRight, Eye, Lock, Mic, Newspaper, RotateCcw, Zap } from 'lucide-react';
+import { Check, ChevronRight, Eye, Lock, Mic, Newspaper, RotateCcw, Search, Zap } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { PageShell } from '../components/layout/PageShell';
 import { TopContextBar } from '../components/TopContextBar';
@@ -21,7 +21,10 @@ import { enter, enterReduced, stagger } from '../components/motion/variants';
 import { categoryHue } from '../features/explore/featureVisuals';
 import { NEWS_EDITIONS } from '../data/news';
 import { editionForDay, recentDays } from '../data/news/rotation';
-import type { NewsEdition, NewsLevelId } from '../data/news/types';
+import type { NewsEdition, NewsLevel, NewsLevelId } from '../data/news/types';
+import type { WordId } from '../data/questionWords/types';
+import { questionWord } from '../data/questionWords/words';
+import { resolveFeatureStatus } from '../config/featureFlags';
 import { NewsPlayer } from '../features/news/NewsPlayer';
 import { useBroadcast } from '../features/news/useBroadcast';
 import { StoryTranscript } from '../features/news/StoryTranscript';
@@ -37,9 +40,12 @@ import { YourAnswers } from '../features/news/show/YourAnswers';
 import { segmentTurns } from '../features/news/show/segmentPrompts';
 import { segmentFeedback, segmentQuestion } from '../features/news/show/segmentFeedback';
 import { wordsUsed } from '../features/news/show/wordsUsed';
+import { journalistOutcome } from '../features/news/show/journalistReply';
 import {
-  SEGMENT_INFO, featuredSegment, practiceSegments, showScore, type SegmentId,
+  SEGMENT_INFO, SEGMENT_ORDER, featuredSegment, showScore, type SegmentId,
 } from '../features/news/show/showPlan';
+import { PlayIconButton } from '../components/ui/PlayButton';
+import { TTS } from '../services/tts/ttsService';
 import type { FeedbackV2, Session } from '../types';
 import { STORAGE_KEYS, storageGet, storageRemove, storageSet } from '../services/persistence/storage';
 import { awardXP, checkAchievements, getProgressionState } from '../services/progression/progressionService';
@@ -71,6 +77,32 @@ function wordCount(text: string): number {
 }
 
 const cardClass = 'rounded-card border border-hairline bg-surface p-5 md:p-8';
+
+/** One line saying what today's segment is, for the listen card (daily-news §7). */
+function SegmentPreview({ segment, lvl }: { segment: SegmentId; lvl: NewsLevel }) {
+  if (segment === 'interview') {
+    return <><span lang="fr" className="text-ink">{lvl.interview.role.fr}</span> {lvl.interview.role.en} Henri interviews you.</>;
+  }
+  if (segment === 'debate') {
+    return <>Argue both sides of <span lang="fr" className="text-ink">« {lvl.debate.motion.fr} »</span></>;
+  }
+  if (segment === 'journalist') {
+    return <>You’re the reporter. Ask Henri three questions in French to get the facts for your article.</>;
+  }
+  return <>Say what happens next in the story, then what you would do in their place.</>;
+}
+
+/** How to play the segment, above the turns. */
+function SegmentHowTo({ segment, lvl }: { segment: SegmentId; lvl: NewsLevel }) {
+  if (segment === 'interview') {
+    return <><span lang="fr" className="text-ink">{lvl.interview.role.fr}</span> Answer in role, and invent details if you like.</>;
+  }
+  if (segment === 'debate') return <>First argue for, then against. Give a reason each time: parce que, car, à mon avis…</>;
+  if (segment === 'journalist') {
+    return <>Each goal needs a different question word: qui, où, quand, combien, comment, pourquoi, quel, qu’est-ce que. Henri answers when your question asks for the right thing.</>;
+  }
+  return <>Use the future first (il va…, il y aura…), then the conditional (je ferais, j’aimerais…).</>;
+}
 
 /** Listen → Intox ou info → the segment → Review, as a quiet four-step track. */
 function StepTrack({ phase, segmentLabel }: { phase: Phase; segmentLabel: string }) {
@@ -111,6 +143,8 @@ interface SegmentResult {
   featured: boolean;
   /** The featured segment on an edition-day already finished: kept, no XP. */
   replay: boolean;
+  /** Le journaliste: the question words mixed up (the goal's word and the one used). */
+  mixups: WordId[];
 }
 
 export function DailyNewsFlash() {
@@ -146,6 +180,7 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
   const [result, setResult] = useState<SegmentResult | null>(null);
   const [history, setHistory] = useState(() => getSessionHistory());
   const finishing = useRef(false);
+  const mixups = useRef<WordId[]>([]);
 
   useEffect(() => {
     // The AI-written edition's cache (retired 2026-11-11).
@@ -162,7 +197,20 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
   const doneBefore = !earnsXp(history, contentId);
   const isArchive = day !== today;
   const turns = useMemo(() => segmentTurns(lvl, active), [lvl, active]);
-  const others = practiceSegments(featured);
+  const otherSegments = (done: SegmentId) => [featured, ...SEGMENT_ORDER.filter(s => s !== featured)].filter(s => s !== done);
+  const detectiveLive = resolveFeatureStatus('questionDetective') === 'live';
+
+  // Le journaliste: Henri answers a question that uses the right word, else a nudge (journalistReply.ts).
+  const respond = active === 'journalist'
+    ? (i: number, text: string) => {
+        const target = lvl.journalist.targets[i];
+        const outcome = journalistOutcome(target, text);
+        if (outcome.mixup) {
+          for (const w of [target.word, outcome.mixup]) if (!mixups.current.includes(w)) mixups.current.push(w);
+        }
+        return outcome.response;
+      }
+    : undefined;
 
   const setLevel = (l: NewsLevelId) => {
     setLevelState(l);
@@ -180,6 +228,7 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
   const onIntoxDone = (right: boolean) => {
     setIntoxRight(right);
     setActive(featured);
+    mixups.current = [];
     setPhase('segment');
   };
 
@@ -253,13 +302,14 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
     }
 
     if (answered > 0) track({ name: 'news_segment_completed', props: { segment: active, level, featured: isFeatured, answered } });
-    setResult({ segment: active, answers, feedback: fb, feedbackFailed: answered > 0 && !fb, xp, featured: isFeatured, replay });
+    setResult({ segment: active, answers, feedback: fb, feedbackFailed: answered > 0 && !fb, xp, featured: isFeatured, replay, mixups: [...mixups.current] });
     setPhase('review');
     finishing.current = false;
   };
 
   const playPractice = (segment: SegmentId) => {
     stopAudio();
+    mixups.current = [];
     setActive(segment);
     setResult(null);
     setPhase('segment');
@@ -375,11 +425,7 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
               <p className="text-eyebrow uppercase text-ink-subtle">Today’s segment</p>
               <h2 id="news-today-segment" className="mt-1 text-section text-ink">{activeInfo.title}</h2>
               <p className="mt-1 text-body-s text-ink-muted">
-                {active === 'interview' ? (
-                  <><span lang="fr" className="text-ink">{lvl.interview.role.fr}</span> {lvl.interview.role.en} Henri interviews you.</>
-                ) : (
-                  <>Argue both sides of <span lang="fr" className="text-ink">« {lvl.debate.motion.fr} »</span></>
-                )}
+                <SegmentPreview segment={active} lvl={lvl} />
               </p>
               <div className="mt-5 flex justify-end">
                 <Button size="lg" onClick={goIntox} className="w-full sm:w-auto sm:min-w-48" data-testid="news-start">
@@ -440,15 +486,11 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
               </p>
               <h2 id="news-segment" className="mt-1 text-section text-ink">{activeInfo.title}</h2>
               <p className="mt-1 text-body-s text-ink-muted">
-                {active === 'interview' ? (
-                  <><span lang="fr" className="text-ink">{lvl.interview.role.fr}</span> Answer in role, and invent details if you like.</>
-                ) : (
-                  'First argue for, then against. Give a reason each time: parce que, car, à mon avis…'
-                )}
+                <SegmentHowTo segment={active} lvl={lvl} />
               </p>
             </motion.section>
             <motion.div variants={item}>
-              <SegmentTurns key={`${active}-${level}`} prompts={turns} onDone={answers => void finishSegment(answers)} />
+              <SegmentTurns key={`${active}-${level}`} prompts={turns} respond={respond} onDone={answers => void finishSegment(answers)} />
             </motion.div>
           </motion.div>
         )}
@@ -529,6 +571,38 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
               </div>
             </motion.section>
 
+            {result.segment === 'predict' && (
+              <motion.section variants={item} className={cardClass} aria-labelledby="news-henri-guess" data-testid="news-henri-guess">
+                <h2 id="news-henri-guess" className="text-label text-ink">Et Henri, qu’est-ce qu’il en pense ?</h2>
+                <p className="mt-1 text-body-s text-ink-muted">Henri’s guess, not the news: nobody knows what happens next yet.</p>
+                <div className="mt-3 flex items-start gap-2 rounded-control bg-surface-recessed p-3">
+                  <PlayIconButton play={() => TTS.speak(lvl.predict.henri.fr, { recorded: true, rate: 0.9 })} label="Hear Henri's guess" size={16} className="mt-0.5" />
+                  <div className="min-w-0">
+                    <p lang="fr" className="text-body-s text-ink">{lvl.predict.henri.fr}</p>
+                    <p className="mt-0.5 text-caption text-ink-muted">{lvl.predict.henri.en}</p>
+                  </div>
+                </div>
+              </motion.section>
+            )}
+
+            {result.segment === 'journalist' && result.mixups.length > 0 && detectiveLive && (
+              <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-6" data-testid="news-detective-link">
+                <Link
+                  to={`/question-detective?words=${result.mixups.join(',')}`}
+                  className="flex min-h-12 items-center gap-3 rounded-control border border-hairline px-4 py-2 hover:bg-track"
+                >
+                  <Search size={16} className="shrink-0 text-ink-subtle" aria-hidden="true" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-label text-ink">Practise these question words</span>
+                    <span lang="fr" className="block text-caption text-ink-muted">
+                      {result.mixups.map(w => questionWord(w)?.lemma ?? w).join(' · ')} in Question Detective
+                    </span>
+                  </span>
+                  <ChevronRight size={16} className="shrink-0 text-ink-subtle" aria-hidden="true" />
+                </Link>
+              </motion.section>
+            )}
+
             <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-6">
               <StoryLinks examArea={edition.examArea} learnTopic={edition.learnTopic} />
             </motion.section>
@@ -536,7 +610,7 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
             <motion.section variants={item} className="rounded-card border border-hairline bg-surface p-5 md:p-6" aria-labelledby="news-more">
                 <h2 id="news-more" className="text-label text-ink">More from this story</h2>
                 <ul className="mt-3 flex flex-col gap-2">
-                  {[featured, ...others].filter(s => s !== result.segment).map(s => (
+                  {otherSegments(result.segment).map(s => (
                     <li key={s}>
                       <button
                         type="button"

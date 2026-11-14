@@ -14,6 +14,7 @@ const broadcastState = vi.hoisted(() => ({ listened: false }));
 const playSentence = vi.hoisted(() => vi.fn());
 const transcript = vi.hoisted(() => ({ value: '' }));
 const track = vi.hoisted(() => vi.fn());
+const detective = vi.hoisted(() => ({ status: 'coming-soon' as 'live' | 'coming-soon' }));
 
 vi.mock('../../components/TopContextBar', () => ({
   TopContextBar: ({ subtitle }: { subtitle?: string }) => <header data-testid="subtitle">{subtitle}</header>,
@@ -50,9 +51,18 @@ vi.mock('../../services/coaching/diagnosticEngine', () => ({ getSkillProfile: ()
 vi.mock('../../services/coach/achievementContextBuilder', () => ({ buildAchievementContext: () => ({}) }));
 vi.mock('../../services/telemetry/telemetryService', () => ({ track }));
 vi.mock('../../services/tts/ttsService', () => ({ TTS: { speak: vi.fn(async () => {}), stop: vi.fn() } }));
+vi.mock('../../config/featureFlags', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../config/featureFlags')>();
+  return {
+    ...actual,
+    resolveFeatureStatus: (key: Parameters<typeof actual.resolveFeatureStatus>[0]) =>
+      key === 'questionDetective' ? detective.status : actual.resolveFeatureStatus(key),
+  };
+});
 
 import { DailyNewsFlash } from '../DailyNewsFlash';
-import { SEGMENT_INFO, featuredSegment, practiceSegments } from '../../features/news/show/showPlan';
+import { SEGMENT_INFO, SEGMENT_ORDER, featuredSegment, type SegmentId } from '../../features/news/show/showPlan';
+import { questionWord } from '../../data/questionWords/words';
 
 const today = localDay();
 const edition = editionForDay(today, NEWS_EDITIONS);
@@ -65,6 +75,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   broadcastState.listened = true;
   transcript.value = answer;
+  detective.status = 'coming-soon';
   getAIFeedback.mockResolvedValue({
     scores: { overall: 7, communication: 7, language: 7, fluency: 7 },
     cefrLevel: 'B1',
@@ -110,6 +121,17 @@ async function answerTurns(count: number) {
 async function runShow() {
   playIntox();
   await answerTurns(SEGMENT_INFO[featured].turns);
+}
+
+/** Finish today's show, then open a segment again: practice when it isn't today's, a replay when it is. */
+async function openSegment(segment: SegmentId) {
+  await runShow();
+  if (segment === featured) {
+    fireEvent.click(screen.getByTestId('news-retry'));
+    playIntox();
+  } else {
+    fireEvent.click(screen.getByTestId(`news-practice-${segment}`));
+  }
 }
 
 describe('DailyNewsFlash — the news show', () => {
@@ -160,13 +182,66 @@ describe('DailyNewsFlash — the news show', () => {
   it('a practice segment gets feedback but no XP and no session', async () => {
     renderScreen();
     await runShow();
-    const other = practiceSegments(featured)[0];
+    const other = SEGMENT_ORDER.find(s => s !== featured)!;
     fireEvent.click(screen.getByTestId(`news-practice-${other}`));
     await answerTurns(SEGMENT_INFO[other].turns);
     expect(awardXP).toHaveBeenCalledTimes(1);
     expect(dispatch.mock.calls.filter(([a]) => a.type === 'ADD_SESSION')).toHaveLength(1);
     expect(screen.getByTestId('news-practice-run')).toBeTruthy();
     expect(screen.getByTestId('news-coach-feedback')).toBeTruthy();
+  });
+
+  it("Le journaliste: the wrong question word gets a nudge naming both words; the right one gets Henri's answer", async () => {
+    detective.status = 'live';
+    renderScreen();
+    await openSegment('journalist');
+    const [t0, t1, t2] = b1.journalist.targets;
+
+    expect(screen.getByTestId('news-turn-prompt').textContent).toBe(t0.goal);
+    transcript.value = t1.question; // asks with another goal's word
+    fireEvent.click(await screen.findByText('stop recording'));
+    const nudge = await screen.findByTestId('news-turn-nudge');
+    expect(nudge.textContent).toContain(questionWord(t1.word)!.lemma);
+    expect(nudge.textContent).toContain(questionWord(t0.word)!.lemma);
+    expect(screen.queryByTestId('news-turn-reply')).toBeNull();
+
+    fireEvent.click(screen.getByTestId('news-turn-again'));
+    transcript.value = t0.question;
+    fireEvent.click(await screen.findByText('stop recording'));
+    expect((await screen.findByTestId('news-turn-reply')).textContent).toContain(t0.answer.fr);
+    fireEvent.click(screen.getByTestId('news-turn-next'));
+
+    for (const t of [t1, t2]) {
+      transcript.value = t.question;
+      fireEvent.click(await screen.findByText('stop recording'));
+      expect((await screen.findByTestId('news-turn-reply')).textContent).toContain(t.answer.fr);
+      fireEvent.click(screen.getByTestId('news-turn-next'));
+    }
+    await screen.findByRole('heading', { name: 'That’s a wrap!' });
+    const link = screen.getByTestId('news-detective-link').querySelector('a')!;
+    expect(link.getAttribute('href')).toBe(`/question-detective?words=${t0.word},${t1.word}`);
+    expect(screen.getByTestId('news-your-answers').textContent).toContain(t0.goal);
+  });
+
+  it('Le journaliste: no Question Detective link while that game is not live', async () => {
+    renderScreen();
+    await openSegment('journalist');
+    transcript.value = b1.journalist.targets[1].question;
+    fireEvent.click(await screen.findByText('stop recording'));
+    fireEvent.click(await screen.findByTestId('news-turn-next')); // "Move on"
+    transcript.value = answer;
+    await answerTurns(2);
+    expect(screen.queryByTestId('news-detective-link')).toBeNull();
+  });
+
+  it("Et après ?: two prompts, then Henri's guess, labelled as a guess", async () => {
+    renderScreen();
+    await openSegment('predict');
+    expect(screen.getByTestId('news-turn-prompt').textContent).toBe(b1.predict.next.fr);
+    await answerTurns(2);
+    const guess = screen.getByTestId('news-henri-guess');
+    expect(guess.textContent).toContain(b1.predict.henri.fr);
+    expect(guess.textContent).toContain('guess');
   });
 
   it('feedback shows what worked and a better version, never a mark, score or level', async () => {

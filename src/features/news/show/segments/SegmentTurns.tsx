@@ -7,11 +7,14 @@ import { RecordingPanel } from '../../../../screens/learn/RecordingPanel';
 import { Button } from '../../../../components/ui/Button';
 import { PlayIconButton } from '../../../../components/ui/PlayButton';
 import { TTS } from '../../../../services/tts/ttsService';
+import type { TurnResponse } from '../journalistReply';
 
 export interface TurnPrompt {
   key: string;
   /** "Question 1 of 3", "For", "Against"… */
   eyebrow: string;
+  /** An English goal shown instead of a French prompt (Le journaliste: the learner asks, Henri answers). */
+  goal?: string;
   fr: string;
   en: string;
   starters: readonly string[];
@@ -28,6 +31,16 @@ export interface TurnAnswer {
 interface Props {
   prompts: readonly TurnPrompt[];
   onDone: (answers: TurnAnswer[]) => void;
+  /**
+   * Optional reaction to what was heard, before the learner moves on: Henri's
+   * reply, or a nudge to ask again (Le journaliste, daily-news §7).
+   */
+  respond?: (index: number, text: string) => TurnResponse | null;
+}
+
+interface Pending {
+  answer: TurnAnswer;
+  response: TurnResponse | null;
 }
 
 /**
@@ -36,12 +49,12 @@ interface Props {
  * moves on. Modelled on the role-play drill's turn loop, without per-turn AI
  * calls — the segment makes one feedback call at the end (segmentFeedback.ts).
  */
-export function SegmentTurns({ prompts, onDone }: Props) {
+export function SegmentTurns({ prompts, onDone, respond }: Props) {
   const { consentStatus } = useAuth();
   const recording = useRecording(consentStatus === 'pending');
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<TurnAnswer[]>([]);
-  const [pending, setPending] = useState<TurnAnswer | null>(null);
+  const [pending, setPending] = useState<Pending | null>(null);
   const [showEnglish, setShowEnglish] = useState(false);
   const prompt = prompts[index];
   const last = index === prompts.length - 1;
@@ -54,6 +67,12 @@ export function SegmentTurns({ prompts, onDone }: Props) {
     void TTS.speak(prompt.fr, { recorded: true, rate: 0.9 });
   }, [prompt]);
 
+  // Henri answers a question once, as his reply appears (static authored French, recorded).
+  const reply = pending?.response?.kind === 'reply' ? pending.response : null;
+  useEffect(() => {
+    if (reply) void TTS.speak(reply.fr, { recorded: true, rate: 0.9 });
+  }, [reply]);
+
   // The mic never records over Henri's voice.
   useEffect(() => {
     if (recording.isRecording) TTS.stop();
@@ -65,10 +84,12 @@ export function SegmentTurns({ prompts, onDone }: Props) {
     const seconds = recording.elapsedTime;
     const text = await recording.stop();
     const blob = await recording.audioBlobPromise().catch(() => null);
-    setPending({ text: text.trim(), seconds, blob });
+    const answer = { text: text.trim(), seconds, blob };
+    setPending({ answer, response: answer.text && respond ? respond(index, answer.text) : null });
   };
 
   const commit = (answer: TurnAnswer) => {
+    TTS.stop();
     const next = [...answers, answer];
     setPending(null);
     setShowEnglish(false);
@@ -84,55 +105,96 @@ export function SegmentTurns({ prompts, onDone }: Props) {
     <div className="flex flex-col gap-4">
       <div className="rounded-card border border-hairline bg-surface p-5 md:p-8">
         <p className="text-eyebrow uppercase text-ink-subtle">{prompt.eyebrow}</p>
-        <div className="mt-2 flex items-start gap-2">
-          {prompt.speak && (
-            <PlayIconButton
-              key={prompt.key}
-              play={() => TTS.speak(prompt.fr, { recorded: true, rate: 0.9 })}
-              label="Hear the question again"
-              size={16}
-              className="mt-1"
-            />
-          )}
-          <h3 lang="fr" className="min-w-0 flex-1 text-section text-ink" data-testid="news-turn-prompt">{prompt.fr}</h3>
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowEnglish(v => !v)}
-          aria-expanded={showEnglish}
-          className="mt-2 inline-flex items-center gap-1.5 text-label text-ink-muted underline underline-offset-4 hover:text-ink"
-        >
-          <Languages size={14} aria-hidden="true" /> {showEnglish ? prompt.en : 'Show in English'}
-        </button>
-        <ul className="mt-4 flex flex-wrap gap-2" aria-label="Ways to start">
-          {prompt.starters.map(s => (
-            <li key={s} lang="fr" className="inline-flex min-h-8 items-center rounded-pill border border-hairline-strong px-3 text-label text-ink-muted">{s}</li>
-          ))}
-        </ul>
+        {prompt.goal ? (
+          <>
+            <h3 className="mt-2 text-section text-ink" data-testid="news-turn-prompt">{prompt.goal}</h3>
+            <p className="mt-2 text-body-s text-ink-muted">Ask Henri in French. Choose your question word carefully.</p>
+          </>
+        ) : (
+          <>
+            <div className="mt-2 flex items-start gap-2">
+              {prompt.speak && (
+                <PlayIconButton
+                  key={prompt.key}
+                  play={() => TTS.speak(prompt.fr, { recorded: true, rate: 0.9 })}
+                  label="Hear the question again"
+                  size={16}
+                  className="mt-1"
+                />
+              )}
+              <h3 lang="fr" className="min-w-0 flex-1 text-section text-ink" data-testid="news-turn-prompt">{prompt.fr}</h3>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowEnglish(v => !v)}
+              aria-expanded={showEnglish}
+              className="mt-2 inline-flex items-center gap-1.5 text-label text-ink-muted underline underline-offset-4 hover:text-ink"
+            >
+              <Languages size={14} aria-hidden="true" /> {showEnglish ? prompt.en : 'Show in English'}
+            </button>
+          </>
+        )}
+        {prompt.starters.length > 0 && (
+          <ul className="mt-4 flex flex-wrap gap-2" aria-label="Ways to start">
+            {prompt.starters.map(s => (
+              <li key={s} lang="fr" className="inline-flex min-h-8 items-center rounded-pill border border-hairline-strong px-3 text-label text-ink-muted">{s}</li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {pending ? (
         <div className="rounded-card border border-hairline bg-surface p-5 md:p-6" role="status">
-          <p className="text-eyebrow uppercase text-ink-subtle">We heard</p>
-          {pending.text ? (
-            <p lang="fr" className="mt-1 text-body-s text-ink">« {pending.text} »</p>
+          <p className="text-eyebrow uppercase text-ink-subtle">{prompt.goal ? 'You asked' : 'We heard'}</p>
+          {pending.answer.text ? (
+            <p lang="fr" className="mt-1 text-body-s text-ink">« {pending.answer.text} »</p>
           ) : (
             <p className="mt-1 text-body-s text-ink-muted">Nothing came through. Try saying it again, a little louder.</p>
           )}
+          {reply && (
+            <div className="mt-4 rounded-control bg-progress-soft p-4" data-testid="news-turn-reply">
+              <p className="text-label text-progress-text">{reply.lead} Henri answers:</p>
+              <div className="mt-2 flex items-start gap-2">
+                <PlayIconButton play={() => TTS.speak(reply.fr, { recorded: true, rate: 0.9 })} label="Hear Henri's answer again" size={16} className="mt-0.5" />
+                <div className="min-w-0">
+                  <p lang="fr" className="text-body-s text-ink">{reply.fr}</p>
+                  <p className="mt-0.5 text-caption text-ink-muted">{reply.en}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          {pending.response?.kind === 'nudge' && (
+            <p className="mt-4 rounded-control bg-info-soft px-4 py-3 text-body-s text-info-text" data-testid="news-turn-nudge">
+              {pending.response.message}
+            </p>
+          )}
           <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <Button variant="secondary" size="md" onClick={() => setPending(null)} data-testid="news-turn-again">
-              <RotateCcw size={16} aria-hidden="true" /> Say it again
-            </Button>
-            {pending.text && (
-              <Button size="md" onClick={() => commit(pending)} data-testid="news-turn-next">
-                {last ? 'Finish' : 'Next'} <ChevronRight size={16} aria-hidden="true" />
-              </Button>
+            {pending.response?.kind === 'nudge' ? (
+              <>
+                <Button variant="quiet" size="md" onClick={() => commit(pending.answer)} data-testid="news-turn-next">
+                  {last ? 'Finish anyway' : 'Move on'}
+                </Button>
+                <Button size="md" onClick={() => setPending(null)} data-testid="news-turn-again">
+                  <RotateCcw size={16} aria-hidden="true" /> Ask again
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="secondary" size="md" onClick={() => setPending(null)} data-testid="news-turn-again">
+                  <RotateCcw size={16} aria-hidden="true" /> Say it again
+                </Button>
+                {pending.answer.text && (
+                  <Button size="md" onClick={() => commit(pending.answer)} data-testid="news-turn-next">
+                    {last ? 'Finish' : 'Next'} <ChevronRight size={16} aria-hidden="true" />
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </div>
       ) : (
         <SpeakingConsentGate>
-          <RecordingPanel isActive={true} recording={recording} onStop={handleStop} hint="Tap and answer in French" lengthMeter={false} />
+          <RecordingPanel isActive={true} recording={recording} onStop={handleStop} hint={prompt.goal ? 'Tap and ask your question in French' : 'Tap and answer in French'} lengthMeter={false} />
         </SpeakingConsentGate>
       )}
 
