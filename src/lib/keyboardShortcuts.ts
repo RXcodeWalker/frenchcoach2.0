@@ -18,6 +18,7 @@ export const NAV_SHORTCUTS: readonly NavShortcut[] = [
   { key: 'h', path: '/', label: 'Go to Home' },
   { key: 'l', path: '/learn', label: 'Go to Learn' },
   { key: 'e', path: '/exam', label: 'Go to Exam' },
+  { key: 'j', path: '/junior', label: 'Go to Junior' },
   { key: 'x', path: '/explore', label: 'Go to Explore' },
   { key: 'p', path: '/progress', label: 'Go to Progress' },
   { key: 'n', path: '/notebook', label: 'Go to Notebook' },

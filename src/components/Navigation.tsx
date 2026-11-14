@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import type { Screen } from '../types';
-import { BarChart3, BookOpen, Compass, GraduationCap, Home, Keyboard, MessageSquare, User } from 'lucide-react';
+import { BarChart3, BookOpen, Compass, GraduationCap, Home, Keyboard, MessageSquare, Sprout, User } from 'lucide-react';
 import { requestShortcutHelp } from '../lib/keyboardShortcuts';
 import { useShellChrome } from './layout/shellChrome';
 import { useAuth } from '../context/AuthContext';
+import { useApp } from '../context/AppContext';
 import { ContactDialog } from '../features/contact/ContactDialog';
 
+type NavItem = { id: Screen; label: string; Icon: typeof Home };
+
 // Launch scope (src/config/launchScope.ts): the five core destinations plus Explore, the hub for every other mode.
-const NAV_ITEMS: { id: Screen; label: string; Icon: typeof Home }[] = [
+const NAV_ITEMS: NavItem[] = [
   { id: 'home', label: 'Home', Icon: Home },
   { id: 'learn', label: 'Learn', Icon: BookOpen },
   { id: 'exam', label: 'Exam', Icon: GraduationCap },
@@ -17,13 +20,19 @@ const NAV_ITEMS: { id: Screen; label: string; Icon: typeof Home }[] = [
   { id: 'profile', label: 'Profile', Icon: User },
 ];
 
+const JUNIOR_TAB: NavItem = { id: 'junior', label: 'Junior', Icon: Sprout };
+
+function navItems(juniorTab: boolean): NavItem[] {
+  return juniorTab ? NAV_ITEMS.map(item => (item.id === 'exam' ? JUNIOR_TAB : item)) : NAV_ITEMS;
+}
+
 const toPath = (id: Screen): string => id === 'home' ? '/' : `/${id}`;
 
 /** Which item is active for a path: Home only on `/`, the rest by prefix (the notebook belongs to Learn). */
-function activeNavIndex(pathname: string): number {
+function activeNavIndex(pathname: string, items: readonly NavItem[]): number {
   if (pathname === '/') return 0;
   if (pathname.startsWith('/notebook')) return 1;
-  return NAV_ITEMS.findIndex(item => item.id !== 'home' && pathname.startsWith(toPath(item.id)));
+  return items.findIndex(item => item.id !== 'home' && pathname.startsWith(toPath(item.id)));
 }
 
 const RAIL_ITEM = 64;
@@ -39,8 +48,10 @@ export function SideRail({ keyHint = true }: { /** Show the `?` key in the keybo
   const location = useLocation();
   const { dockHidden } = useShellChrome();
   const { user } = useAuth();
+  const { state } = useApp();
+  const items = navItems(state.learnerTrack === 'junior');
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const active = activeNavIndex(location.pathname);
+  const active = activeNavIndex(location.pathname, items);
 
   const itemClass = (on: boolean) =>
     `relative flex flex-col items-center justify-center gap-1 rounded-control text-[12px] font-semibold leading-tight
@@ -65,7 +76,7 @@ export function SideRail({ keyHint = true }: { /** Show the `?` key in the keybo
               <span className="absolute -left-2 top-[22px] h-5 w-[3px] rounded-r-[3px] bg-action" />
             </span>
           )}
-          {NAV_ITEMS.map(({ id, label, Icon }, i) => (
+          {items.map(({ id, label, Icon }, i) => (
             <button
               key={id}
               type="button"
@@ -118,10 +129,10 @@ export function SideRail({ keyHint = true }: { /** Show the `?` key in the keybo
               <span
                 aria-hidden="true"
                 className="pointer-events-none absolute left-0 top-0 h-14 rounded-control bg-action-soft transition-transform duration-slide ease-slide"
-                style={{ width: `calc((100% - ${(NAV_ITEMS.length - 1) * 4}px) / ${NAV_ITEMS.length})`, transform: `translateX(calc(${active * 100}% + ${active * 4}px))` }}
+                style={{ width: `calc((100% - ${(items.length - 1) * 4}px) / ${items.length})`, transform: `translateX(calc(${active * 100}% + ${active * 4}px))` }}
               />
             )}
-            {NAV_ITEMS.map(({ id, label, Icon }, i) => (
+            {items.map(({ id, label, Icon }, i) => (
               <button
                 key={id}
                 type="button"

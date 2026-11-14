@@ -26,6 +26,7 @@ Depth 2. Four live categories, one archive.
 - `systems/retention-notifications.md` — the retention loop: the learner snapshot, the one-a-day specific nudge (what, when, priority), the weekly learner/parent progress email, unsubscribe and open tracking (§-numbered, do not renumber)
 - `systems/learner-model.md` — the one per-skill learner model: the closed skill registry, the decayed Beta estimator, evidence sources and weights, AppState slice + `skill_model` sync, readers and their flags (ADR 0016; §-numbered, cited as `learner-model §N` — do not renumber)
 - `systems/daily-news.md` — Daily News Flash: the hand-written three-level story bank and its lint, date rotation, the Listen → Check → Report → Review flow, deterministic fact matching, XP once per edition-day, streak and archive (§-numbered, cited as `daily-news §N` — do not renumber)
+- `systems/question-detective.md` — Question Detective: the eight tools, tap/type/say ladder, mix-ups, Ask it, case files (§-numbered, cited as `question-detective §N` — do not renumber)
 - `guides/content-authoring.md` — content-authoring rules for the question bank
 - `guides/review/` — generated G2 review sheet (`0520-g2-review.md`) and its English glosses source; regenerate, never hand-edit
 - `guides/corpus-matrix.md` — corpus coverage rules

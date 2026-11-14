@@ -254,15 +254,18 @@ export function Onboarding() {
               </div>
 
               {!isEditMode && JUNIOR_TRACK_SELECTABLE && (
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  className="mt-4 w-full"
-                  onClick={chooseJunior}
-                  data-testid="onboarding-junior"
-                >
-                  <Sprout size={18} aria-hidden="true" /> I'm in Grades 4–7 (Junior)
-                </Button>
+                <div className="mt-4 flex flex-col gap-2">
+                  <p className="text-label text-ink-muted">What grade are you in?</p>
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    className="w-full"
+                    onClick={chooseJunior}
+                    data-testid="onboarding-junior"
+                  >
+                    <Sprout size={18} aria-hidden="true" /> I'm in Grades 4–7 (Junior)
+                  </Button>
+                </div>
               )}
 
               <WizardFooter

@@ -3,11 +3,19 @@ name: Record voices
 # Records every catalogued French line in the Henri Azure Neural voice (the
 # only recorded voice, src/services/tts/voiceKey.ts) and uploads the MP3s to
 # the public Supabase bucket `tts-audio` (docs/plans/recorded-voices.md
-# §4.5–§4.6). Manual only. Re-running is safe: lines already stored are
-# skipped, so a stopped run resumes where it stopped. A dry run prints the
-# totals and needs no secrets.
+# §4.5–§4.6). Re-running is safe: lines already stored are skipped, so a
+# stopped run resumes where it stopped. A dry run prints the totals and needs
+# no secrets.
+#
+# The schedule is the backlog: Azure F0's 500k characters reset each month, so
+# on the 2nd of every month (a day of margin past the reset) a real run records
+# whatever is still missing — lines added since the last run, or lines a run
+# could not finish because the month's characters were spent. Until then the
+# app plays those lines with the browser's French voice.
 
 on:
+  schedule:
+    - cron: '0 3 2 * *'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -32,6 +40,7 @@ jobs:
     timeout-minutes: 350
     steps:
       # Same fail-fast secret check as notifications-streak-and-goal.yml, skipped for a dry run.
+      # A scheduled run has no inputs, so `inputs.dry_run` is empty: it is a real run.
       - name: Check required secrets
         if: ${{ !inputs.dry_run }}
         env:

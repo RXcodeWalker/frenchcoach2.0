@@ -6,13 +6,12 @@
  * actually record) at the source, rather than relying on the backend to
  * guess a Content-Type from a file extension.
  *
- * Called ONLY from httpProvider.ts, at upload time. Never wired into the
- * recording hooks (useRecording.ts / useAudioBlobRecorder.ts) — per the
- * accent-analyzer plan (R3), those keep returning the original compressed
- * blob unchanged, since PronunciationLab/AccentAnalyzer use it for
- * *playback* via an object URL. Persisting or returning the WAV anywhere
- * else would multiply memory for no benefit (WAV is ~10x the compressed
- * size).
+ * Called at upload time (httpProvider.ts and the measuring helpers). The
+ * recording hooks keep returning the original compressed blob (accent-analyzer
+ * plan R3); the one exception is `useAudioBlobRecorder({ captureWav: true })`,
+ * which also builds a WAV from the live mic samples with `encodePcm16Wav`
+ * (the Accent Analyzer, because MediaRecorder's webm sometimes fails to
+ * decode). Don't persist a WAV anywhere — it is ~10x the compressed size.
  *
  * Uses a short-lived OfflineAudioContext, never the live AudioContext
  * useMicLevel.ts owns — that one is created/closed per-recording and

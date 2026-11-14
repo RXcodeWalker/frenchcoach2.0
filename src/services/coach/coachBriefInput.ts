@@ -67,7 +67,7 @@ function openableTopics(): CoachTopic[] {
     }));
 }
 
-export function gatherCoachInput(opts: { learnAnswersLeft: number | null; now?: number; learnerModel?: SyncedSkillModel }): CoachInput {
+export function gatherCoachInput(opts: { learnAnswersLeft: number | null; now?: number; learnerModel?: SyncedSkillModel; examUnlocked?: boolean }): CoachInput {
   const now = opts.now ?? Date.now();
   const profile = getCoachProfile();
   const goal = getActiveGoal(profile);
@@ -99,11 +99,12 @@ export function gatherCoachInput(opts: { learnAnswersLeft: number | null; now?: 
     topics: openableTopics(),
     topicStats,
     learnAnswersLeft: opts.learnAnswersLeft,
+    examUnlocked: opts.examUnlocked !== false,
   };
 }
 
 /** The coach's brief for right now. Never throws: a broken store yields null and Home shows its plain fallback. */
-export function getCoachBrief(opts: { learnAnswersLeft: number | null; now?: number; learnerModel?: SyncedSkillModel }): CoachBrief | null {
+export function getCoachBrief(opts: { learnAnswersLeft: number | null; now?: number; learnerModel?: SyncedSkillModel; examUnlocked?: boolean }): CoachBrief | null {
   try {
     return decideCoachBrief(gatherCoachInput(opts));
   } catch {

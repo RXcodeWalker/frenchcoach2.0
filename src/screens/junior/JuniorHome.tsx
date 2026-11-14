@@ -5,6 +5,7 @@
  * simply not offered — never a "you lost it" message.
  */
 import { Link } from 'react-router-dom';
+import { Search } from 'lucide-react';
 import { Leo } from '../../features/junior/Leo';
 import { leoLook } from '../../features/junior/look';
 import { JUNIOR_BANK } from '../../data/junior';
@@ -54,6 +55,18 @@ export function JuniorHome() {
           );
         })}
       </ul>
+
+      <Link
+        to="/question-detective"
+        data-testid="junior-question-detective"
+        className="flex items-center gap-3 rounded-card border border-hairline surface p-4"
+      >
+        <Search size={20} className="text-action-text" aria-hidden="true" />
+        <span className="flex flex-col">
+          <span className="text-subtitle text-ink">Question words</span>
+          <span className="text-label text-action-text">Play</span>
+        </span>
+      </Link>
 
       <Link to="/profile" data-testid="junior-grownups" className="self-center text-label text-ink-muted underline">
         Grown-ups: settings

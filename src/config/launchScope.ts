@@ -11,8 +11,8 @@
  */
 export const CORE_ONLY = true;
 
-// The Junior track is intentionally not listed: an account already on it gets
-// JuniorHome at `/` and needs `/junior/*`. New learners just can't choose it.
+// Junior lives at `/junior` as its own tab (JUNIOR_TRACK_SELECTABLE). It is
+// not a hidden path: visiting `/junior/*` still works for every account.
 const HIDDEN_PATH_PREFIXES = [
   '/about',
   '/study-groups',
@@ -25,5 +25,9 @@ export function isHiddenPath(pathname: string): boolean {
   );
 }
 
-/** Whether new learners may pick the Junior track (Onboarding, Profile). */
-export const JUNIOR_TRACK_SELECTABLE = !CORE_ONLY;
+/**
+ * Whether new learners may pick the Junior tab (Onboarding, Profile).
+ * Independent of CORE_ONLY: Junior is a tab next to Learn/Explore, not a
+ * hidden launch-scope path.
+ */
+export const JUNIOR_TRACK_SELECTABLE = true;

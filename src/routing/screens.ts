@@ -52,6 +52,7 @@ export const ScenarioArchitect = lazyScreen(() => import('../screens/ScenarioArc
 export const ScenarioArchitectSession = lazyScreen(() => import('../screens/ScenarioArchitectSession'), 'ScenarioArchitectSession');
 export const RoleplaySession = lazyScreen(() => import('../screens/RoleplaySession'), 'RoleplaySession');
 export const WordDrop = lazyScreen(() => import('../screens/WordDrop'), 'WordDrop');
+export const QuestionDetective = lazyScreen(() => import('../screens/QuestionDetective'), 'QuestionDetective');
 export const MasteryJourney = lazyScreen(() => import('../screens/MasteryJourney'), 'MasteryJourney');
 export const BossBattle = lazyScreen(() => import('../screens/BossBattle'), 'BossBattle');
 export const EmojiMaster = lazyScreen(() => import('../screens/EmojiMaster'), 'EmojiMaster');
@@ -109,9 +110,9 @@ type AnyScreen = Pick<LazyScreen<never>, 'preload'>;
 
 /**
  * Path → the screens that can render there. Both trees are listed where they
- * differ (`/` is Home or Junior Home signed in, Landing signed out; `/about`
- * likewise) — boot can't know yet which one the sign-in check will pick, and
- * downloading both is cheaper than waiting for it.
+ * differ (`/` is Home signed in, Landing signed out; `/about` likewise) —
+ * boot can't know yet which one the sign-in check will pick, and downloading
+ * both is cheaper than waiting for it. Junior is `/junior`, never `/`.
  */
 export const SCREEN_PATHS: ReadonlyArray<readonly [string, readonly AnyScreen[]]> = [
   ['/', [Home, Landing]],
@@ -150,6 +151,7 @@ export const SCREEN_PATHS: ReadonlyArray<readonly [string, readonly AnyScreen[]]
   ['/scenario-architect', [ScenarioArchitect]],
   ['/scenario-architect/session', [ScenarioArchitectSession]],
   ['/word-drop', [WordDrop]],
+  ['/question-detective', [QuestionDetective]],
   ['/mastery', [MasteryJourney]],
   ['/boss-battle', [BossBattle]],
   ['/emoji-master', [EmojiMaster]],

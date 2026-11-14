@@ -5,6 +5,7 @@ import confetti from 'canvas-confetti';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { shouldOpenGuideBeforeSim, type ExamGuideLocationState, type StartSimLocationState } from '../features/examGuide/guideSeen';
 import { useApp } from '../context/AppContext';
+import { examPracticeUnlocked, EXAM_UNLOCK_MISSIONS, missionsFinished } from '../features/junior/examUnlock';
 import { useAuth } from '../context/AuthContext';
 import { SpeakingConsentGate } from '../components/SpeakingConsentGate';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
@@ -1159,6 +1160,11 @@ export function ExamMode() {
         onRolePlayDrill={() => navigate('/exam/role-play')}
         onGuide={() => navigate('/exam/guide')}
         homework={homework ? { assignmentId: homework.id, title: homework.title, teacherName: homework.teacherName } : null}
+        examLocked={
+          examPracticeUnlocked(state.learnerTrack, state.junior?.missionsDone)
+            ? null
+            : { done: missionsFinished(state.junior?.missionsDone), need: EXAM_UNLOCK_MISSIONS }
+        }
         onSelect={(set, coached) => {
           selectedQuestionSetIdRef.current = set.questionSetId;
           selectedAuthoredSetRef.current = set;

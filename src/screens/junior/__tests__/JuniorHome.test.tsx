@@ -74,4 +74,9 @@ describe('JuniorHome', () => {
     view();
     expect(screen.getByTestId('junior-grownups').getAttribute('href')).toBe('/profile');
   });
+
+  it('links Question words to Question Detective', () => {
+    view();
+    expect(screen.getByTestId('junior-question-detective').getAttribute('href')).toBe('/question-detective');
+  });
 });

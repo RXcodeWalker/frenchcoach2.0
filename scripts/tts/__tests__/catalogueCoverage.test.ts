@@ -36,6 +36,7 @@ import {
 import { QUESTIONS } from '../../../src/data/questions';
 import { LISTENING_QUESTIONS } from '../../../src/data/listeningQuestions';
 import { SHADOWING_PHRASES } from '../../../src/data/shadowingPhrases';
+import { PRONUNCIATION_DRILLS, drillSpokenText } from '../../../src/data/pronunciationDrills';
 import { normalizeSpokenText } from '../../../src/services/tts/voiceKey';
 import { NEWS_EDITIONS } from '../../../src/data/news';
 import { NEWS_LEVELS } from '../../../src/data/news/types';
@@ -201,6 +202,18 @@ describe('recorded-voices catalogue coverage', () => {
   it('catalogues every Listening audioText and Shadowing phrase', () => {
     for (const q of LISTENING_QUESTIONS) expect(KEYS.has(normalizeSpokenText(q.audioText)), q.audioText).toBe(true);
     for (const p of SHADOWING_PHRASES) expect(KEYS.has(normalizeSpokenText(p.french)), p.french).toBe(true);
+  });
+
+  it('catalogues every Accent Analyzer drill as ▶ Native says it, and every word of its word map', () => {
+    for (const d of PRONUNCIATION_DRILLS) {
+      const spoken = drillSpokenText(d);
+      expect(spoken).not.toMatch(/vs/i);
+      expect(KEYS.has(normalizeSpokenText(spoken)), spoken).toBe(true);
+      for (const token of tokenizeSentence(d.french)) {
+        if (token.norm === 'vs' || !isRecordableWord(token.norm)) continue;
+        expect(KEYS.has(normalizeSpokenText(token.norm)), token.norm).toBe(true);
+      }
+    }
   });
 
   // ── Pronunciation Lab native audio (pronunciation-lab plan §4.2, Stage 4) ──

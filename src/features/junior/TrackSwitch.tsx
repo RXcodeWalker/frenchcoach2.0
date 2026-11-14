@@ -1,5 +1,5 @@
 /**
- * The learner-track switch (Profile): the exam experience or the Junior track
+ * The learner-track switch (Profile): show or hide the Junior tab
  * (Grades 4–7). Local only — the choice lives in `AppState.learnerTrack` and is
  * never synced. Switching never deletes anything: Junior progress and exam
  * progress are both kept, and a learner can go back and forth.
@@ -9,8 +9,8 @@ import { useApp } from '../../context/AppContext';
 import type { LearnerTrack } from '../../domain/junior/state';
 
 const OPTIONS: { track: LearnerTrack; title: string; sub: string; emoji: string }[] = [
-  { track: 'exam', title: 'Exam practice', sub: 'IGCSE and A-Level speaking', emoji: '🎓' },
-  { track: 'junior', title: 'Junior (Grades 4–7)', sub: 'Short missions with Léo', emoji: '🦊' },
+  { track: 'exam', title: 'Exam practice', sub: 'IGCSE speaking — hide the Junior tab', emoji: '🎓' },
+  { track: 'junior', title: 'Show the Junior tab', sub: 'Missions with Léo, for Grades 4–7', emoji: '🦊' },
 ];
 
 export function TrackSwitch() {

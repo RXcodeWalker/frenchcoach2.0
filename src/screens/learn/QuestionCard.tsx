@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lightbulb, ChevronDown, Volume2, VolumeX, Info, SkipForward } from 'lucide-react';
+import { Lightbulb, ChevronDown, Volume2, Pause, Play, RotateCcw, Info, SkipForward } from 'lucide-react';
 import { TTS } from '../../services/tts/ttsService';
+import { usePlayControl } from '../../services/audio/usePlayControl';
 import type { Question } from '../../types/index';
 import { deriveDemandLevel } from '../../domain/learn/demand/deriveDemandLevel';
 import { levelLabel } from '../../domain/learn/ability/levelLabel';
@@ -48,26 +49,14 @@ const LINK = 'inline-flex h-11 items-center gap-1.5 text-[13px] font-semibold tr
  * question" (recessed). Compact renders the same content as a centred stage.
  */
 export function QuestionCard({ question, showHint, onToggleHint, onSkip, isReview, selectionReason, compact = false }: Props) {
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const [revealedVocab, setRevealedVocab] = useState<string | null>(null);
   const [showWhy, setShowWhy] = useState(false);
 
-  const handleSpeak = async () => {
-    if (isSpeaking) {
-      TTS.stop();
-      setIsSpeaking(false);
-      return;
-    }
-
-    setIsSpeaking(true);
-    try {
-      await TTS.speak(question.text, { recorded: true });
-    } catch (error) {
-      console.error('TTS failed:', error);
-    } finally {
-      setIsSpeaking(false);
-    }
-  };
+  // Listen: tapping again pauses, then resumes; ↺ plays it from the start.
+  const listen = usePlayControl(() => TTS.speak(question.text, { recorded: true }));
+  const isSpeaking = listen.status === 'playing';
+  const listenLabel = listen.status === 'playing' ? 'Pause' : listen.status === 'paused' ? 'Resume' : 'Listen';
+  const ListenIcon = listen.status === 'playing' ? Pause : listen.status === 'paused' ? Play : Volume2;
 
   const chips = (
     <span className={`flex flex-wrap gap-2 ${compact ? 'justify-center' : ''}`}>
@@ -120,22 +109,41 @@ export function QuestionCard({ question, showHint, onToggleHint, onSkip, isRevie
     </div>
   );
 
-  const listenButton = compact ? (
-    <button type="button" onClick={handleSpeak} className={`${LINK} ${isSpeaking ? 'text-action-text' : 'text-ink-muted hover:text-ink'}`}>
-      {isSpeaking ? <VolumeX size={14} aria-hidden="true" /> : <Volume2 size={14} aria-hidden="true" />}
-      {isSpeaking ? 'Stop' : 'Listen'}
-    </button>
-  ) : (
+  const restartButton = listen.status !== 'idle' && (
     <button
       type="button"
-      onClick={handleSpeak}
-      aria-label={isSpeaking ? 'Stop listening' : 'Listen'}
-      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-control border border-hairline-strong
-        transition-[background-color,color,transform] duration-state ease-smooth hover:bg-track active:scale-[.97]
-        ${isSpeaking ? 'text-action-text' : 'text-ink-muted hover:text-ink'}`}
+      onClick={listen.restart}
+      aria-label="Listen from the start"
+      title="Listen from the start"
+      className={compact ? `${LINK} text-ink-muted hover:text-ink` : `flex h-11 w-11 shrink-0 items-center justify-center rounded-control
+        text-ink-muted transition-colors duration-state ease-smooth hover:bg-track hover:text-ink`}
     >
-      {isSpeaking ? <VolumeX size={16} /> : <Volume2 size={16} />}
+      <RotateCcw size={compact ? 14 : 16} aria-hidden="true" />
     </button>
+  );
+
+  const listenButton = compact ? (
+    <>
+      <button type="button" onClick={listen.toggle} className={`${LINK} ${isSpeaking ? 'text-action-text' : 'text-ink-muted hover:text-ink'}`}>
+        <ListenIcon size={14} aria-hidden="true" />
+        {listenLabel}
+      </button>
+      {restartButton}
+    </>
+  ) : (
+    <span className="flex shrink-0 items-center gap-1">
+      <button
+        type="button"
+        onClick={listen.toggle}
+        aria-label={listenLabel}
+        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-control border border-hairline-strong
+          transition-[background-color,color,transform] duration-state ease-smooth hover:bg-track active:scale-[.97]
+          ${isSpeaking ? 'text-action-text' : 'text-ink-muted hover:text-ink'}`}
+      >
+        <ListenIcon size={16} aria-hidden="true" />
+      </button>
+      {restartButton}
+    </span>
   );
 
   const toggles = (

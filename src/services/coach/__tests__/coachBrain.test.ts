@@ -120,6 +120,11 @@ describe('decideCoachBrief', () => {
     expect(b.steps[1].sub).toContain('Conditional');
   });
 
+  it('never suggests Exam Sim while examUnlocked is false', () => {
+    const b = decideCoachBrief(input({ examDate: examIn(20), examUnlocked: false, sessions: [learn(1)] }));
+    expect([b.move, ...b.alternatives].some(m => m.kind === 'exam_sim')).toBe(false);
+  });
+
   it('suggests the weekly Exam Sim only when the 7-day window is open', () => {
     const open = decideCoachBrief(input({ examDate: examIn(20), sessions: [exam(8, { rolePlay: 6, communication: 10, qualityOfLanguage: 10 }), learn(1)] }));
     expect(open.move.kind).toBe('exam_sim');

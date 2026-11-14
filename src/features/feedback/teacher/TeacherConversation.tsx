@@ -114,7 +114,11 @@ export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderS
   // The full talk goes to a polite live region once, after mount (a region that is
   // filled at first paint is often not announced).
   const talkText = useMemo(
-    () => lines.filter((l): l is Extract<TeacherLine, { kind: 'talk' }> => l.kind === 'talk').map((l) => l.text).join(' '),
+    () =>
+      lines
+        .filter((l): l is Extract<TeacherLine, { kind: 'talk' }> => l.kind === 'talk')
+        .map((l) => (l.question ? `${l.question.prompt} You answered ${l.question.answer}. ${l.text}` : l.text))
+        .join(' '),
     [lines],
   );
   const [announced, setAnnounced] = useState('');
@@ -162,6 +166,7 @@ export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderS
                       {TEACHER_NAME}
                     </p>
                   )}
+                  {line.question && <PredictQuestion prompt={line.question.prompt} answer={line.question.answer} />}
                   <p
                     aria-hidden="true"
                     data-role={line.role}
@@ -241,5 +246,18 @@ export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderS
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * The Predict question a calibration reply answers, quoted above it: without
+ * it "and you did: « parce que »" has no context once the checks are gone.
+ */
+function PredictQuestion({ prompt, answer }: { prompt: string; answer: 'yes' | 'no' }) {
+  return (
+    <p aria-hidden="true" data-testid="predict-question" className="flex flex-wrap items-baseline gap-x-1.5 text-caption text-ink-muted">
+      <span className="font-semibold text-ink">{prompt}</span>
+      <span>You said {answer === 'yes' ? 'Yes' : 'No'}.</span>
+    </p>
   );
 }

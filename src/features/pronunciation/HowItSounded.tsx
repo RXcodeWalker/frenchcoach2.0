@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight, Play, Volume2 } from 'lucide-react';
+import { ArrowRight, Volume2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
+import { PlayButton } from '../../components/ui/PlayButton';
 import { enter, enterReduced } from '../../components/motion/variants';
 import type { PauseStats } from '../../domain/examPronunciation/trim';
 import { watchOutFor } from '../../domain/pronunciation/lab/textFeatures';
@@ -101,10 +102,10 @@ export function HowItSounded({ answerBlob, sentence, onPractiseOpened }: Props) 
     setNativePreparing(false);
     if (result === 'unavailable') setNativeUnavailable(true);
   };
-  const playYours = () => {
+  const playYours = async () => {
     if (!answerBlob) return;
     stopNative();
-    void playClip(answerBlob, null, { rate: speed });
+    await playClip(answerBlob, null, { rate: speed });
   };
   const openLab = () => {
     stopClip();
@@ -128,15 +129,9 @@ export function HowItSounded({ answerBlob, sentence, onPractiseOpened }: Props) 
       <div className="space-y-2">
         <p className="text-label text-ink">Listen back</p>
         <div className="flex flex-wrap items-center gap-2">
-          {answerBlob && (
-            <Button variant="secondary" size="sm" onClick={playYours}>
-              <Play size={16} aria-hidden="true" /> Your answer
-            </Button>
-          )}
+          {answerBlob && <PlayButton label="Your answer" play={playYours} />}
           {target && (
-            <Button variant="secondary" size="sm" onClick={() => void native(target, speed, true)}>
-              <Volume2 size={16} aria-hidden="true" /> Native
-            </Button>
+            <PlayButton label="Native" icon={<Volume2 size={16} aria-hidden="true" />} play={() => native(target, speed, true)} />
           )}
           <button
             type="button"

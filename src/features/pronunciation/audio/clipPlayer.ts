@@ -14,6 +14,7 @@
  */
 
 import type { ClipWindow } from '../../../domain/pronunciation/lab/types';
+import { attachEngine } from '../../../services/audio/playbackControl';
 
 type AudioContextCtor = typeof AudioContext;
 
@@ -96,11 +97,24 @@ export async function playClip(blob: Blob, clip: ClipWindow | null = null, optio
     source.playbackRate.value = rate;
     source.connect(ctx.destination);
     current = source;
-    await new Promise<void>((resolve) => {
-      settleCurrent = resolve;
-      source.onended = () => resolve();
-      source.start(0, startS, durationS);
+    // Pause/resume from a play button (services/audio/playbackControl.ts):
+    // this context only ever plays clips, so suspending it pauses the clip.
+    const detachEngine = attachEngine({
+      pause: () => void ctx.suspend().catch(() => {}),
+      resume: () => void ctx.resume().catch(() => {}),
+      stop: () => {
+        if (current === source) stopClip();
+      },
     });
+    try {
+      await new Promise<void>((resolve) => {
+        settleCurrent = resolve;
+        source.onended = () => resolve();
+        source.start(0, startS, durationS);
+      });
+    } finally {
+      detachEngine();
+    }
     if (current === source) {
       current = null;
       settleCurrent = null;

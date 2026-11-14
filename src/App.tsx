@@ -77,6 +77,7 @@ import {
   ScenarioArchitectSession,
   RoleplaySession,
   WordDrop,
+  QuestionDetective,
   MasteryJourney,
   BossBattle,
   EmojiMaster,
@@ -154,11 +155,6 @@ function XPToast() {
   );
 }
 
-/** `/` is the Junior home for an account on the Junior track, the exam Home otherwise. */
-function HomeRoute() {
-  const { state } = useApp();
-  return state.learnerTrack === 'junior' ? <JuniorHome /> : <Home />;
-}
 
 /** Uploads Learn answers saved offline once there's a connection (offline support). */
 function SavedAnswerUploader() {
@@ -168,17 +164,14 @@ function SavedAnswerUploader() {
 
 function MainLayout() {
   const location = useLocation();
-  const { state } = useApp();
-  // The exam side rail (IGCSE tools, rankings, leagues) is not part of the Junior track (junior-track §10).
-  const junior = state.learnerTrack === 'junior';
   // Launch scope: hidden features redirect home instead of rendering.
   if (isHiddenPath(location.pathname)) return <Navigate to="/" replace />;
   return (
     <ShellChromeProvider>
     <div className="min-h-screen bg-bg text-ink overflow-x-clip">
-      {!junior && <SideRail />}
-      <main className={`relative z-10 ${junior ? '' : 'md:ml-[88px]'}`}>
-        {!junior && <ConnectionBanner />}
+      <SideRail />
+      <main className="relative z-10 md:ml-[88px]">
+        <ConnectionBanner />
         <RouteChunkBoundary resetKey={location.pathname}>
           <AnimatePresence mode="wait">
             <motion.div
@@ -198,8 +191,8 @@ function MainLayout() {
       <XPToast />
       <GlobalCelebrations />
       <TourHost />
-      {!junior && <KeyboardShortcuts />}
-      {!junior && <SavedAnswerUploader />}
+      <KeyboardShortcuts />
+      <SavedAnswerUploader />
     </div>
     </ShellChromeProvider>
   );
@@ -313,7 +306,7 @@ function AppShell() {
           <SfxBridge />
           <Routes location={location}>
         <Route element={<MainLayout />}>
-          <Route path="/" element={<HomeRoute />} />
+          <Route path="/" element={<Home />} />
           <Route path="/junior" element={<JuniorHome />} />
           <Route path="/junior/:themeId" element={<MissionPlayer />} />
           <Route path="/learn" element={<Learn />} />
@@ -418,6 +411,11 @@ function AppShell() {
           <Route path="/word-drop" element={
             <ComingSoonGate status={resolveFeatureStatus('wordDrop')} featureId="wordDrop" name="Word Drop" description="Catch falling words before they hit the ground." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
               <WordDrop />
+            </ComingSoonGate>
+          } />
+          <Route path="/question-detective" element={
+            <ComingSoonGate status={resolveFeatureStatus('questionDetective')} featureId="questionDetective" name="Question Detective" description="Learn what each French question word is asking for." fallbackRoute="/explore" fallbackLabel="Back to Explore">
+              <QuestionDetective />
             </ComingSoonGate>
           } />
           <Route path="/mastery" element={

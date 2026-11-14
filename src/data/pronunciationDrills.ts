@@ -169,3 +169,13 @@ export const PRONUNCIATION_DRILLS: PronunciationDrill[] = [
     tip: "Practice the smooth flow between words. Note the liaison in 'est indispensable'."
   }
 ];
+
+/**
+ * What ▶ Native says for a drill: the drill text with a contrast's "vs" read
+ * as a pause ("Tu vs Tout" → "Tu, tout"), so Henri never reads "vs" aloud.
+ * The recording catalogue (`scripts/tts/collectLines.ts`, source `accent`)
+ * records exactly this string, so keep the two in step through this function.
+ */
+export function drillSpokenText(drill: Pick<PronunciationDrill, 'french'>): string {
+  return drill.french.replace(/\s+vs\.?\s+(\S)/gi, (_, first: string) => `, ${first.toLowerCase()}`);
+}

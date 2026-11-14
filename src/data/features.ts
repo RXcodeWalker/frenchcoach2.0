@@ -33,6 +33,7 @@ export const FEATURES: FeatureCard[] = [
   { id: 'word_drop', title: 'Word Drop', description: 'Type translations before words hit the ground!', icon: '☄️', category: 'Words & Grammar', color: '#10B981', locked: false, screen: 'word-drop', badge: 'New' },
   { id: 'emoji_master', title: 'Emoji Master', description: 'Decode French from emojis — Arena, Blitz, and more', icon: '🎨', category: 'Words & Grammar', color: '#FACC15', locked: false, screen: 'emoji-master', badge: 'New' },
   { id: 'boss_battle', title: 'Boss Battles', description: 'Defeat grammar bosses', icon: '👾', category: 'Words & Grammar', color: '#EF4444', locked: false, screen: 'boss-battle' },
+  { id: 'question_detective', title: 'Question Detective', description: 'Learn what each French question word is asking for', icon: '🔍', category: 'Words & Grammar', color: '#7C3AED', locked: false, screen: 'question-detective', badge: 'New' },
   { id: 'grammar_repair', title: 'Grammar Repair', description: 'Fix errors in your writing instantly', icon: '🔧', category: 'Words & Grammar', color: '#7C3AED', locked: true },
   { id: 'weakness', title: 'Weakness Analysis', description: 'AI identifies your weak spots', icon: '🔍', category: 'Insights & Plan', color: '#EF4444', locked: false, screen: 'weakness-analysis' },
   { id: 'fluency_heat', title: 'Fluency Heatmap', description: 'Visualize your speaking patterns', icon: '🌡', category: 'Insights & Plan', color: '#F59E0B', locked: false, screen: 'fluency-heatmap' },

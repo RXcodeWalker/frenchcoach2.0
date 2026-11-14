@@ -26,6 +26,7 @@ import {
 import { QUESTIONS } from '../../src/data/questions';
 import { LISTENING_QUESTIONS } from '../../src/data/listeningQuestions';
 import { SHADOWING_PHRASES } from '../../src/data/shadowingPhrases';
+import { PRONUNCIATION_DRILLS, drillSpokenText } from '../../src/data/pronunciationDrills';
 import { listScenarios } from '../../src/data/scenarios/registry';
 import { BENCHMARK_SENTENCES } from '../../src/domain/pronunciation/lab/benchmark';
 import { splitSentences } from '../../src/domain/pronunciation/lab/sentences';
@@ -39,6 +40,7 @@ export type LineSource =
   | 'learn'
   | 'listening'
   | 'shadowing'
+  | 'accent'
   | 'flashcards'
   | 'lab-guide'
   | 'lab-words'
@@ -140,6 +142,16 @@ export function labWordLines(): string[] {
 }
 
 /**
+ * The Accent Analyzer's drills (`AccentAnalyzer.tsx`): "Listen to native"
+ * plays `drillSpokenText(drill)`, and the word map's ▶ plays a word as the
+ * Lab's lexicon writes it (`normalizeWord`), so both are listed.
+ */
+export function accentLines(): string[] {
+  const spoken = PRONUNCIATION_DRILLS.map(drillSpokenText);
+  return [...spoken, ...lexiconTexts(spoken)];
+}
+
+/**
  * Daily News (docs/systems/daily-news.md §5): the hand-written bank, one line
  * per sentence, because `useBroadcast` plays a story sentence by sentence and
  * finds each recording by that sentence's exact text.
@@ -159,6 +171,8 @@ export function collectLines(): CatalogueLine[] {
     ['learn', QUESTIONS.map((q) => q.text)],
     ['listening', LISTENING_QUESTIONS.map((q) => q.audioText)],
     ['shadowing', SHADOWING_PHRASES.map((p) => p.french)],
+    // Accent Analyzer: each drill as ▶ Native says it, and every word its word map can play.
+    ['accent', accentLines()],
     // Scenario prep flashcards (FlashcardDeck speaks `fr`): authored decks, so static.
     ['flashcards', listScenarios().flatMap((s) => s.deck.entries.map((e) => e.fr))],
     // The Pronunciation Lab. Words before sentences: a word covers every

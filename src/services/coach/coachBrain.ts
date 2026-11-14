@@ -125,6 +125,11 @@ export interface CoachInput {
   /** AI-marked Learn answers left today; null while unknown. */
   learnAnswersLeft: number | null;
   /**
+   * False while a Junior-tab learner still has Exam locked (five finished
+   * missions). Default open. The coach never suggests a locked exam.
+   */
+  examUnlocked?: boolean;
+  /**
    * learner-model §5 (flag `learnerModelCoach`): the three 0520 areas from the
    * learner model — decayed over counted Exam Sim attempts only. Absent = the
    * old rule (the latest counted attempt, if fresh). When present, the weakest
@@ -337,7 +342,7 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
   }
 
   // 3. The weekly Exam Sim — the only real measure of exam progress.
-  if (examGoal && phase !== 'after_exam' && examAvailable) {
+  if (examGoal && phase !== 'after_exam' && examAvailable && input.examUnlocked !== false) {
     const neverSat = exam.counted.length === 0 && !anyExam;
     const base = EXAM_SIM_PRIORITY[phase] ?? 60;
     const warmedUp = learnAnswers.length >= FIRST_EXAM_AFTER_ANSWERS;

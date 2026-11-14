@@ -40,7 +40,14 @@ import { answerHighlights, type AnswerHighlight } from './answerHighlights';
 
 export type TeacherLine =
   | { id: string; kind: 'learner'; text: string }
-  | { id: string; kind: 'talk'; role: 'opening' | 'highlights' | 'calibrationIntro' | 'calibration' | 'connective' | 'memory' | 'secondTake' | 'nextQuestion' | 'first' | 'selfCorrection'; text: string }
+  | {
+      id: string;
+      kind: 'talk';
+      role: 'opening' | 'highlights' | 'calibrationIntro' | 'calibration' | 'connective' | 'memory' | 'secondTake' | 'nextQuestion' | 'first' | 'selfCorrection';
+      text: string;
+      /** A `calibration` line's Predict question and the learner's answer, shown above the reply. */
+      question?: { prompt: string; answer: 'yes' | 'no' };
+    }
   | { id: string; kind: 'points'; group: FeedbackPointGroup }
   /** A block the existing cards render (the diff, vocabulary and ideas); the script only places it. */
   | { id: string; kind: 'section'; section: TeacherSection; heading: string };
@@ -182,7 +189,13 @@ export function buildTeacherScript(input: TeacherScriptInput): TeacherLine[] {
     lines.push({ id: 'calibration:intro', kind: 'talk', role: 'calibrationIntro', text: framing.calibrationIntro });
   }
   (input.calibration ?? []).forEach((line) => {
-    lines.push({ id: `calibration:${line.id}`, kind: 'talk', role: 'calibration', text: line.text });
+    lines.push({
+      id: `calibration:${line.id}`,
+      kind: 'talk',
+      role: 'calibration',
+      text: line.text,
+      question: { prompt: line.prompt, answer: line.answer },
+    });
   });
 
   (input.firsts ?? []).forEach((id) => {

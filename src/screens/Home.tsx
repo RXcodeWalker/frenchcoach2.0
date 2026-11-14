@@ -8,6 +8,7 @@ import { getActiveRecommendation } from '../services/coach/recommendationEngine'
 import { getSkillLabel } from '../services/coach/skillGraph';
 import { getDueReviewCounts } from '../services/coach/reviewPool';
 import { getCoachBrief } from '../services/coach/coachBriefInput';
+import { examPracticeUnlocked } from '../features/junior/examUnlock';
 import type { CoachMoveKind } from '../services/coach/coachBrain';
 import { getLastWeeklyReview, hasSeenWeeklyReviewThisWeek, markWeeklyReviewSeen } from '../services/coach/weeklyReviewService';
 import type { CoachRecommendation, DailyPlan, WeeklyReview } from '../types/coach';
@@ -127,9 +128,13 @@ export function Home() {
   // The coach's one decision (coachBrain.ts): what to do now, why, and where.
   // Recomputed when a session lands or the allowance arrives; pure and cheap.
   const brief = useMemo(
-    () => getCoachBrief({ learnAnswersLeft: answersLeft, learnerModel: state.learnerModel }),
+    () => getCoachBrief({
+      learnAnswersLeft: answersLeft,
+      learnerModel: state.learnerModel,
+      examUnlocked: examPracticeUnlocked(state.learnerTrack, state.junior?.missionsDone),
+    }),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- recentSessions.length marks "a session landed"
-    [answersLeft, state.recentSessions.length, state.learnerModel],
+    [answersLeft, state.recentSessions.length, state.learnerModel, state.learnerTrack, state.junior?.missionsDone],
   );
 
   const handleDismissReview = () => {

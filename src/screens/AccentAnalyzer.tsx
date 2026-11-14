@@ -47,7 +47,11 @@ import { Stat } from '../components/ui/Stat';
 import { enter, enterReduced } from '../components/motion/variants';
 import { PRACTICE_PASS_SCORE } from '../domain/pronunciation/practiceThresholds';
 import { PRONUNCIATION_DRILLS, type PronunciationDrill } from '../data/pronunciationDrills';
-import { TTS } from '../services/tts/ttsService';
+import { drillSpokenText } from '../data/pronunciationDrills';
+import { PlayButton } from '../components/ui/PlayButton';
+import { playNative, stopNative } from '../features/pronunciation/audio/nativeVoice';
+import { canPlayClips, playClip, stopClip } from '../features/pronunciation/audio/clipPlayer';
+import { normalizeWord } from '../domain/examPronunciation/fairness';
 import {
   appendPronunciationAttempt,
   assessmentToAttemptRecord,
@@ -87,21 +91,35 @@ function makeAttemptId(): string {
   return `pron_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function speakFrench(text: string) {
-  if (TTS.isSupported()) {
-    void TTS.speak(text);
-  } else {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'fr-FR';
-    window.speechSynthesis.speak(utterance);
-  }
+/**
+ * ▶ Native: Henri's recording (drills and their words are in the recording
+ * catalogue, source `accent`), else a French browser voice, never an English one.
+ */
+function playFrench(text: string | readonly string[]): Promise<unknown> {
+  stopClip();
+  return playNative(text);
+}
+
+/** A word of the word map, as the recording lexicon writes it (lowercase, edge punctuation off). */
+function playWord(word: string): void {
+  const norm = normalizeWord(word);
+  void playFrench(norm && norm !== word ? [norm, word] : [word]);
+}
+
+/** A decode failure (MediaRecorder's webm that Web Audio can't read) — a recording problem, not an evaluation one. */
+function isDecodeError(err: unknown): boolean {
+  return (err as { name?: string } | null)?.name === 'EncodingError';
 }
 
 export function AccentAnalyzer() {
   const reduced = useReducedMotion();
   const item = reduced ? enterReduced : enter;
   const { state, dispatch, authUser } = useApp();
-  const { isRecording, start, stop, micLevel } = useAudioBlobRecorder();
+  // captureWav: the take is also kept as a WAV from the raw mic samples, which
+  // always decodes (MediaRecorder's webm sometimes doesn't) and replays cleanly.
+  const { isRecording, start, stop, micLevel } = useAudioBlobRecorder({ captureWav: true });
+  /** The latest take, for ▶ Your recording next to ▶ Native. Memory only; never stored. */
+  const [take, setTake] = useState<Blob | null>(null);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [screenState, setScreenState] = useState<ScreenState>('idle');
@@ -119,6 +137,10 @@ export function AccentAnalyzer() {
 
   useEffect(() => {
     setHistory(getPronunciationHistory());
+    return () => {
+      stopClip();
+      stopNative();
+    };
   }, []);
 
   const historySegments = useMemo(() => segmentHistoryForTrend(history), [history]);
@@ -131,6 +153,7 @@ export function AccentAnalyzer() {
     setScreenState('idle');
     setAssessment(null);
     setErrorMessage(null);
+    setTake(null);
   };
 
   const recordAttempt = (result: PronunciationAssessment) => {
@@ -200,6 +223,11 @@ export function AccentAnalyzer() {
         setScreenState('too-short');
         return;
       }
+      if (isDecodeError(err)) {
+        setErrorMessage("We couldn't read that recording. Please record it again.");
+        setScreenState('error');
+        return;
+      }
       if (isConsentRequiredError(err)) {
         // The backend's consent gate: a `pending` under-13 account. Retrying
         // can't help until a parent/guardian confirms.
@@ -234,7 +262,10 @@ export function AccentAnalyzer() {
       setScreenState('too-short');
       return;
     }
-    await analyze(recorded.blob);
+    // The WAV built from the live samples when there is one: it always decodes.
+    const audio = recorded.wav && recorded.wav.size > MIN_RECORDING_BYTES ? recorded.wav : recorded.blob;
+    setTake(audio);
+    await analyze(audio);
   };
 
   const nextDrill = () => {
@@ -256,6 +287,29 @@ export function AccentAnalyzer() {
   });
 
   const isSuccess = assessment != null && assessment.score != null && assessment.score >= PRACTICE_PASS_SCORE;
+
+  // ▶ Your recording beside ▶ Native, to compare the two (the take stays in memory).
+  const compareRow = take ? (
+    <div className="flex flex-col items-center gap-2 rounded-card bg-surface-recessed p-4" data-testid="accent-compare">
+      <h3 className="text-eyebrow text-ink-subtle">Compare</h3>
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        {canPlayClips() && (
+          <PlayButton
+            label="Your recording"
+            play={async () => {
+              stopNative();
+              await playClip(take);
+            }}
+          />
+        )}
+        <PlayButton
+          label="Native"
+          icon={<Volume2 size={16} aria-hidden="true" />}
+          play={() => playFrench(drillSpokenText(currentDrill))}
+        />
+      </div>
+    </div>
+  ) : null;
 
   const goToDrill = (idx: number) => {
     setCurrentIndex(idx);
@@ -348,9 +402,12 @@ export function AccentAnalyzer() {
                   </div>
                   <p lang="fr" className="text-[30px] font-semibold leading-tight tracking-[-0.01em] text-ink">{currentDrill.french}</p>
                   <p className="text-[14px] text-ink-subtle">/{currentDrill.ipa}/</p>
-                  <Button variant="secondary" size="sm" onClick={() => speakFrench(currentDrill.french)}>
-                    <Volume2 size={16} aria-hidden="true" /> Listen to native
-                  </Button>
+                  <PlayButton
+                    key={currentDrill.id}
+                    label="Listen to native"
+                    icon={<Volume2 size={16} aria-hidden="true" />}
+                    play={() => playFrench(drillSpokenText(currentDrill))}
+                  />
                   <p className="mt-2 flex w-full max-w-[520px] items-start gap-2 rounded-control bg-info-soft px-3 py-2.5 text-left text-[13px] text-info-text">
                     <Info size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
                     <span>{currentDrill.tip}</span>
@@ -368,11 +425,14 @@ export function AccentAnalyzer() {
                         Hold the mic a little longer and say the full phrase.
                       </StateNotice>
                     ) : screenState === 'could-not-assess' ? (
-                      <StateNotice key="could-not-assess" icon={<Info size={22} />} title="Couldn't assess that recording" onRetry={reset}>
-                        {assessment?.couldNotAssessReason === 'silence' || assessment?.couldNotAssessReason === 'no_speech_recognized'
-                          ? "We didn't hear anything — try recording again in a quiet space."
-                          : 'We had trouble analyzing that clip. Please try again.'}
-                      </StateNotice>
+                      <motion.div key="could-not-assess" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-4">
+                        <StateNotice icon={<Info size={22} />} title="Couldn't assess that recording" onRetry={reset}>
+                          {assessment?.couldNotAssessReason === 'silence' || assessment?.couldNotAssessReason === 'no_speech_recognized'
+                            ? "We didn't hear anything — try recording again in a quiet space."
+                            : 'We had trouble analyzing that clip. Please try again.'}
+                        </StateNotice>
+                        {compareRow}
+                      </motion.div>
                     ) : screenState === 'consent-required' ? (
                       <motion.div key="consent-required" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                         <GuardianConsentNotice />
@@ -444,10 +504,12 @@ export function AccentAnalyzer() {
 
                           <PronunciationSourceBadge provider={assessment.provider} />
 
+                          {compareRow}
+
                           {assessment.provider === 'azure' && (
                             <div className="flex flex-col gap-2 rounded-card bg-surface-recessed p-4">
                               <h3 className="text-eyebrow text-left text-ink-subtle">Word by word</h3>
-                              <AccentWordMap assessment={assessment} onSpeakWord={speakFrench} />
+                              <AccentWordMap assessment={assessment} onSpeakWord={playWord} />
                             </div>
                           )}
 

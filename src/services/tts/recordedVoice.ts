@@ -9,6 +9,7 @@
  * `voiceKey.ts`, the module the recording script uses.
  */
 import { recordedVoiceUrl, voiceObjectPath, type RecordedVoiceId } from './voiceKey';
+import { attachEngine } from '../audio/playbackControl';
 
 /** The voice every recorded line is played in (Henri only, owner decision 2026-10-24). */
 export const DEFAULT_RECORDED_VOICE: RecordedVoiceId = 'henri';
@@ -129,9 +130,11 @@ export async function playRecorded(text: string, options: PlayRecordedOptions = 
     let startTimer: ReturnType<typeof setTimeout> | null = null;
     let stallTimer: ReturnType<typeof setTimeout> | null = null;
 
+    let detachEngine: (() => void) | null = null;
     const finish = (result: RecordedPlayResult, markMissing = false) => {
       if (done) return;
       done = true;
+      detachEngine?.();
       if (startTimer) clearTimeout(startTimer);
       if (stallTimer) clearTimeout(stallTimer);
       el.removeEventListener('playing', onPlaying);
@@ -144,14 +147,21 @@ export async function playRecorded(text: string, options: PlayRecordedOptions = 
       if (started) options.onEnd?.();
       resolve(result);
     };
-    const onPlaying = () => {
-      if (started) return;
-      started = true;
-      if (startTimer) clearTimeout(startTimer);
-      const seconds = el.duration;
+    /** Ends a playback that stalls past the rest of the file (re-armed on resume). */
+    const armStall = () => {
+      if (stallTimer) clearTimeout(stallTimer);
+      stallTimer = null;
+      const seconds = el.duration - (el.currentTime || 0);
       if (Number.isFinite(seconds) && seconds > 0) {
         stallTimer = setTimeout(() => finish('played'), (seconds / (el.playbackRate || 1)) * 1000 + STALL_GRACE_MS);
       }
+    };
+    let paused = false;
+    const onPlaying = () => {
+      if (started || paused) return;
+      started = true;
+      if (startTimer) clearTimeout(startTimer);
+      armStall();
       options.onStart?.();
     };
     const onEnded = () => finish('played');
@@ -162,14 +172,39 @@ export async function playRecorded(text: string, options: PlayRecordedOptions = 
     el.addEventListener('playing', onPlaying);
     el.addEventListener('ended', onEnded);
     el.addEventListener('error', onError);
-    startTimer = setTimeout(() => {
-      // The file is here, the output is just slow to start: wait a little longer.
-      if (el.readyState >= HAVE_CURRENT_DATA) {
-        startTimer = setTimeout(() => finish('missing'), LOADED_START_GRACE_MS);
-        return;
-      }
-      finish('missing');
-    }, START_TIMEOUT_MS);
+    const armStart = () => {
+      if (startTimer) clearTimeout(startTimer);
+      startTimer = setTimeout(() => {
+        // The file is here, the output is just slow to start: wait a little longer.
+        if (el.readyState >= HAVE_CURRENT_DATA) {
+          startTimer = setTimeout(() => finish('missing'), LOADED_START_GRACE_MS);
+          return;
+        }
+        finish('missing');
+      }, START_TIMEOUT_MS);
+    };
+    armStart();
+    // Pause/resume from a play button (playbackControl.ts). A pause holds the
+    // timers too, so a paused line is never ended as stalled or missing.
+    detachEngine = attachEngine({
+      pause: () => {
+        if (done) return;
+        paused = true;
+        if (startTimer) clearTimeout(startTimer);
+        if (stallTimer) clearTimeout(stallTimer);
+        startTimer = null;
+        stallTimer = null;
+        el.pause();
+      },
+      resume: () => {
+        if (done || !paused) return;
+        paused = false;
+        if (started) armStall();
+        else armStart();
+        Promise.resolve(el.play()).catch(() => {});
+      },
+      stop: () => stopRecorded(),
+    });
 
     try {
       el.src = src;

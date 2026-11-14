@@ -29,6 +29,12 @@ describe('ExamSelect — Exam Sim hides topics and the role-play card (Batch 3)'
     expect(text).not.toMatch(/Everyday Activities|Personal & Social Life|World Around Us|World of Work|International World/);
   });
 
+  it('shows a locked card instead of Start Exam Sim when examLocked is set', () => {
+    render(<ExamSelect onSelect={vi.fn()} onAutoFallback={vi.fn()} examLocked={{ done: 2, need: 5 }} />);
+    expect(screen.getByTestId('exam-locked')).toBeTruthy();
+    expect(screen.queryByText('Start Exam Sim')).toBeNull();
+  });
+
   it('Exam Sim: "Start Exam Sim" calls onAutoFallback with coached:false', () => {
     const onAutoFallback = vi.fn();
     render(<ExamSelect onSelect={vi.fn()} onAutoFallback={onAutoFallback} />);

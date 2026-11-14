@@ -41,6 +41,8 @@ export type PredictionVerdict = 'right' | 'wrong' | 'unsure';
 
 export interface CalibrationLine {
   id: PredictionCheckId;
+  /** The Predict question as the learner saw it, shown above the verdict so the reply has its context. */
+  prompt: string;
   answer: PredictionAnswer;
   verdict: PredictionVerdict;
   text: string;
@@ -156,7 +158,7 @@ function findFirst(transcript: string, patterns: readonly RegExp[]): MarkerHit |
 
 const quoted = (q: string) => `« ${q} »`;
 
-function markerLine(check: PredictionCheck, answer: PredictionAnswer, transcript: string): CalibrationLine {
+function markerLine(check: PredictionCheck, answer: PredictionAnswer, transcript: string): Omit<CalibrationLine, 'prompt'> {
   let hit: MarkerHit | null = null;
   let label = '';
   let tryNext = '';
@@ -230,7 +232,7 @@ function frameLabel(check: PredictionCheck): string {
   return frames.length === 2 ? 'the past or the future' : FRAME_LABEL[frames[0] ?? 'past'];
 }
 
-function mistakesLine(answer: PredictionAnswer, fixes: FeedbackFixes): CalibrationLine {
+function mistakesLine(answer: PredictionAnswer, fixes: FeedbackFixes): Omit<CalibrationLine, 'prompt'> {
   const n = fixes.quotes.length;
   const first = fixes.quotes[0];
   const count = n === 1 ? 'one thing to fix' : `${n} things to fix`;
@@ -275,7 +277,8 @@ export function calibrationLines(
   for (const check of checks) {
     const answer = answers[check.id];
     if (!answer) continue;
-    lines.push(check.id === 'mistakes' ? mistakesLine(answer, fixes) : markerLine(check, answer, transcript));
+    const line = check.id === 'mistakes' ? mistakesLine(answer, fixes) : markerLine(check, answer, transcript);
+    lines.push({ ...line, prompt: check.prompt });
   }
   return lines;
 }

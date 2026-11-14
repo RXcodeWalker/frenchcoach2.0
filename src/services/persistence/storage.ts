@@ -103,6 +103,8 @@ export const STORAGE_KEYS = {
   // ── Boss Battle personal records (versioned payload): stars and bests per boss. LOCAL ONLY — a fight writes no XP,
   // Session, mastery or evidence (see features/bossBattle/__tests__/noAppStateWrites.test.ts).
   bossBattle: 'frenchCoach_bossBattle',
+  // ── Question Detective: ladder rungs, mix-ups, solved cases, bests. LOCAL ONLY — no XP, no Session. ──
+  questionDetective: 'frenchCoach_questionDetective',
   // ── Shop economy: mint queue + provisional balance cache (Shop plan §14.1, §14.7) ──
   pendingMintQueue:      'frenchCoach_pendingMintQueue',
   shopBalanceCache:      'frenchCoach_shopBalanceCache',

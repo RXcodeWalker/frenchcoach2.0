@@ -48,3 +48,13 @@ accuracy the recogniser, not the child, may have decided.
 - Pronunciation verdicts for Junior are a new decision gated on calibration; they do not follow from
   this record.
 - Does not amend 0001; it records why Junior is not a violation of it.
+
+## Amendment — Junior is a tab, not a separate shell (2026-11-14)
+
+Junior remains a mark-free, isolated product surface (rules 1–6 above are unchanged). What changes is **how it sits in the app**:
+
+- For learners who choose Grades 4–7, Junior is a **tab** that replaces Exam in the main nav. Home, Learn, Explore, Progress and Profile stay. `/` is always the exam Home; the Junior home lives at `/junior`.
+- Exam practice **unlocks after five finished Junior missions**. Finishing counts; outcomes do not. The coach never suggests a locked exam.
+- Question Detective is a separate Explore game. Junior missions still never say “wrong”; the game may, because it is not Junior feedback.
+
+Selecting Junior no longer hides the rest of the app. Isolation, stickers-for-finishing, and no marks in Junior missions still hold.

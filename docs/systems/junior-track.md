@@ -288,3 +288,12 @@ The result is logged in `verification-log.md`; this page never claims the gate p
   target sentence — the exam freeform design lacked exactly that). Same release discipline as
   `docs/systems/exam-pronunciation.md`, logged in `verification-log.md`.
 - **"Teach Léo" missions:** Léo gets something wrong on purpose and the learner corrects him.
+
+## §13 Junior as a tab
+
+Junior is a tab next to Learn and Explore for Grades 4–7, not a separate shell that hides the rest of the app.
+
+- **Who sees it.** Onboarding asks “What grade are you in?”. Grades 4–7 (`data-testid="onboarding-junior"`) set `learnerTrack` to `junior` and show the Junior tab. Profile’s track switch is “Show the Junior tab”. `JUNIOR_TRACK_SELECTABLE` is independent of `CORE_ONLY`.
+- **Nav.** For those learners the Exam tab becomes Junior (`/junior`). Home (`/`), Learn, Explore, Progress and Profile stay, including the side rail.
+- **Exam unlock.** Exam practice (`/exam`) opens after **five finished Junior missions** (any outcomes — the same rule as stickers). Until then ExamSelect shows a locked card with progress, and the Home coach never suggests the weekly Exam Sim. A teacher homework mock bypasses the lock.
+- **Question words.** A tile on the Junior home opens Question Detective (`/question-detective`). That game is not a Junior mission: it may name a mix-up. Junior missions still never say “wrong”.

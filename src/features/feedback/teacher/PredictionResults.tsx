@@ -32,7 +32,12 @@ export function PredictionResults({ lines }: { lines: readonly CalibrationLine[]
           return (
             <li key={line.id} className="flex items-start gap-2">
               <Icon size={14} className={`${v.tone} shrink-0 mt-0.5`} aria-label={v.label} />
-              <p className="text-sm text-ink leading-relaxed">{line.text}</p>
+              <div className="min-w-0 space-y-0.5">
+                <p className="text-caption text-ink-muted">
+                  <span className="font-semibold text-ink">{line.prompt}</span> You said {line.answer === 'yes' ? 'Yes' : 'No'}.
+                </p>
+                <p className="text-sm text-ink leading-relaxed">{line.text}</p>
+              </div>
             </li>
           );
         })}

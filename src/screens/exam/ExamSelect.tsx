@@ -49,6 +49,11 @@ interface Props {
    * homework's own allowance, so it is never blocked by the learner's weekly exam.
    */
   homework?: { assignmentId: string; title: string; teacherName: string } | null;
+  /**
+   * Junior-tab learners unlock Exam after finishing missions (any outcomes).
+   * Homework bypasses this. Default open.
+   */
+  examLocked?: { done: number; need: number } | null;
 }
 
 type ExamModeChoice = 'coached' | 'sim';
@@ -67,7 +72,7 @@ type RemoteState =
   | { phase: 'ready'; sets: AuthoredQuestionSet[] }
   | { phase: 'offline-only' };
 
-export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, onRolePlayDrill, onGuide, homework }: Props) {
+export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, onRolePlayDrill, onGuide, homework, examLocked = null }: Props) {
   // Available synchronously — no network — so a card is on screen from the first paint.
   const offlineSets = useMemo(() => getOfflineAuthoredSets(), []);
   const [remote, setRemote] = useState<RemoteState>({ phase: 'loading' });
@@ -166,7 +171,14 @@ export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, 
 
         {onGuide && <ExamGuideEntry onOpen={onGuide} />}
 
-        {weeklyLimitReached ? (
+        {examLocked && !homework ? (
+          <div className="rounded-xl surface p-6 text-center space-y-2" role="status" data-testid="exam-locked">
+            <p className="font-bold text-white text-sm">Exam practice opens after Junior missions</p>
+            <p className="text-[12px] text-ink-muted">
+              Finish {examLocked.need} missions with Léo to open a mock exam. You have finished {examLocked.done}. Finishing counts — not getting every answer right.
+            </p>
+          </div>
+        ) : weeklyLimitReached ? (
           <div className="rounded-xl surface p-6 text-center space-y-1" role="status">
             <p className="font-bold text-white text-sm">{allowance?.premium ? "Today's mock exams are done" : "This week's sample exam is done"}</p>
             <p className="text-[12px] text-ink-muted">{examLimitMessage(allowance)}</p>

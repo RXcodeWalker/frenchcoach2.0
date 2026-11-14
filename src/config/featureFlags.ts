@@ -22,6 +22,7 @@ export const FEATURE_FLAGS = {
   challenges:        'coming-soon',
   listeningMode:     'coming-soon',
   sentenceRebuilder: 'live',
+  questionDetective: 'coming-soon',
   accentAnalyzer:    'live',
   learnTranscriptConfirm: 'live',
   learnPracticeStep: 'live',

@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { useApp, dispatchAddXP } from '../../context/AppContext';
 import { useAudioBlobRecorder } from '../../features/recording/useAudioBlobRecorder';
+import { PlayButton } from '../../components/ui/PlayButton';
 import { useSpaceToRecord } from '../../lib/useSpaceToRecord';
 import { LevelBars } from '../../features/recording/LevelBars';
 import { assessPronunciation } from '../../services/pronunciation/pronunciationClient';
@@ -101,7 +102,8 @@ const QUOTA_REASON_COPY: Record<string, string> = {
 
 export function ShadowingPanel() {
   const { dispatch, authUser } = useApp();
-  const { isRecording, start, stop, micLevel } = useAudioBlobRecorder();
+  // captureWav: a WAV from the live samples always decodes (MediaRecorder's webm sometimes doesn't).
+  const { isRecording, start, stop, micLevel } = useAudioBlobRecorder({ captureWav: true });
   const isMountedRef = useRef(true);
   const reduced = useReducedMotion();
   const item = reduced ? enterReduced : enter;
@@ -293,7 +295,7 @@ export function ShadowingPanel() {
       setScreenState('too-short');
       return;
     }
-    await analyze(recorded.blob);
+    await analyze(recorded.wav && recorded.wav.size > MIN_RECORDING_BYTES ? recorded.wav : recorded.blob);
   };
 
   const handleStart = async () => {
@@ -386,12 +388,8 @@ export function ShadowingPanel() {
           )}
 
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <Button variant="secondary" size="sm" disabled={!hasFrenchVoice} onClick={() => speak()}>
-              <Volume2 size={16} aria-hidden="true" /> Listen
-            </Button>
-            <Button variant="secondary" size="sm" disabled={!hasFrenchVoice} onClick={() => speak(0.6)}>
-              <Gauge size={16} aria-hidden="true" /> Listen slowly
-            </Button>
+            <PlayButton key={`${phrase.id}-n`} label="Listen" icon={<Volume2 size={16} aria-hidden="true" />} disabled={!hasFrenchVoice} play={() => speak()} />
+            <PlayButton key={`${phrase.id}-s`} label="Listen slowly" icon={<Gauge size={16} aria-hidden="true" />} disabled={!hasFrenchVoice} play={() => speak(0.6)} />
           </div>
 
           <p className="mt-2 flex w-full max-w-[520px] items-start gap-2 rounded-control bg-info-soft px-3 py-2.5 text-left text-[13px] text-info-text">

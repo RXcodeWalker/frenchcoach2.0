@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 import {
   AudioLines, Bot, Building2, CalendarDays, Dices, Ear, Flame, Gift,
   Handshake, Map, Medal, Mountain, Newspaper, Palmtree, Puzzle, 
-  Rocket, Search, ShoppingBag, Smile, Sparkles, Swords, Target, Thermometer, Timer, Users, Wrench, Zap,
+  Rocket, ScanSearch, Search, ShoppingBag, Smile, Sparkles, Swords, Target, Thermometer, Timer, Users, Wrench, Zap,
   Briefcase, CloudRain, Plane, Shield, ShoppingBasket, Stethoscope, Ticket,
 } from 'lucide-react';
 
@@ -36,6 +36,7 @@ const ICONS: Record<string, LucideIcon> = {
   survival: Palmtree,
   speed: Timer,
   word_drop: CloudRain,
+  question_detective: ScanSearch,
   friends: Handshake,
   groups: Users,
   rankings: Medal,

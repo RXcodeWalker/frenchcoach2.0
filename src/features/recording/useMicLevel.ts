@@ -10,8 +10,17 @@ const ATTACK = 0.35;
 const DECAY = 0.12;
 
 export interface MicLevelController {
-  attach: (stream: MediaStream) => void;
+  /** `capture: true` also keeps the raw samples, for `takeCapture()` (see below). */
+  attach: (stream: MediaStream, options?: { capture?: boolean }) => void;
   detach: () => void;
+  /**
+   * The samples heard since `attach(stream, { capture: true })`, mono at the
+   * context's rate; null when not capturing or nothing arrived. Call it before
+   * `detach()`. This is a second copy of the recording that never has to be
+   * decoded: MediaRecorder's webm sometimes can't be read back by
+   * `decodeAudioData` ("Unable to decode audio data").
+   */
+  takeCapture: () => { samples: Float32Array; sampleRate: number } | null;
   levelsRef: React.MutableRefObject<Float32Array>;
   levelRef: React.MutableRefObject<number>;
   isActiveRef: React.MutableRefObject<boolean>;
@@ -36,6 +45,9 @@ export function useMicLevel(): MicLevelController {
   const rafRef = useRef<number | null>(null);
   const generationRef = useRef(0);
   const boundariesRef = useRef<number[] | null>(null);
+  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const sinkRef = useRef<GainNode | null>(null);
+  const captureRef = useRef<Float32Array[] | null>(null);
 
   const levelsRef = useRef<Float32Array>(new Float32Array(BAR_COUNT));
   const levelRef = useRef(0);
@@ -51,6 +63,16 @@ export function useMicLevel(): MicLevelController {
       analyserRef.current.disconnect();
       analyserRef.current = null;
     }
+    if (processorRef.current) {
+      processorRef.current.onaudioprocess = null;
+      processorRef.current.disconnect();
+      processorRef.current = null;
+    }
+    if (sinkRef.current) {
+      sinkRef.current.disconnect();
+      sinkRef.current = null;
+    }
+    captureRef.current = null;
     if (sourceRef.current) {
       sourceRef.current.disconnect();
       sourceRef.current = null;
@@ -64,7 +86,21 @@ export function useMicLevel(): MicLevelController {
     levelsRef.current.fill(0);
   };
 
-  const attach = (stream: MediaStream) => {
+  const takeCapture = () => {
+    const chunks = captureRef.current;
+    const ctx = audioContextRef.current;
+    if (!chunks || !ctx || chunks.length === 0) return null;
+    const total = chunks.reduce((n, c) => n + c.length, 0);
+    const samples = new Float32Array(total);
+    let offset = 0;
+    for (const c of chunks) {
+      samples.set(c, offset);
+      offset += c.length;
+    }
+    return { samples, sampleRate: ctx.sampleRate };
+  };
+
+  const attach = (stream: MediaStream, options: { capture?: boolean } = {}) => {
     detach();
 
     const generation = generationRef.current;
@@ -83,6 +119,25 @@ export function useMicLevel(): MicLevelController {
     analyserRef.current = analyser;
 
     source.connect(analyser);
+
+    if (options.capture && typeof audioContext.createScriptProcessor === 'function') {
+      // A ScriptProcessor (AudioWorklet would need a module file) only runs while
+      // connected to the destination, so it feeds a muted gain: nothing is heard.
+      const processor = audioContext.createScriptProcessor(4096, 1, 1);
+      const sink = audioContext.createGain();
+      sink.gain.value = 0;
+      const chunks: Float32Array[] = [];
+      captureRef.current = chunks;
+      processor.onaudioprocess = (e) => {
+        if (generation !== generationRef.current) return;
+        chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+      };
+      source.connect(processor);
+      processor.connect(sink);
+      sink.connect(audioContext.destination);
+      processorRef.current = processor;
+      sinkRef.current = sink;
+    }
 
     boundariesRef.current = bucketBoundaries(FREQ_BINS, BAR_COUNT);
     isActiveRef.current = true;
@@ -130,5 +185,5 @@ export function useMicLevel(): MicLevelController {
     rafRef.current = requestAnimationFrame(tick);
   };
 
-  return { attach, detach, levelsRef, levelRef, isActiveRef };
+  return { attach, detach, takeCapture, levelsRef, levelRef, isActiveRef };
 }

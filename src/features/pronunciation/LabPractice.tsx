@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Mic, Play, Volume2 } from 'lucide-react';
+import { Mic, Volume2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
+import { PlayButton } from '../../components/ui/PlayButton';
 import { GuardianConsentNotice } from '../../components/GuardianConsentNotice';
 import { SpeakingConsentGate } from '../../components/SpeakingConsentGate';
 import { useSpaceToRecord } from '../../lib/useSpaceToRecord';
@@ -460,12 +461,16 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
         <div className="space-y-4">
           <ListenSentence tokens={tokens} underlines={underlines} onWord={(i) => { stopAudio(); void native(wordPlayTexts(targetSentence, i)); }} />
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="secondary" size="sm" onClick={() => { stopAudio(); void native(targetSentence, 1, true); }}>
-              <Volume2 size={16} aria-hidden="true" /> Listen
-            </Button>
-            <Button variant="secondary" size="sm" onClick={() => { stopAudio(); void native(targetSentence, 0.75, true); }}>
-              <Volume2 size={16} aria-hidden="true" /> Slowly
-            </Button>
+            <PlayButton
+              label="Listen"
+              icon={<Volume2 size={16} aria-hidden="true" />}
+              play={() => { stopAudio(); return native(targetSentence, 1, true); }}
+            />
+            <PlayButton
+              label="Slowly"
+              icon={<Volume2 size={16} aria-hidden="true" />}
+              play={() => { stopAudio(); return native(targetSentence, 0.75, true); }}
+            />
           </div>
           {underlines.size > 0 && (
             <p className="text-caption text-ink-muted">Dotted letters are sounds to listen for. Tap any word to hear it on its own.</p>
@@ -522,9 +527,7 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
             </div>
           )}
           <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" size="sm" onClick={() => void playBoth()}>
-              <Play size={16} aria-hidden="true" /> Play both
-            </Button>
+            <PlayButton label="Play both" play={playBoth} />
             {canRecordSentence(state) && (
               <Button variant="secondary" size="sm" onClick={() => dispatch({ type: 'sayAgain' })}>
                 <Mic size={16} aria-hidden="true" /> Say the whole sentence again
@@ -556,14 +559,12 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
           <p className="text-display-m text-ink" lang="fr">{focusText(state.focusIndex)}</p>
           <p className="text-body-s text-ink">{tipFor(focusWord.family, focusWord.text)}</p>
           <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" size="sm" onClick={() => { stopAudio(); void native(focusText(state.focusIndex), 0.75); }}>
-              <Volume2 size={16} aria-hidden="true" /> Hear it slowly
-            </Button>
-            {hasYourWord && (
-              <Button variant="secondary" size="sm" onClick={() => void playYourWord(focusWord.tokenIndex)}>
-                <Play size={16} aria-hidden="true" /> Your take
-              </Button>
-            )}
+            <PlayButton
+              label="Hear it slowly"
+              icon={<Volume2 size={16} aria-hidden="true" />}
+              play={() => { stopAudio(); return native(focusText(state.focusIndex), 0.75); }}
+            />
+            {hasYourWord && <PlayButton label="Your take" play={() => playYourWord(focusWord.tokenIndex)} />}
           </div>
           <SpeakingConsentGate>
             <RecordControl

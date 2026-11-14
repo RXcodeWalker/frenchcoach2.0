@@ -7,6 +7,7 @@
  */
 
 import { playRecorded, primeRecordedAudio, recordedVoicesEnabled, stopRecorded } from './recordedVoice';
+import { attachEngine } from '../audio/playbackControl';
 
 export const TTS = (() => {
   let _voice: SpeechSynthesisVoice | null = null;
@@ -147,18 +148,27 @@ export const TTS = (() => {
 
       if (_voice) utterance.voice = _voice;
 
+      // Pause/resume from a play button (services/audio/playbackControl.ts).
+      const detachEngine = attachEngine({
+        pause: () => speechSynthesis.pause(),
+        resume: () => speechSynthesis.resume(),
+        stop: () => stop(),
+      });
+
       utterance.onstart = () => {
         _isSpeaking = true;
         _onStartCb?.();
       };
 
       utterance.onend = () => {
+        detachEngine();
         _isSpeaking = false;
         _onEndCb?.();
         resolve();
       };
 
       utterance.onerror = (e) => {
+        detachEngine();
         _isSpeaking = false;
         if (e.error === "interrupted" || e.error === "canceled") {
           resolve();
@@ -175,6 +185,9 @@ export const TTS = (() => {
     _stopCount += 1;
     stopRecorded();
     if (!isSupported()) return;
+    // Cancelling while paused leaves Chrome's synthesis paused, so every later
+    // utterance would be silent: resume first.
+    if (speechSynthesis.paused) speechSynthesis.resume();
     if (speechSynthesis.speaking || speechSynthesis.pending) {
       speechSynthesis.cancel();
     }

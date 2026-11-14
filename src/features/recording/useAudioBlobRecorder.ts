@@ -3,8 +3,20 @@ import { useMicLevel, type MicLevelController } from './useMicLevel';
 import { micPermissionResult, trackMicPermission } from '../../services/telemetry/micPermission';
 import { useMicSilence } from '../../services/sound/useSfx';
 import { useScreenWakeLock } from '../../lib/useScreenWakeLock';
+import { encodePcm16Wav } from '../../domain/pronunciation/audioNormalizer';
 
 const WAVE_BARS = 40;
+
+export interface RecordedAudio {
+  blob: Blob;
+  url: string;
+  waveSnapshot: number[];
+  /**
+   * With `captureWav`: the same take as a 16-bit mono WAV built from the raw
+   * mic samples, so it never needs decoding (null if nothing was captured).
+   */
+  wav?: Blob | null;
+}
 
 export interface AudioBlobRecorderState {
   isRecording: boolean;
@@ -12,10 +24,22 @@ export interface AudioBlobRecorderState {
   micLevel: MicLevelController;
   /** Rejects if the mic is unavailable/denied — callers gate their UI on that. */
   start: () => Promise<void>;
-  stop: () => Promise<{ blob: Blob; url: string; waveSnapshot: number[] } | null>;
+  stop: () => Promise<RecordedAudio | null>;
 }
 
-export function useAudioBlobRecorder(): AudioBlobRecorderState {
+export interface AudioBlobRecorderOptions {
+  /**
+   * Also keep the take as a WAV built from the live samples (`RecordedAudio.wav`).
+   * MediaRecorder's webm/opus occasionally can't be decoded back
+   * (`EncodingError: Unable to decode audio data`), which made the Accent
+   * Analyzer fail a take outright; a WAV always decodes, and plays back with a
+   * real duration.
+   */
+  captureWav?: boolean;
+}
+
+export function useAudioBlobRecorder(options: AudioBlobRecorderOptions = {}): AudioBlobRecorderState {
+  const captureWav = options.captureWav === true;
   const [isRecording, setIsRecording] = useState(false);
   // No sound effect may play into an open mic (it would reach the upload).
   useMicSilence(isRecording);
@@ -63,7 +87,7 @@ export function useAudioBlobRecorder(): AudioBlobRecorderState {
     }
     trackMicPermission('granted');
     streamRef.current = stream;
-    micLevel.attach(stream);
+    micLevel.attach(stream, { capture: captureWav });
 
     const mimeType = ['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/wav']
       .find(type => MediaRecorder.isTypeSupported(type)) || '';
@@ -81,9 +105,9 @@ export function useAudioBlobRecorder(): AudioBlobRecorderState {
     mediaRecorder.start(250);
     setIsRecording(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [captureWav]);
 
-  const stop = useCallback((): Promise<{ blob: Blob; url: string; waveSnapshot: number[] } | null> => {
+  const stop = useCallback((): Promise<RecordedAudio | null> => {
     return new Promise((resolve) => {
       if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') {
         resolve(null);
@@ -102,17 +126,19 @@ export function useAudioBlobRecorder(): AudioBlobRecorderState {
           streamRef.current = null;
         }
 
+        const captured = captureWav ? micLevel.takeCapture() : null;
         micLevel.detach();
 
         setWaveData(Array(WAVE_BARS).fill(4));
         setIsRecording(false);
-        resolve({ blob, url, waveSnapshot: currentWaveData });
+        const wav = captured ? encodePcm16Wav(captured.samples, captured.sampleRate) : null;
+        resolve(captureWav ? { blob, url, waveSnapshot: currentWaveData, wav } : { blob, url, waveSnapshot: currentWaveData });
       };
 
       mediaRecorderRef.current.stop();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [captureWav]);
 
   return { isRecording, waveData, micLevel, start, stop };
 }
