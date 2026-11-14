@@ -35,7 +35,10 @@ export const STORAGE_KEYS = {
   roadmap:        'frenchCoach_roadmap',
   vault:          'frenchCoach_vault',
   contentCache:   'frenchCoach_questions_v1',
-  newsCache:      'frenchCoach_dailyNews',
+  // Daily News (daily-news §5): the learner's chosen story level (a2 · b1 · b2), identity-scoped.
+  newsLevel:      'frenchCoach_newsLevel',
+  // Retired with the AI-written edition (2026-11-11): removed once on the next visit to the news screen.
+  legacyNewsCache: 'frenchCoach_dailyNews',
   // ── Coach MVP ──────────────────────────────────────────────────────────────
   coachEvidence:       'frenchCoach_coachEvidence',
   coachBeliefs:        'frenchCoach_coachBeliefs',
@@ -145,7 +148,7 @@ const DEVICE_SCOPED = new Set<string>([
   STORAGE_KEYS.soundEnabled,
   STORAGE_KEYS.aiEngine,
   STORAGE_KEYS.contentCache,
-  STORAGE_KEYS.newsCache,
+  STORAGE_KEYS.legacyNewsCache,
   STORAGE_KEYS.guestMode,
   STORAGE_KEYS.featureFlagOverrides,
   STORAGE_KEYS.featureInterest,

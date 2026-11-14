@@ -341,3 +341,10 @@ Human judgement (no machine check can do these):
       originality check (§0) ran clean.
 - [ ] `npm run authoring:check` (no `--draft`) is clean.
 - [ ] `npm run authoring:check` (no `--draft`) is clean.
+
+## 17. Daily News stories
+
+Daily News stories are not exam content and follow their own contract: `docs/systems/daily-news.md`
+§1 (levels, word limits, facts with 2+ cue groups, kid-safe evergreen topics), checked by
+`src/data/news/newsBankLint.ts`. Set `reviewed: true` only after a French speaker has checked every
+level, and run "Record voices" after adding or editing a story.

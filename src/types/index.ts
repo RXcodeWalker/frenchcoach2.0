@@ -202,6 +202,8 @@ export interface Session {
   scoringSessionId?: string;
   /** Homework a teacher set that this session answered (features/homework). Completion is derived from it, never stored. */
   assignmentId?: string;
+  /** Daily News only: `news:<editionId>:<YYYY-MM-DD>` — the edition-day this report answered (daily-news §4). Local; not synced. */
+  contentId?: string;
 }
 
 /** The three 0520 scored areas of one marked exam attempt, copied from its envelope. */

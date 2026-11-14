@@ -32,6 +32,8 @@ export interface StoredSession {
   practiceOnly?: boolean;
   examMarks?: ExamAreaMarks;
   scoringSessionId?: string;
+  /** Daily News only (daily-news §4): which edition-day this report answered. */
+  contentId?: string;
 }
 
 /** Options the coach orchestrator can pass to enrich the stored session. */
@@ -167,6 +169,7 @@ export function recordSession(session: Session, options?: RecordSessionOptions):
     practiceOnly:       session.practiceOnly,
     examMarks:          session.examMarks,
     scoringSessionId:   session.scoringSessionId,
+    contentId:          session.contentId,
   };
   if (data.sessions.some(s => s.id === stored.id)) return stored;
   data.sessions.push(stored);

@@ -22,7 +22,6 @@ import {
 } from '../coaching/examinerFeedback';
 import type { CandidateInputMode, RecognitionSegment } from '../../domain/igcse/stt/types';
 import { ConsentRequiredError, isConsentRequiredBody } from '../../lib/consentRequired';
-import type { NewsSnippet } from '../../data/mocks/mockNews';
 import { getWarmupPhase, noteBackendReachable } from './backendWarmup';
 import { NoScoreInFeedbackError, computeOverall } from '../../domain/scoring';
 import type { LearnMarkingScheme } from '../../domain/learn/marking/markingLevel';
@@ -1351,17 +1350,6 @@ export async function getRandomQuestionFromBackend(topicKey?: string): Promise<Q
     if (!res.ok) return null;
     return res.json() as Promise<Question>;
   } catch { return null; }
-}
-
-export async function getDailyNews(): Promise<NewsSnippet> {
-  try {
-    const res = await fetch(`${API_BASE}/api/news/daily`);
-    if (!res.ok) throw new Error(`API news → ${res.status}`);
-    return res.json() as Promise<NewsSnippet>;
-  } catch (error) {
-    console.error("Failed to fetch daily news:", error);
-    throw error;
-  }
 }
 
 /**

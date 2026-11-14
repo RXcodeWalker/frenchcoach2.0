@@ -31,6 +31,8 @@ import { BENCHMARK_SENTENCES } from '../../src/domain/pronunciation/lab/benchmar
 import { splitSentences } from '../../src/domain/pronunciation/lab/sentences';
 import { guideTexts, lexiconTexts } from '../../src/domain/pronunciation/lab/lexicon';
 import { normalizeSpokenText } from '../../src/services/tts/voiceKey';
+import { NEWS_EDITIONS } from '../../src/data/news';
+import { NEWS_LEVELS } from '../../src/data/news/types';
 
 export type LineSource =
   | 'exam'
@@ -40,7 +42,8 @@ export type LineSource =
   | 'flashcards'
   | 'lab-guide'
   | 'lab-words'
-  | 'lab-sentences';
+  | 'lab-sentences'
+  | 'news';
 
 export interface CatalogueLine {
   /** The authored text, exactly as the app speaks it (and as Azure receives it). */
@@ -137,6 +140,15 @@ export function labWordLines(): string[] {
 }
 
 /**
+ * Daily News (docs/systems/daily-news.md §5): the hand-written bank, one line
+ * per sentence, because `useBroadcast` plays a story sentence by sentence and
+ * finds each recording by that sentence's exact text.
+ */
+export function newsLines(): string[] {
+  return NEWS_EDITIONS.flatMap((e) => NEWS_LEVELS.flatMap((l) => e.levels[l].sentences.map((s) => s.fr)));
+}
+
+/**
  * The whole catalogue, deduplicated by `normalizeSpokenText` (the key the
  * recording is stored under). Exam sets come from the bundled fixtures, which
  * `npm run authoring:parity` keeps identical to the backend's published bank.
@@ -155,6 +167,8 @@ export function collectLines(): CatalogueLine[] {
     ['lab-guide', labGuideLines()],
     ['lab-words', labWordLines()],
     ['lab-sentences', labSentenceLines()],
+    // Daily News (daily-news §5): every sentence of every level, exactly as useBroadcast speaks it.
+    ['news', newsLines()],
   ];
 
   const seen = new Set<string>();

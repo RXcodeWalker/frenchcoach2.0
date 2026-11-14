@@ -37,6 +37,8 @@ import { QUESTIONS } from '../../../src/data/questions';
 import { LISTENING_QUESTIONS } from '../../../src/data/listeningQuestions';
 import { SHADOWING_PHRASES } from '../../../src/data/shadowingPhrases';
 import { normalizeSpokenText } from '../../../src/services/tts/voiceKey';
+import { NEWS_EDITIONS } from '../../../src/data/news';
+import { NEWS_LEVELS } from '../../../src/data/news/types';
 import { BENCHMARK_SENTENCES } from '../../../src/domain/pronunciation/lab/benchmark';
 import { splitSentences } from '../../../src/domain/pronunciation/lab/sentences';
 import { guideTexts, isRecordableWord } from '../../../src/domain/pronunciation/lab/lexicon';
@@ -283,10 +285,18 @@ describe('recorded-voices catalogue coverage', () => {
     expect(firstSentence).toBeGreaterThan(lastWord);
   });
 
+  it('catalogues every Daily News sentence at every level (useBroadcast plays them one by one)', () => {
+    const missing = NEWS_EDITIONS.flatMap((e) => NEWS_LEVELS.flatMap((l) => e.levels[l].sentences.map((x) => x.fr)))
+      .filter((fr) => !KEYS.has(normalizeSpokenText(fr)));
+    expect(missing).toEqual([]);
+  });
+
   // Owner decision (2026-11-02, Learn Batch 4): the cap was 450k; 160 new Learn questions took the full
   // catalogue to ~470k, and the owner chose to keep the full model answers and raise it to 480k. A full
   // re-record (a VOICE_KEY_VERSION bump) still fits F0's 500k, but leaves no room that month for
   // /api/native-voice's 50k share — the recorder resumes across runs, so it may spill into a second month.
+  // 2026-11-11 (Daily News bank, ~28k): the full catalogue is ~498k, so the guard is now F0's 500k itself. A normal
+  // run records only missing lines; a full re-record now always takes two months.
   it('keeps the recording budget inside Azure F0 (500k characters a month)', () => {
     const chars = CATALOGUE.reduce((n, l) => n + l.text.length, 0);
     expect(chars).toBeLessThan(BUDGET_LIMIT_CHARS);
