@@ -92,7 +92,7 @@ export const QUESTION_WORDS: readonly QuestionWord[] = [
   {
     id: 'questce',
     lemma: 'qu’est-ce que',
-    forms: ['qu’est-ce que', "qu'est-ce que", 'qu’est-ce', "qu'est-ce"],
+    forms: ['qu’est-ce que', "qu'est-ce que", 'qu’est-ce', "qu'est-ce", 'quoi'],
     finds: 'a thing or action',
     hint: 'this one wants a thing or an action',
     examples: [

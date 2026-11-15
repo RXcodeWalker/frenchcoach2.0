@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { DETECTIVE_BANK } from '../bank';
-import { DETECTIVE_CASES } from '../cases';
-import { QUESTION_WORDS } from '../words';
-import { WORD_IDS, WORD_TO_TYPE, type AnswerType, type WordPosition } from '../types';
+import { BLANK, DETECTIVE_CASES, fillQuestion, rightFill } from '../cases';
+import { highlightWord } from '../../../features/questionDetective/highlight';
+import { QUESTION_WORDS, questionWord } from '../words';
+import { WORD_IDS, WORD_TO_TYPE, type AnswerType, type WordId, type WordPosition } from '../types';
 import { normalizeFrench } from '../../../features/minigames/utils/normalizeFrench';
 
 function wordCount(s: string): number {
@@ -82,15 +83,39 @@ describe('Question Detective bank', () => {
     }
   });
 
-  it('has five cases, each with three witnesses and three closing questions', () => {
+  it('has five cases, each with three steps and three closing questions', () => {
     expect(DETECTIVE_CASES).toHaveLength(5);
     for (const c of DETECTIVE_CASES) {
-      expect(c.witnesses).toHaveLength(3);
-      expect(c.closing).toHaveLength(3);
-      for (const w of c.witnesses) {
-        expect(w.clue.length).toBeGreaterThan(0);
-        expect(w.wrong[w.rightWord]).toBeUndefined();
-        expect(Object.keys(w.wrong).length).toBe(WORD_IDS.length - 1);
+      expect(c.steps, c.id).toHaveLength(3);
+      expect(c.closing, c.id).toHaveLength(3);
+    }
+  });
+
+  it('writes every case step as a reasoned link in the chain', () => {
+    for (const c of DETECTIVE_CASES) {
+      for (const [i, step] of c.steps.entries()) {
+        const where = `${c.id}/${step.id}`;
+        // One blank, filled by the tool; the filled question marks the tool.
+        expect(step.question.split(BLANK).length, where).toBe(2);
+        const word = rightFill(step, questionWord(step.rightWord)!.lemma);
+        expect(highlightWord(fillQuestion(step, word), step.rightWord).word, where).not.toBe('');
+        // The goal and the glosses are English and say something.
+        expect(step.goal.length, where).toBeGreaterThan(20);
+        expect(step.questionGloss.length, where).toBeGreaterThan(0);
+        expect(step.clue.length, where).toBeGreaterThan(0);
+        expect(step.clueGloss.length, where).toBeGreaterThan(0);
+        // The goal never hands over the French word.
+        expect(step.goal.toLowerCase(), where).not.toContain(questionWord(step.rightWord)!.lemma.toLowerCase());
+        // Exactly three other tools, each with a reply, none of them the right one.
+        const wrong = Object.keys(step.wrong);
+        expect(wrong, where).toHaveLength(3);
+        expect(wrong, where).not.toContain(step.rightWord);
+        for (const id of wrong) {
+          expect(WORD_IDS as readonly string[], where).toContain(id);
+          expect(step.wrong[id as WordId]!.length, where).toBeGreaterThan(0);
+        }
+        // After the first step the goal builds on the clue before it.
+        if (i > 0) expect(step.goal, where).not.toBe(c.steps[i - 1].goal);
       }
     }
   });

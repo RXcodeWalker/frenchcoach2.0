@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { TopContextBar } from '../components/TopContextBar';
 import { useHideDock } from '../components/layout/shellChrome';
 import { useBackHandler } from '../lib/useBackHandler';
-import { caseById } from '../data/questionWords/cases';
+import { caseById, DETECTIVE_CASES } from '../data/questionWords/cases';
 import type { WordId } from '../data/questionWords/types';
 import { AskView } from '../features/questionDetective/AskView';
 import { CaseView } from '../features/questionDetective/CaseView';
@@ -32,6 +32,24 @@ type View =
   | { name: 'ask'; seed: number }
   | { name: 'case'; caseId: string }
   | { name: 'results'; kind: 'answer' | 'ask' | 'tricky'; correct: number; total: number; mixupNote: string | null; newBest: boolean };
+
+/**
+ * The next case to offer after `currentId`: the first one after it (wrapping
+ * round) that is not closed yet. The case being played counts as closed here,
+ * because the offer only shows once it is.
+ */
+function nextOpenCase(
+  currentId: string,
+  solved: readonly string[],
+  open: (id: string) => void,
+): { title: string; onOpen: () => void } | null {
+  const start = DETECTIVE_CASES.findIndex(c => c.id === currentId);
+  for (let i = 1; i < DETECTIVE_CASES.length; i++) {
+    const c = DETECTIVE_CASES[(start + i) % DETECTIVE_CASES.length];
+    if (!solved.includes(c.id)) return { title: c.title, onOpen: () => open(c.id) };
+  }
+  return null;
+}
 
 /**
  * Question Detective (Design System v2): a game for its own sake that teaches
@@ -145,11 +163,9 @@ export function QuestionDetective() {
         <CaseView
           key={view.caseId}
           file={caseById(view.caseId)!}
-          onFinish={solved => {
-            if (solved) setStore(recordCaseSolved(view.caseId));
-            else setStore(readDetectiveStore());
-            setView({ name: 'home' });
-          }}
+          next={nextOpenCase(view.caseId, store.casesSolved, id => setView({ name: 'case', caseId: id }))}
+          onSolved={() => setStore(recordCaseSolved(view.caseId))}
+          onFinish={() => setView({ name: 'home' })}
         />
       )}
       {view.name === 'results' && (

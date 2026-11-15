@@ -15,5 +15,5 @@ export {
 } from './types';
 export { QUESTION_WORDS, questionWord } from './words';
 export { DETECTIVE_BANK, questionById, questionsFor } from './bank';
-export { DETECTIVE_CASES, caseById } from './cases';
-export type { CaseClosing, CaseWitness, DetectiveCase } from './cases';
+export { BLANK, DETECTIVE_CASES, caseById, fillQuestion, rightFill } from './cases';
+export type { CaseClosing, CaseStep, DetectiveCase } from './cases';

@@ -37,11 +37,16 @@ A known answer of another type is a **mix-up**, named in plain words (“où fin
 
 ## §4 Ask it
 
-The reverse room: see an answer, pick the tool that would get it, then build the question from word tiles.
+The reverse room: see an answer, pick the tool that would get it, then build the question from word tiles. The French question (and its audio) stays hidden until the tool is picked, because hearing it would give the word away.
 
 ## §5 Case files
 
-Five short mysteries. Asking a witness the right tool gives a clue; the wrong tool gets an answer to *that* word. Close the case by answering three 1–3 word questions.
+Five short mysteries, each a **chain of three questions** followed by a report. A case is never "ask anyone anything": every step opens with what the detective already knows (the clue from the step before) and what to find out next, in English, naming the *kind* of answer wanted but never the French word. Example, *The late class*: "The whole class is late. Ask Sam why." → pourquoi → "Le bus n'est pas venu." → "No bus! Ask Inès how long they waited for it." → combien → "On a attendu vingt minutes." → "Twenty minutes… ask Omar how they got to school." → comment.
+
+- **A step:** the learner picks the tool from **four** (the right one and three authored wrong ones, in a stable order that does not put the right one first), never all eight. The French question is shown with a blank where the tool goes (`Vous êtes en retard ___ ?`); the right tool fills it, the witness gives the clue in French with an English gloss, and the clue joins **Your notes**. A wrong tool gets the witness's confused reply and one plain line naming what that tool finds, then shuts that choice. A **Hint** ("You are looking for a reason") is available on request and appears by itself after two wrong tools. There is no skipping.
+- **The report:** after the last clue the detective answers three 1–3 word questions using the notes (all notes stay on screen). A first miss offers one more try; a second miss shows the answer. The case is **closed** only when all three are right (retries count). Closing is saved the moment it happens, and the next unclosed case is offered.
+- **Authoring rules** (`bank.test.ts`): every step has exactly one `___` in its question, a goal that does not contain the French word, an English gloss for the question and the clue, and exactly three wrong tools each with a reply. A step's goal must build on the clue before it.
+- A case file writes no mix-up counts and no ladder result; it is the *why* before the drills.
 
 ## §6 Isolation
 

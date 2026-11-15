@@ -23,7 +23,7 @@ export function mixupLine(expected: WordId, given: WordId): string {
 export function verdictLine(verdict: Verdict, expected: string, expectedWord: WordId, given?: WordId): string {
   if (verdict === 'right') return 'That’s the kind of answer this word wants.';
   if (verdict === 'almost') return `Almost — the answer is « ${expected} ».`;
-  if (verdict === 'mixup' && given) return mixupLine(expectedWord, given);
+  if (verdict === 'mixup' && given) return `${mixupLine(expectedWord, given)} A good answer is « ${expected} ».`;
   return `Not quite. A good answer is « ${expected} ».`;
 }
 
