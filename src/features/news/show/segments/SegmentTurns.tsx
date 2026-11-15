@@ -154,8 +154,8 @@ export function SegmentTurns({ prompts, onDone, respond }: Props) {
           {reply && (
             <div className="mt-4 rounded-control bg-progress-soft p-4" data-testid="news-turn-reply">
               <p className="text-label text-progress-text">{reply.lead} Henri answers:</p>
-              <div className="mt-2 flex items-start gap-2">
-                <PlayIconButton play={() => TTS.speak(reply.fr, { recorded: true, rate: 0.9 })} label="Hear Henri's answer again" size={16} className="mt-0.5" />
+              <div className="mt-2 flex items-center gap-3">
+                <PlayIconButton play={() => TTS.speak(reply.fr, { recorded: true, rate: 0.9 })} label="Hear Henri's answer again" size={18} prominent />
                 <div className="min-w-0">
                   <p lang="fr" className="text-body-s text-ink">{reply.fr}</p>
                   <p className="mt-0.5 text-caption text-ink-muted">{reply.en}</p>
