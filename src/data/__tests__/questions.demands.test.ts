@@ -4,7 +4,7 @@ import { byQuestionId } from '../learn/demandsManifest';
 
 describe('Question.demands hydration', () => {
   it('hydrates exactly the manifest-covered questions', () => {
-    expect(QUESTIONS.filter(q => q.demands).length).toBe(898);
+    expect(QUESTIONS.filter(q => q.demands).length).toBe(938);
   });
 
   it('hydrated demands deep-equal the manifest entry for every question', () => {
