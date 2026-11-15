@@ -1109,6 +1109,46 @@ export const QUESTION_IDS: ReadonlySet<string> = new Set([
   "tra_28",
   "tra_29",
   "tra_30",
+  "tra_31",
+  "tra_32",
+  "tra_33",
+  "tra_34",
+  "tra_35",
+  "tra_36",
+  "tra_37",
+  "tra_38",
+  "tra_39",
+  "tra_40",
+  "tra_41",
+  "tra_42",
+  "tra_43",
+  "tra_44",
+  "tra_45",
+  "tra_46",
+  "tra_47",
+  "tra_48",
+  "tra_49",
+  "tra_50",
+  "tra_51",
+  "tra_52",
+  "tra_53",
+  "tra_54",
+  "tra_55",
+  "tra_56",
+  "tra_57",
+  "tra_58",
+  "tra_59",
+  "tra_60",
+  "tra_61",
+  "tra_62",
+  "tra_63",
+  "tra_64",
+  "tra_65",
+  "tra_66",
+  "tra_67",
+  "tra_68",
+  "tra_69",
+  "tra_70",
 ]);
 
 export const QUESTION_COUNT_BY_TOPIC: Readonly<Record<string, number>> = {
@@ -1135,7 +1175,7 @@ export const QUESTION_COUNT_BY_TOPIC: Readonly<Record<string, number>> = {
   "slang": 1,
   "sports": 60,
   "survival": 1,
-  "transport": 30,
+  "transport": 70,
 };
 
 // Per topic, how many questions practise each coach skill (services/coach/topicSkillCoverage.ts).
@@ -1264,11 +1304,13 @@ export const TOPIC_SKILL_COVERAGE: Readonly<Record<string, Readonly<Record<strin
     "hypothetical": 1
   },
   "transport": {
-    "etre_avoir": 6,
-    "hypothetical": 2,
-    "opinion": 5,
-    "tense_future": 1,
-    "tense_past": 7
+    "comparative": 6,
+    "etre_avoir": 17,
+    "hypothetical": 14,
+    "negation": 6,
+    "opinion": 21,
+    "tense_future": 4,
+    "tense_past": 18
   }
 };
 
@@ -1447,11 +1489,15 @@ export const TOPIC_SKILL_COVERAGE_V2: Readonly<Record<string, Readonly<Record<st
     "hypothetical": 1
   },
   "transport": {
-    "connectors": 6,
-    "etre_avoir": 6,
-    "hypothetical": 2,
-    "opinion": 5,
-    "tense_future": 1,
-    "tense_past": 7
+    "comparative": 6,
+    "confusions": 6,
+    "connectors": 31,
+    "contrast": 6,
+    "etre_avoir": 17,
+    "hypothetical": 14,
+    "negation": 6,
+    "opinion": 21,
+    "tense_future": 4,
+    "tense_past": 18
   }
 };
