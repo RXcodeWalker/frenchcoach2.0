@@ -1089,6 +1089,7 @@ export const QUESTION_IDS: ReadonlySet<string> = new Set([
   "tra_08",
   "tra_09",
   "tra_10",
+  "tra_100",
   "tra_11",
   "tra_12",
   "tra_13",
@@ -1149,6 +1150,35 @@ export const QUESTION_IDS: ReadonlySet<string> = new Set([
   "tra_68",
   "tra_69",
   "tra_70",
+  "tra_71",
+  "tra_72",
+  "tra_73",
+  "tra_74",
+  "tra_75",
+  "tra_76",
+  "tra_77",
+  "tra_78",
+  "tra_79",
+  "tra_80",
+  "tra_81",
+  "tra_82",
+  "tra_83",
+  "tra_84",
+  "tra_85",
+  "tra_86",
+  "tra_87",
+  "tra_88",
+  "tra_89",
+  "tra_90",
+  "tra_91",
+  "tra_92",
+  "tra_93",
+  "tra_94",
+  "tra_95",
+  "tra_96",
+  "tra_97",
+  "tra_98",
+  "tra_99",
 ]);
 
 export const QUESTION_COUNT_BY_TOPIC: Readonly<Record<string, number>> = {
@@ -1175,7 +1205,7 @@ export const QUESTION_COUNT_BY_TOPIC: Readonly<Record<string, number>> = {
   "slang": 1,
   "sports": 60,
   "survival": 1,
-  "transport": 70,
+  "transport": 100,
 };
 
 // Per topic, how many questions practise each coach skill (services/coach/topicSkillCoverage.ts).
@@ -1304,13 +1334,13 @@ export const TOPIC_SKILL_COVERAGE: Readonly<Record<string, Readonly<Record<strin
     "hypothetical": 1
   },
   "transport": {
-    "comparative": 6,
-    "etre_avoir": 17,
-    "hypothetical": 14,
-    "negation": 6,
-    "opinion": 21,
-    "tense_future": 4,
-    "tense_past": 18
+    "comparative": 14,
+    "etre_avoir": 21,
+    "hypothetical": 27,
+    "negation": 16,
+    "opinion": 33,
+    "tense_future": 7,
+    "tense_past": 24
   }
 };
 
@@ -1489,15 +1519,15 @@ export const TOPIC_SKILL_COVERAGE_V2: Readonly<Record<string, Readonly<Record<st
     "hypothetical": 1
   },
   "transport": {
-    "comparative": 6,
-    "confusions": 6,
-    "connectors": 31,
-    "contrast": 6,
-    "etre_avoir": 17,
-    "hypothetical": 14,
-    "negation": 6,
-    "opinion": 21,
-    "tense_future": 4,
-    "tense_past": 18
+    "comparative": 14,
+    "confusions": 14,
+    "connectors": 46,
+    "contrast": 14,
+    "etre_avoir": 21,
+    "hypothetical": 27,
+    "negation": 16,
+    "opinion": 33,
+    "tense_future": 7,
+    "tense_past": 24
   }
 };
