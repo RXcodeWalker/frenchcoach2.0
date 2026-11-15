@@ -11,6 +11,7 @@ export const QUESTION_IDS: ReadonlySet<string> = new Set([
   "ani_08",
   "ani_09",
   "ani_10",
+  "ani_100",
   "ani_11",
   "ani_12",
   "ani_13",
@@ -71,6 +72,35 @@ export const QUESTION_IDS: ReadonlySet<string> = new Set([
   "ani_68",
   "ani_69",
   "ani_70",
+  "ani_71",
+  "ani_72",
+  "ani_73",
+  "ani_74",
+  "ani_75",
+  "ani_76",
+  "ani_77",
+  "ani_78",
+  "ani_79",
+  "ani_80",
+  "ani_81",
+  "ani_82",
+  "ani_83",
+  "ani_84",
+  "ani_85",
+  "ani_86",
+  "ani_87",
+  "ani_88",
+  "ani_89",
+  "ani_90",
+  "ani_91",
+  "ani_92",
+  "ani_93",
+  "ani_94",
+  "ani_95",
+  "ani_96",
+  "ani_97",
+  "ani_98",
+  "ani_99",
   "art_01",
   "arv_01",
   "arv_02",
@@ -1082,7 +1112,7 @@ export const QUESTION_IDS: ReadonlySet<string> = new Set([
 ]);
 
 export const QUESTION_COUNT_BY_TOPIC: Readonly<Record<string, number>> = {
-  "animals": 70,
+  "animals": 100,
   "art": 1,
   "arts": 100,
   "clothes": 100,
@@ -1111,13 +1141,13 @@ export const QUESTION_COUNT_BY_TOPIC: Readonly<Record<string, number>> = {
 // Per topic, how many questions practise each coach skill (services/coach/topicSkillCoverage.ts).
 export const TOPIC_SKILL_COVERAGE: Readonly<Record<string, Readonly<Record<string, number>>>> = {
   "animals": {
-    "comparative": 6,
-    "etre_avoir": 9,
-    "hypothetical": 13,
-    "negation": 6,
-    "opinion": 11,
-    "tense_future": 5,
-    "tense_past": 9
+    "comparative": 10,
+    "etre_avoir": 13,
+    "hypothetical": 20,
+    "negation": 11,
+    "opinion": 16,
+    "tense_future": 6,
+    "tense_past": 14
   },
   "arts": {
     "comparative": 10,
@@ -1246,16 +1276,16 @@ export const TOPIC_SKILL_COVERAGE: Readonly<Record<string, Readonly<Record<strin
 // Read only while a learner-model reader flag is live; a superset of the table above.
 export const TOPIC_SKILL_COVERAGE_V2: Readonly<Record<string, Readonly<Record<string, number>>>> = {
   "animals": {
-    "comparative": 6,
-    "confusions": 6,
-    "connectors": 24,
-    "contrast": 6,
-    "etre_avoir": 9,
-    "hypothetical": 13,
-    "negation": 6,
-    "opinion": 11,
-    "tense_future": 5,
-    "tense_past": 9
+    "comparative": 10,
+    "confusions": 10,
+    "connectors": 36,
+    "contrast": 10,
+    "etre_avoir": 13,
+    "hypothetical": 20,
+    "negation": 11,
+    "opinion": 16,
+    "tense_future": 6,
+    "tense_past": 14
   },
   "arts": {
     "comparative": 10,
