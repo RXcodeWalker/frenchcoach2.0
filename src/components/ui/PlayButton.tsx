@@ -62,6 +62,7 @@ export function PlayIconButton({
   disabled,
   size = 12,
   className = '',
+  prominent = false,
 }: {
   play: () => Promise<unknown>;
   label: string;
@@ -69,10 +70,45 @@ export function PlayIconButton({
   disabled?: boolean;
   size?: number;
   className?: string;
+  /** A larger, filled round control whose ↺ slot is always reserved, so the text beside it never shifts. */
+  prominent?: boolean;
 }) {
   const control = usePlayControl(play);
   const { status } = control;
   const aria = status === 'playing' ? `Pause: ${label}` : status === 'paused' ? `Resume: ${label}` : label;
+  if (prominent) {
+    const active = status !== 'idle';
+    return (
+      <span className={`inline-flex shrink-0 items-center gap-1 ${className}`}>
+        <button
+          type="button"
+          onClick={control.toggle}
+          disabled={disabled}
+          aria-label={aria}
+          title={aria}
+          data-playback={status}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-action-soft text-action-text transition-colors duration-state ease-smooth hover:bg-track disabled:opacity-40"
+        >
+          {status === 'playing' ? (
+            <Pause size={size} fill="currentColor" aria-hidden="true" />
+          ) : (
+            (icon ?? <Play size={size} fill="currentColor" className="translate-x-px" aria-hidden="true" />)
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={control.restart}
+          aria-label={`Play from the start: ${label}`}
+          title="Play from the start"
+          tabIndex={active ? 0 : -1}
+          aria-hidden={active ? undefined : true}
+          className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-muted transition-opacity duration-state ease-smooth hover:bg-track hover:text-ink ${active ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+        >
+          <RotateCcw size={size - 2} aria-hidden="true" />
+        </button>
+      </span>
+    );
+  }
   return (
     <span className="inline-flex items-center gap-0.5">
       <button

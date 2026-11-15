@@ -112,14 +112,14 @@ export function SegmentTurns({ prompts, onDone, respond }: Props) {
           </>
         ) : (
           <>
-            <div className="mt-2 flex items-start gap-2">
+            <div className="mt-2 flex items-center gap-3">
               {prompt.speak && (
                 <PlayIconButton
                   key={prompt.key}
                   play={() => TTS.speak(prompt.fr, { recorded: true, rate: 0.9 })}
                   label="Hear the question again"
-                  size={16}
-                  className="mt-1"
+                  size={18}
+                  prominent
                 />
               )}
               <h3 lang="fr" className="min-w-0 flex-1 text-section text-ink" data-testid="news-turn-prompt">{prompt.fr}</h3>
