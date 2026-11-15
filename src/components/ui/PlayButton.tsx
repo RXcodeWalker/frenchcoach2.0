@@ -79,7 +79,7 @@ export function PlayIconButton({
   if (prominent) {
     const active = status !== 'idle';
     return (
-      <span className={`inline-flex shrink-0 items-center gap-1 ${className}`}>
+      <span className={`inline-flex shrink-0 items-center ${className}`}>
         <button
           type="button"
           onClick={control.toggle}
@@ -102,9 +102,9 @@ export function PlayIconButton({
           title="Play from the start"
           tabIndex={active ? 0 : -1}
           aria-hidden={active ? undefined : true}
-          className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-muted transition-opacity duration-state ease-smooth hover:bg-track hover:text-ink ${active ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+          className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-ink-muted transition-opacity duration-state ease-smooth hover:bg-track hover:text-ink ${active ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
         >
-          <RotateCcw size={size - 2} aria-hidden="true" />
+          <RotateCcw size={size - 3} aria-hidden="true" />
         </button>
       </span>
     );
