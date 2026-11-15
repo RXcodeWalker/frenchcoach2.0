@@ -156,7 +156,7 @@ export function accentLines(): string[] {
  * line per sentence, because `useBroadcast` plays a story sentence by sentence
  * and finds each recording by that sentence's exact text. Also every line
  * Henri says in the show: the « Intox ou info ? » fake sentence, the interview
- * questions, the debate question, his answers in « Le journaliste, c'est toi »,
+ * questions and (with a fact sheet) his reaction after each answer, the debate question, his answers in « Le journaliste, c'est toi »,
  * the « Et après ? » prompts and his own guess (each spoken as is).
  */
 export function newsLines(): string[] {
@@ -166,7 +166,7 @@ export function newsLines(): string[] {
       return [
         ...lvl.sentences.map((s) => s.fr),
         lvl.fake.fr,
-        ...lvl.interview.questions.map((q) => q.fr),
+        ...lvl.interview.questions.flatMap((q) => (q.reaction ? [q.fr, q.reaction.fr] : [q.fr])),
         lvl.debate.motion.fr,
         ...lvl.journalist.targets.map((t) => t.answer.fr),
         lvl.predict.next.fr,

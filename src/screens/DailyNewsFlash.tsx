@@ -37,6 +37,9 @@ import { SegmentTurns, type TurnAnswer } from '../features/news/show/segments/Se
 import { NewsCoachFeedback } from '../features/news/show/NewsCoachFeedback';
 import { StoryLinks } from '../features/news/show/StoryLinks';
 import { YourAnswers } from '../features/news/show/YourAnswers';
+import { FactSheet } from '../features/news/show/FactSheet';
+import { placeFixes, type Fix } from '../features/news/show/answerReview';
+import { selectCoachFixes } from '../features/feedback/coachPoints';
 import { segmentTurns } from '../features/news/show/segmentPrompts';
 import { segmentFeedback, segmentQuestion } from '../features/news/show/segmentFeedback';
 import { wordsUsed } from '../features/news/show/wordsUsed';
@@ -81,7 +84,12 @@ const cardClass = 'rounded-card border border-hairline bg-surface p-5 md:p-8';
 /** One line saying what today's segment is, for the listen card (daily-news §7). */
 function SegmentPreview({ segment, lvl }: { segment: SegmentId; lvl: NewsLevel }) {
   if (segment === 'interview') {
-    return <><span lang="fr" className="text-ink">{lvl.interview.role.fr}</span> {lvl.interview.role.en} Henri interviews you.</>;
+    return (
+      <>
+        <span lang="fr" className="text-ink">{lvl.interview.role.fr}</span> {lvl.interview.role.en} Henri interviews you
+        {lvl.interview.factSheet ? ', and you answer from your fact sheet.' : '.'}
+      </>
+    );
   }
   if (segment === 'debate') {
     return <>Argue both sides of <span lang="fr" className="text-ink">« {lvl.debate.motion.fr} »</span></>;
@@ -95,7 +103,11 @@ function SegmentPreview({ segment, lvl }: { segment: SegmentId; lvl: NewsLevel }
 /** How to play the segment, above the turns. */
 function SegmentHowTo({ segment, lvl }: { segment: SegmentId; lvl: NewsLevel }) {
   if (segment === 'interview') {
-    return <><span lang="fr" className="text-ink">{lvl.interview.role.fr}</span> Answer in role, and invent details if you like.</>;
+    return lvl.interview.factSheet ? (
+      <><span lang="fr" className="text-ink">{lvl.interview.role.fr}</span> Answer in role, using the facts on your sheet. The last question asks what you think.</>
+    ) : (
+      <><span lang="fr" className="text-ink">{lvl.interview.role.fr}</span> Answer in role, and invent details if you like.</>
+    );
   }
   if (segment === 'debate') return <>First argue for, then against. Give a reason each time: parce que, car, à mon avis…</>;
   if (segment === 'journalist') {
@@ -201,6 +213,7 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
   const detectiveLive = resolveFeatureStatus('questionDetective') === 'live';
 
   // Le journaliste: Henri answers a question that uses the right word, else a nudge (journalistReply.ts).
+  // L'interview with a fact sheet: Henri's short line after each answer.
   const respond = active === 'journalist'
     ? (i: number, text: string) => {
         const target = lvl.journalist.targets[i];
@@ -210,7 +223,12 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
         }
         return outcome.response;
       }
-    : undefined;
+    : turns.some(t => t.reaction)
+      ? (i: number) => {
+          const r = turns[i].reaction;
+          return r ? { kind: 'reaction' as const, fr: r.fr, en: r.en } : null;
+        }
+      : undefined;
 
   const setLevel = (l: NewsLevelId) => {
     setLevelState(l);
@@ -248,7 +266,7 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
     let xp = 0;
     let replay = false;
     if (isFeatured && answered > 0) {
-      const score = showScore(intoxRight ?? false, answered, SEGMENT_INFO[active].turns);
+      const score = showScore(intoxRight ?? false, answered, turns.length);
       const first = earnsXp(getSessionHistory(), contentId);
       replay = !first;
       const session: Session = {
@@ -330,6 +348,11 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
   const activeInfo = SEGMENT_INFO[active];
   const answered = result ? result.answers.filter(a => a.text.trim()).length : 0;
   const story = result ? wordsUsed(lvl.glossary, result.answers.map(a => a.text)) : [];
+  // Each fix under the answer it quotes (daily-news §8); the rest stay in the overall feedback.
+  const placed = result?.feedback
+    ? placeFixes(selectCoachFixes(result.feedback).filter((p): p is Fix => p.kind === 'fix'), result.answers.map(a => a.text))
+    : { byAnswer: [], unplaced: [] };
+  const placedCount = placed.byAnswer.reduce((n, f) => n + f.length, 0);
 
   return (
     <>
@@ -489,6 +512,11 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
                 <SegmentHowTo segment={active} lvl={lvl} />
               </p>
             </motion.section>
+            {active === 'interview' && lvl.interview.factSheet && (
+              <motion.div variants={item}>
+                <FactSheet facts={lvl.interview.factSheet} level={level} />
+              </motion.div>
+            )}
             <motion.div variants={item}>
               <SegmentTurns key={`${active}-${level}`} prompts={turns} respond={respond} onDone={answers => void finishSegment(answers)} />
             </motion.div>
@@ -533,7 +561,7 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
 
               {answered > 0 && (
                 <div className="mt-6">
-                  {result.feedback && <NewsCoachFeedback feedback={result.feedback} transcript={result.answers.map(a => a.text).filter(Boolean).join(' ')} />}
+                  {result.feedback && <NewsCoachFeedback feedback={result.feedback} unplaced={placed.unplaced} placedCount={placedCount} />}
                   {result.feedbackFailed && (
                     <p role="status" className="rounded-control bg-reward-soft px-4 py-3 text-body-s text-reward-text" data-testid="news-feedback-unavailable">
                       Feedback on your French isn’t available right now (you may be offline or signed out). Your answers and the model answers are below.
@@ -567,7 +595,7 @@ function NewsEditionScreen({ day, today }: { day: string; today: string }) {
             <motion.section variants={item} className={cardClass} aria-labelledby="news-answers">
               <h2 id="news-answers" className="text-label text-ink">Your answers</h2>
               <div className="mt-4">
-                <YourAnswers turns={turns} answers={result.answers} />
+                <YourAnswers turns={turns} answers={result.answers} fixesByAnswer={placed.byAnswer} />
               </div>
             </motion.section>
 

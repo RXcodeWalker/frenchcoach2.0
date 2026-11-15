@@ -7,6 +7,7 @@
  */
 import { phraseOccurs } from '../../features/news/newsMatch';
 import { checkJournalistQuestion } from '../../features/news/show/journalistCheck';
+import { factUsed, showsHabit, type Habit } from '../../features/news/show/answerReview';
 import { TOPICS } from '../topics';
 import {
   NEWS_LEVELS,
@@ -91,7 +92,8 @@ function lintLevel(id: NewsLevelId, level: NewsLevel | undefined, push: (i: Omit
     ...level.glossary.map(g => g.fr),
     level.fake.fr,
     level.interview.role.fr,
-    ...level.interview.questions.flatMap(q => [q.fr, q.model, ...q.starters]),
+    ...level.interview.questions.flatMap(q => [q.fr, q.model, ...q.starters, ...(q.reaction ? [q.reaction.fr] : [])]),
+    ...(level.interview.factSheet ?? []).flatMap(f => [f.note, ...f.keywords]),
     level.debate.motion.fr,
     level.debate.for.model,
     level.debate.against.model,
@@ -134,6 +136,49 @@ function startersOk(starters: readonly string[]): boolean {
   return starters.length >= 2 && starters.length <= 3 && starters.every(x => x.trim().length > 0);
 }
 
+/** An interview with a fact sheet has this many questions (daily-news §7). */
+export const FACT_SHEET_QUESTIONS = 5;
+
+const HABIT_OF: Partial<Record<string, Habit>> = { past: 'past', future: 'future', opinion: 'reason' };
+
+/**
+ * L'interview's fact sheet (daily-news §7): 8–10 facts, at least three
+ * questions that each need one (and whose model uses it), a last question that
+ * asks the learner's own view, and Henri's short line after every answer.
+ * Each model answer must pass the very checks the learner's answer gets.
+ */
+function lintFactSheet(level: NewsLevel, err: (code: string, message: string) => void) {
+  const { factSheet: sheet, questions } = level.interview;
+  if (!sheet) {
+    if (questions.some(q => q.fact || q.reaction)) err('fact-without-sheet', 'interview questions name facts or reactions but there is no fact sheet');
+    return;
+  }
+  if (sheet.length < 8 || sheet.length > 10) err('fact-sheet-count', `${sheet.length} facts; a fact sheet needs 8–10`);
+  const ids = new Set<string>();
+  sheet.forEach((f, i) => {
+    if (!ID_RE.test(f.id)) err('fact-id', `fact ${i} id « ${f.id} » must be kebab-case`);
+    if (ids.has(f.id)) err('fact-id', `fact id ${f.id} repeats`);
+    ids.add(f.id);
+    if (!nonEmpty(f.label, f.note)) err('fact-empty', `fact ${f.id} has an empty label or note`);
+    if (f.keywords.length === 0 || !nonEmpty(...f.keywords)) err('fact-keywords', `fact ${f.id} needs at least one keyword`);
+  });
+  const bound = questions.filter(q => q.fact);
+  if (bound.length < 3) err('fact-questions', `${bound.length} questions use the fact sheet; needs at least 3`);
+  const last = questions[questions.length - 1];
+  if (last && (last.fact || last.kind !== 'opinion')) err('fact-last-question', "the last question asks the learner's own view: kind 'opinion', no fact");
+  questions.forEach((q, i) => {
+    if (!q.reaction || !nonEmpty(q.reaction.fr, q.reaction.en)) err('fact-reaction', `question ${i} needs Henri's reaction`);
+    else if (wordCount(q.reaction.fr) > 10) err('fact-reaction', `question ${i}: Henri's reaction is ${wordCount(q.reaction.fr)} words; keep it to 10`);
+    if (q.fact) {
+      const fact = sheet.find(f => f.id === q.fact);
+      if (!fact) err('fact-unknown', `question ${i} needs fact « ${q.fact} », which is not on the sheet`);
+      else if (!factUsed(fact, q.model)) err('fact-not-in-model', `question ${i}'s model does not use fact « ${fact.id} » (no keyword heard)`);
+    }
+    const habit = HABIT_OF[q.kind];
+    if (habit && !showsHabit(habit, q.model)) err('model-habit', `question ${i} (${q.kind}) model does not show ${habit === 'reason' ? 'a reason' : `the ${habit}`}`);
+  });
+}
+
 /** The show's segments for one level (daily-news §7). */
 function lintSegments(id: NewsLevelId, level: NewsLevel, err: (code: string, message: string) => void) {
   const n = level.sentences.length;
@@ -150,7 +195,11 @@ function lintSegments(id: NewsLevelId, level: NewsLevel, err: (code: string, mes
 
   const { interview } = level;
   if (!nonEmpty(interview.role.fr, interview.role.en)) err('interview-role', 'interview role is empty');
-  if (interview.questions.length !== 3) err('interview-count', `${interview.questions.length} interview questions; needs 3`);
+  const wanted = interview.factSheet ? FACT_SHEET_QUESTIONS : 3;
+  if (interview.questions.length !== wanted) {
+    err('interview-count', `${interview.questions.length} interview questions; needs ${wanted}${interview.factSheet ? ' with a fact sheet' : ''}`);
+  }
+  lintFactSheet(level, err);
   interview.questions.forEach((q, i) => {
     if (!nonEmpty(q.fr, q.en, q.model)) err('interview-empty', `interview question ${i} has an empty field`);
     // A question, or an imperative prompt (« Racontez-nous… »).

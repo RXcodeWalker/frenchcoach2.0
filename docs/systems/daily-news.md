@@ -70,10 +70,12 @@ feature that is not topic-marked. It was rebuilt as the show described here.
    counts), then sees the fake line struck through beside the real one, with ▶ for the real one.
 3. **Today's segment** (§7), recorded turn by turn (`SegmentTurns`): Henri asks each prompt, the
    learner records, sees what was heard, then says it again or moves on. A turn can be skipped.
-   In Le journaliste the learner asks and Henri answers (or nudges) before they move on.
+   In Le journaliste the learner asks and Henri answers (or nudges) before they move on; in an
+   interview with a fact sheet the sheet sits above the turns and Henri reacts to each answer.
 4. **Review.** Feedback with no marks (§8); "Story words you used" (the glossary words the learner
-   reused, matched deterministically by `newsMatch.ts`); every prompt with what the learner said
-   (▶ their own recording, local only) beside a model answer; Henri's guess after Et après ?; the
+   reused, matched deterministically by `newsMatch.ts`); **answer by answer**, every prompt with what
+   the learner said (▶ their own recording, local only), its exam-habit checks, its own fixes and
+   "Say it better", and a model answer (§8); Henri's guess after Et après ?; the
    story's links (§11); the story's other segments as practice; "Start the show again", a harder
    level, Done.
 
@@ -152,6 +154,18 @@ The other three are open as practice from the review ("More from this story").
   (`describe` / `past` / `future` / `opinion`), 2–3 French starters and a model answer in role.
   Lint: 3 prompts ending « ? » (or « . » for « Racontez-nous… »); at least one `past` at every
   level and one `future` at B1/B2 — the exam's tenses.
+  - **With a fact sheet** (`interview.factSheet`, pilot since 2026-11-15 on `bees-on-roofs`,
+    `night-train` and `teen-chef`; owner idea, so the interview uses the story instead of letting
+    the learner invent everything): 8–10 facts in role (`id`, an English `label`, the `note`, and
+    French `keywords` that show an answer used it), shown above the turns (`show/FactSheet.tsx`).
+    Notes, never sentences to read out: English at A2 (the learner says it in French), French
+    notes at B1/B2 (the learner builds the sentence, in the right tense: « début : 2019 » →
+    « on a commencé en 2019 »). Five questions: at least three name a `fact`, the last is
+    `opinion` with no fact (the learner's own view). Each has Henri's `reaction` (recorded, ≤ 10
+    words), said after the answer — it **never repeats a fact**, because the learner may not have
+    said it. Lint: every model uses its fact (the learner's own check) and shows its question's
+    habit (past / future / a reason). The other stories keep three questions until the pilot is
+    judged.
 - **Pour ou contre** (`debate`): the story's issue as a question (`motion`, ending « ? »); the
   learner argues for, then against, each with 2–3 starters and a model. Henri asks the motion once.
 - **Le journaliste, c'est toi** (`journalist`, in `segments/reporter*.ts`): the learner is the
@@ -183,10 +197,19 @@ The other three are open as practice from the review ("More from this story").
   characters); the answers are joined into one transcript, so every quote the feedback filter
   keeps is the learner's own. No audio is sent (several turns; the backend would re-transcribe
   only one). **No backend change** was needed.
-- `show/NewsCoachFeedback.tsx` shows the opening line, What worked, the first two fixes
-  (`coachPoints.ts`'s `whatWorkedGroup` / `selectCoachFixes`, through `FeedbackPointList`) and
-  "Say it better" (`BeforeAfterDiff`). **It never reads `scores` or `cefrLevel`**: no number,
+- **Answer by answer** (owner report 2026-11-15: one block over the joined answers read as random).
+  `show/answerReview.ts` (pure) places each fix (`selectCoachFixes`) under the answer whose text
+  holds its quote; "Say it better" is that answer with its own fixes applied (the model's whole
+  `improved_answer` is not shown, since it merges every answer). A fix whose quote spans answers
+  stays in the overall block.
+- `show/NewsCoachFeedback.tsx` (the overall block) shows the opening line, What worked
+  (`whatWorkedGroup`) and any unplaced fix. **It never reads `scores` or `cefrLevel`**: no number,
   criterion or level is shown (a screen test fails on a digit, "/10" or a CEFR label in it).
+- **Exam habits** under each answer (`answerChecks`, deterministic, no AI): the fact the question
+  needed (and any extra fact used), the tense the prompt asks for (`past`, `future` or
+  conditional) or a reason for an opinion (`diagnosticEngine.ts`'s `findMarker`, quoting what was
+  heard), and "say a bit more" under 8 words. The markers are reliable when present, not when
+  absent, so a miss is a suggestion with a starter, never "you didn't".
 - If feedback fails (offline, signed out, quota), Review says so and still shows the answers and
   the model answers.
 

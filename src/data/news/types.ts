@@ -83,13 +83,48 @@ export interface NewsInterviewQuestion extends NewsPrompt {
   starters: string[];
   /** A short model answer, in role. */
   model: string;
+  /** With a fact sheet: the id of the fact this question needs (the model must use it). */
+  fact?: string;
+  /**
+   * With a fact sheet: Henri's short line once the learner has answered
+   * (recorded). It never repeats a fact, because the learner may not have said it.
+   */
+  reaction?: NewsPrompt;
 }
 
-/** « L'interview » (daily-news §7): the learner is someone in the story; Henri, the journalist, asks three questions. */
+/**
+ * One line of the interview's fact sheet (daily-news §7): the learner's own
+ * notes, in role. Written as notes, never as a sentence to read out: English at
+ * A2 (the learner says it in French), French notes at B1/B2 (the learner turns
+ * them into sentences, in the right tense).
+ */
+export interface NewsFact {
+  /** Stable within the level, kebab-case: `hives`. */
+  id: string;
+  /** A short English label: « The hives ». */
+  label: string;
+  /** What the sheet says: « 3 hives on the roof » / « 3 ruches – toit de l'hôtel ». */
+  note: string;
+  /**
+   * French words that show an answer used this fact; any one counts
+   * (newsMatch's phraseOccurs: accents and case ignored, digits read as words,
+   * a trailing `*` matches any ending).
+   */
+  keywords: string[];
+}
+
+/**
+ * « L'interview » (daily-news §7): the learner is someone in the story; Henri,
+ * the journalist, asks the questions. Without a fact sheet, three questions;
+ * with one (the pilot, owner 2026-11-15), five: most need a fact from the
+ * sheet, the last asks the learner's own view.
+ */
 export interface NewsInterview {
   /** Who the learner plays, second person: « Tu es Léa, 14 ans, … ». */
   role: NewsPrompt;
   questions: NewsInterviewQuestion[];
+  /** The learner's notes for the interview, 8–10 facts. */
+  factSheet?: NewsFact[];
 }
 
 export interface NewsDebateSide {

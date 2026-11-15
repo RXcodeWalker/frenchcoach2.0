@@ -15,6 +15,8 @@ import { checkJournalistQuestion } from './journalistCheck';
 
 export type TurnResponse =
   | { kind: 'reply'; lead: string; fr: string; en: string }
+  /** L'interview with a fact sheet: Henri's short line before the next question. */
+  | { kind: 'reaction'; fr: string; en: string }
   | { kind: 'nudge'; message: string };
 
 export interface JournalistOutcome {

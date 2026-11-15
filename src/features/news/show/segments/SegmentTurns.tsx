@@ -33,7 +33,8 @@ interface Props {
   onDone: (answers: TurnAnswer[]) => void;
   /**
    * Optional reaction to what was heard, before the learner moves on: Henri's
-   * reply, or a nudge to ask again (Le journaliste, daily-news §7).
+   * reply or a nudge to ask again (Le journaliste), or his short line before
+   * the next question (L'interview with a fact sheet) — daily-news §7.
    */
   respond?: (index: number, text: string) => TurnResponse | null;
 }
@@ -67,11 +68,13 @@ export function SegmentTurns({ prompts, onDone, respond }: Props) {
     void TTS.speak(prompt.fr, { recorded: true, rate: 0.9 });
   }, [prompt]);
 
-  // Henri answers a question once, as his reply appears (static authored French, recorded).
+  // Henri answers a question (or reacts to an answer) once, as his line appears (static authored French, recorded).
   const reply = pending?.response?.kind === 'reply' ? pending.response : null;
+  const reaction = pending?.response?.kind === 'reaction' ? pending.response : null;
+  const henriLine = reply ?? reaction;
   useEffect(() => {
-    if (reply) void TTS.speak(reply.fr, { recorded: true, rate: 0.9 });
-  }, [reply]);
+    if (henriLine) void TTS.speak(henriLine.fr, { recorded: true, rate: 0.9 });
+  }, [henriLine]);
 
   // The mic never records over Henri's voice.
   useEffect(() => {
@@ -160,6 +163,16 @@ export function SegmentTurns({ prompts, onDone, respond }: Props) {
                   <p lang="fr" className="text-body-s text-ink">{reply.fr}</p>
                   <p className="mt-0.5 text-caption text-ink-muted">{reply.en}</p>
                 </div>
+              </div>
+            </div>
+          )}
+          {reaction && (
+            <div className="mt-4 flex items-center gap-3 rounded-control bg-surface-recessed p-4" data-testid="news-turn-reaction">
+              <PlayIconButton play={() => TTS.speak(reaction.fr, { recorded: true, rate: 0.9 })} label="Hear Henri again" size={16} />
+              <div className="min-w-0">
+                <p className="text-caption text-ink-subtle">Henri</p>
+                <p lang="fr" className="text-body-s text-ink">{reaction.fr}</p>
+                <p className="mt-0.5 text-caption text-ink-muted">{reaction.en}</p>
               </div>
             </div>
           )}

@@ -15,7 +15,16 @@ const playSentence = vi.hoisted(() => vi.fn());
 const transcript = vi.hoisted(() => ({ value: '' }));
 const track = vi.hoisted(() => vi.fn());
 const detective = vi.hoisted(() => ({ status: 'coming-soon' as 'live' | 'coming-soon' }));
+const forced = vi.hoisted(() => ({ id: null as string | null }));
 
+vi.mock('../../data/news/rotation', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../data/news/rotation')>();
+  return {
+    ...actual,
+    editionForDay: (...args: Parameters<typeof actual.editionForDay>) =>
+      (forced.id && args[1].find(e => e.id === forced.id)) || actual.editionForDay(...args),
+  };
+});
 vi.mock('../../components/TopContextBar', () => ({
   TopContextBar: ({ subtitle }: { subtitle?: string }) => <header data-testid="subtitle">{subtitle}</header>,
 }));
@@ -47,7 +56,10 @@ vi.mock('../../services/progression/progressionService', () => ({
   getProgressionState: () => ({ level: { name: 'Débutant' } }),
 }));
 vi.mock('../../services/coach/sessionOrchestrator', () => ({ observeAttempt: vi.fn() }));
-vi.mock('../../services/coaching/diagnosticEngine', () => ({ getSkillProfile: () => ({}) }));
+vi.mock('../../services/coaching/diagnosticEngine', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../services/coaching/diagnosticEngine')>()),
+  getSkillProfile: () => ({}),
+}));
 vi.mock('../../services/coach/achievementContextBuilder', () => ({ buildAchievementContext: () => ({}) }));
 vi.mock('../../services/telemetry/telemetryService', () => ({ track }));
 vi.mock('../../services/tts/ttsService', () => ({ TTS: { speak: vi.fn(async () => {}), stop: vi.fn() } }));
@@ -62,6 +74,7 @@ vi.mock('../../config/featureFlags', async (importOriginal) => {
 
 import { DailyNewsFlash } from '../DailyNewsFlash';
 import { SEGMENT_INFO, SEGMENT_ORDER, featuredSegment, type SegmentId } from '../../features/news/show/showPlan';
+import { segmentTurns } from '../../features/news/show/segmentPrompts';
 import { questionWord } from '../../data/questionWords/words';
 
 const today = localDay();
@@ -69,6 +82,7 @@ const edition = editionForDay(today, NEWS_EDITIONS);
 const b1 = edition.levels.b1;
 const featured = featuredSegment(today);
 const answer = `${b1.glossary[0].fr} : je pense que c'est une très bonne idée.`;
+const turnCount = (segment: SegmentId) => segmentTurns(b1, segment).length;
 
 beforeEach(() => {
   localStorage.clear();
@@ -76,6 +90,7 @@ beforeEach(() => {
   broadcastState.listened = true;
   transcript.value = answer;
   detective.status = 'coming-soon';
+  forced.id = null;
   getAIFeedback.mockResolvedValue({
     scores: { overall: 7, communication: 7, language: 7, fluency: 7 },
     cefrLevel: 'B1',
@@ -120,7 +135,7 @@ async function answerTurns(count: number) {
 
 async function runShow() {
   playIntox();
-  await answerTurns(SEGMENT_INFO[featured].turns);
+  await answerTurns(turnCount(featured));
 }
 
 /** Finish today's show, then open a segment again: practice when it isn't today's, a replay when it is. */
@@ -169,7 +184,7 @@ describe('DailyNewsFlash — the news show', () => {
     expect(screen.getByTestId('news-xp').textContent).toContain('+25');
     expect(track).toHaveBeenCalledWith({
       name: 'news_segment_completed',
-      props: { segment: featured, level: 'b1', featured: true, answered: SEGMENT_INFO[featured].turns },
+      props: { segment: featured, level: 'b1', featured: true, answered: turnCount(featured) },
     });
 
     fireEvent.click(screen.getByTestId('news-retry'));
@@ -184,7 +199,7 @@ describe('DailyNewsFlash — the news show', () => {
     await runShow();
     const other = SEGMENT_ORDER.find(s => s !== featured)!;
     fireEvent.click(screen.getByTestId(`news-practice-${other}`));
-    await answerTurns(SEGMENT_INFO[other].turns);
+    await answerTurns(turnCount(other));
     expect(awardXP).toHaveBeenCalledTimes(1);
     expect(dispatch.mock.calls.filter(([a]) => a.type === 'ADD_SESSION')).toHaveLength(1);
     expect(screen.getByTestId('news-practice-run')).toBeTruthy();
@@ -242,6 +257,46 @@ describe('DailyNewsFlash — the news show', () => {
     const guess = screen.getByTestId('news-henri-guess');
     expect(guess.textContent).toContain(b1.predict.henri.fr);
     expect(guess.textContent).toContain('guess');
+  });
+
+  it("L'interview with a fact sheet: the sheet is shown, Henri reacts, and each fix sits under its own answer", async () => {
+    forced.id = 'bees-on-roofs';
+    const lvl = NEWS_EDITIONS.find(e => e.id === 'bees-on-roofs')!.levels.b1;
+    const qs = lvl.interview.questions;
+    const first = "Je viens le lundi matin et j'ouvre les ruches avec ma combinaison.";
+    getAIFeedback.mockResolvedValue({
+      scores: { overall: 7 }, cefrLevel: 'B1', vocabulary: [], style: [], fillers: [], wordCount: 40,
+      grammar: { critical: [{ quote: 'je viens le lundi', correction: 'je viens chaque lundi', severity: 'major' }], polish: [] },
+      encouragement: 'Tu réponds bien dans ton rôle.',
+      strengths: [{ quote: "j'ouvre les ruches", why: 'Clear description.' }],
+      improved_answer: 'whole thing',
+    });
+    renderScreen();
+    fireEvent.click(screen.getByTestId('news-start'));
+    fireEvent.click(screen.getByTestId(`news-intox-option-${lvl.fake.answer}`));
+    fireEvent.click(screen.getByTestId('news-intox-done'));
+    if (featured !== 'interview') {
+      await answerTurns(segmentTurns(lvl, featured).length);
+      fireEvent.click(screen.getByTestId('news-practice-interview'));
+    }
+
+    expect(screen.getByTestId('news-fact-sheet').textContent).toContain(lvl.interview.factSheet![0].note);
+    transcript.value = first;
+    fireEvent.click(await screen.findByText('stop recording'));
+    expect((await screen.findByTestId('news-turn-reaction')).textContent).toContain(qs[0].reaction!.fr);
+    fireEvent.click(screen.getByTestId('news-turn-next'));
+    transcript.value = answer;
+    await answerTurns(qs.length - 1);
+
+    const a0 = screen.getByTestId('news-answer-0');
+    expect(a0.textContent).toContain('je viens chaque lundi');
+    expect(screen.getByTestId('news-say-better').textContent).toContain('chaque lundi matin');
+    expect(a0.querySelector('[data-testid="news-check-fact"]')!.getAttribute('data-met')).toBe('true');
+    expect(screen.getByTestId('news-answer-1').querySelector('[data-testid="news-answer-fixes"]')).toBeNull();
+    const overall = screen.getByTestId('news-coach-feedback').textContent ?? '';
+    expect(overall).toContain('under each answer');
+    expect(overall).not.toContain('je viens chaque lundi');
+    expect(overall).not.toMatch(/\d|B1|\/10/);
   });
 
   it('feedback shows what worked and a better version, never a mark, score or level', async () => {

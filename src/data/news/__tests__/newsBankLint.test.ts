@@ -44,6 +44,25 @@ describe('news bank lint', () => {
     expect(codes).toEqual(expect.arrayContaining(['journalist-word', 'journalist-words', 'predict-henri']));
   });
 
+  it('holds a fact-sheet interview to its rules: five questions, models that use their fact and show their tense, a reaction each', () => {
+    const broken: NewsEdition = structuredClone(NEWS_EDITIONS.find(e => e.id === 'bees-on-roofs')!) as NewsEdition;
+    broken.id = 'broken-sheet';
+    const { interview } = broken.levels.b1;
+    expect(interview.factSheet).toBeDefined();
+    interview.questions[0].model = 'Je monte sur le toit et je regarde les abeilles.'; // the visits fact is not in it
+    interview.questions[2].model = 'Un essaim se pose sur un balcon.'; // past question, no past tense
+    interview.questions[3].fact = 'no-such-fact';
+    delete interview.questions[1].reaction;
+    interview.factSheet = interview.factSheet!.slice(0, 5);
+    const codes = lintNewsBank([broken]).filter(i => i.severity === 'error').map(i => i.code);
+    expect(codes).toEqual(expect.arrayContaining(['fact-not-in-model', 'model-habit', 'fact-unknown', 'fact-reaction', 'fact-sheet-count']));
+
+    const short: NewsEdition = structuredClone(NEWS_EDITIONS.find(e => e.id === 'bees-on-roofs')!) as NewsEdition;
+    short.id = 'short-sheet';
+    short.levels.a2.interview.questions = short.levels.a2.interview.questions.slice(1);
+    expect(lintNewsBank([short]).map(i => i.code)).toContain('interview-count');
+  });
+
   it('lists unreviewed editions as warnings, never errors', () => {
     const issues = lintNewsBank(NEWS_EDITIONS).filter(i => i.code === 'unreviewed');
     expect(issues.every(i => i.severity === 'warning')).toBe(true);

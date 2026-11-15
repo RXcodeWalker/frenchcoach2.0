@@ -26,12 +26,15 @@ export function segmentQuestion(edition: NewsEdition, level: NewsLevelId, segmen
     keyVocab: lvl.glossary.map(g => ({ fr: g.fr, en: g.en })),
   };
   if (segment === 'interview') {
-    const qs = lvl.interview.questions;
+    const { questions: qs, factSheet } = lvl.interview;
+    const sheet = factSheet
+      ? ` L'élève a une fiche de notes (${level === 'a2' ? 'en anglais' : 'en français'}) : ${factSheet.map(f => `${f.label} : ${f.note}`).join(' ; ')}. Il doit utiliser ces faits pour répondre, sauf à la dernière question, qui demande son avis.`
+      : ' Il peut inventer des détails.';
     return {
       ...base,
-      text: `Interview en rôle, à partir de l'actualité « ${lvl.headline} ». ${lvl.interview.role.fr} Un journaliste pose trois questions : ${qs
+      text: `Interview en rôle, à partir de l'actualité « ${lvl.headline} ». ${lvl.interview.role.fr} Un journaliste pose ${qs.length} questions : ${qs
         .map((q, i) => `${i + 1}) ${q.fr}`)
-        .join(' ')} L'élève répond aux trois questions dans son rôle et peut inventer des détails.`,
+        .join(' ')} L'élève répond aux ${qs.length} questions dans son rôle, une réponse après l'autre.${sheet}`,
       hint: 'Réponds dans ton rôle, avec des détails, au présent, au passé et au futur.',
       followUps: qs.map(q => q.fr),
       modelAnswer: qs.map(q => q.model).join(' '),

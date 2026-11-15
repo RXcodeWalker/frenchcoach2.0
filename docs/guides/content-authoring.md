@@ -356,6 +356,13 @@ the same id, in `src/data/news/segments/`. For each level:
   person), and three prompts a journalist would ask: one that describes, one in the past, and at
   B1/B2 one about the future (A2's third may be an opinion). Model answers stay in role, at the
   level, with one invented detail, and within the word limit.
+  - **With a fact sheet** (`factSheet`, daily-news §7; the pilot stories): 8–10 notes the role would
+    know, some beyond the story (a name, a date, a number, last year, next year), written as notes —
+    English at A2, French notes at B1/B2 — with French `keywords` the learner would say (a number
+    as digits is fine: « 50 » matches « cinquante »; a trailing `*` takes any ending). Five
+    questions: describe / past / … / future / a last `opinion` with no fact; at least three name the
+    fact they need, and each model must use it and show its tense. Henri's `reaction` after each
+    answer is short and never states a fact (« Quelle histoire ! », not « Cinquante kilos ! »).
 - **`debate`**: a yes/no question the story raises that a teenager can argue either way, starters
   for each side, and a short model for each.
 - **`examArea`** (A–E) and, where one fits, a core Learn `learnTopic`.
@@ -373,4 +380,4 @@ the same id, in `src/data/news/segments/`. For each level:
 
 Set `reviewed: true` only after a French speaker has checked every level *and its segments*, and run
 "Record voices" after adding or editing a story or a segment (Henri speaks the fake sentence, the
-prompts, his journalist answers and his guess).
+prompts, his reactions, his journalist answers and his guess).
