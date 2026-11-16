@@ -52,6 +52,7 @@ export type GuardianActionErrorCode =
   | 'relationship_required'
   | 'invalid_or_used_token'
   | 'no_active_consent'
+  | 'own_consent'
   | 'network_error'
   | 'unknown';
 
@@ -69,6 +70,7 @@ const GUARDIAN_KNOWN_CODES: GuardianActionErrorCode[] = [
   'relationship_required',
   'invalid_or_used_token',
   'no_active_consent',
+  'own_consent',
 ];
 
 function mapGuardianRpcError(message: string): GuardianActionError {

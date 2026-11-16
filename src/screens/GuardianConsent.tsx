@@ -32,10 +32,13 @@ export function GuardianConsent() {
       await grantGuardianConsent(token, relationship);
       setGranted(true);
     } catch (err) {
+      const code = err instanceof GuardianActionError ? err.code : null;
       setError(
-        err instanceof GuardianActionError && err.code === 'invalid_or_used_token'
+        code === 'invalid_or_used_token'
           ? 'This link has already been used or has expired. Ask your child to send a new one from their account.'
-          : 'Something went wrong. Try again, or ask your child to send a new link.',
+          : code === 'own_consent'
+            ? "Your child's account is signed in on this device, so this can't count as your confirmation. Open the link on your own phone or computer, or sign their account out here first."
+            : 'Something went wrong. Try again, or ask your child to send a new link.',
       );
     } finally {
       setSubmitting(false);
