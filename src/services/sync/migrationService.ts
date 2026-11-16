@@ -53,9 +53,11 @@ export async function markMigrationComplete(userId: string): Promise<void> {
 
   if (supabaseConfigured) {
     try {
+      // An UPDATE, never an upsert: clients have no INSERT on profiles (F1).
       await supabase
         .from('profiles')
-        .upsert({ id: userId, migration_version: CURRENT_MIGRATION_VERSION }, { onConflict: 'id' });
+        .update({ migration_version: CURRENT_MIGRATION_VERSION })
+        .eq('id', userId);
     } catch (err) {
       console.warn('[migrationService] failed to write migration_version to cloud:', err);
     }

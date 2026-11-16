@@ -43,13 +43,12 @@ export async function pushProgressionToCloud(
     // xpLedger). Sending total_xp here would 42501 the whole upsert.
     // achievements stays client-written for now (no server derivation exists —
     // known accepted risk, carried unchanged from before 1.3).
-    const { error } = await supabase.from('profiles').upsert(
-      {
-        id: userId,
-        achievements: source.achievements,
-      },
-      { onConflict: 'id' }
-    );
+    // An UPDATE, never an upsert: clients have no INSERT on profiles (the signup
+    // trigger creates the row; security review 2026-11, F1).
+    const { error } = await supabase
+      .from('profiles')
+      .update({ achievements: source.achievements })
+      .eq('id', userId);
 
     if (error) {
       console.warn('[progressionSync] push failed:', error.message);

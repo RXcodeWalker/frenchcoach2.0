@@ -13,15 +13,15 @@ export async function pushProfileSettingsToCloud(
 ): Promise<void> {
   if (!supabaseConfigured) return;
   try {
-    const { error } = await supabase.from('profiles').upsert(
-      {
-        id: userId,
+    // An UPDATE, never an upsert: clients have no INSERT on profiles (F1).
+    const { error } = await supabase
+      .from('profiles')
+      .update({
         daily_goal: settings.dailyGoal,
         notify_streak: settings.notifyStreak,
         notify_daily_goal: settings.notifyDailyGoal,
-      },
-      { onConflict: 'id' }
-    );
+      })
+      .eq('id', userId);
     if (error) {
       console.warn('[profileSettingsSync] push failed:', error.message);
     }
