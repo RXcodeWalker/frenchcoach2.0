@@ -333,6 +333,10 @@ mint_gems(p_idempotency_key text, p_amount int, p_occurred_at timestamptz) RETUR
   - rolling cap: SUM(delta) for kind='earn' on that occurred_at::date < 450
     → over cap: insert nothing, return {ok:true, capped:true, balance}  (never an error;
       a legitimate user must never see a failure for practicing)
+  - server-day cap (security review 2026-11, F9): SUM(delta) for kind='earn' with created_at
+    today (server day) < 450 too, so backdating occurred_at cannot multiply the cap
+    → over it: insert nothing, RAISE 'daily_mint_limit'. The mint queue keeps the entry and
+      retries on a later flush (nothing shown to the learner), so a backlog drains at 450 a day
   - purchases (kind='purchase') are NOT counted toward the cap
 ```
 
@@ -449,7 +453,7 @@ Deterministic ids make re-running a no-op. Fully auditable in `gem_events`. **Or
 ### 14.7 Offline, guests, concurrency (concern 14)
 
 - **Purchases require auth + network.** Offline the Shop is fully browsable; buy buttons read "Reconnect to purchase". This is a real property of a monetizable currency and is shown, not hidden.
-- **Guests (A10):** no client-asserted grant. Guests browse and earn a *provisional local* balance. On sign-in, the existing `backfillXpEventsToCloud` uploads their `xp_events`, and mint runs over them under the same 450/day cap keyed on `occurred_at` — so a genuine guest keeps their earnings, and repeated-account-creation gains nothing beyond the cap.
+- **Guests (A10):** no client-asserted grant. Guests browse and earn a *provisional local* balance. On sign-in, the existing `backfillXpEventsToCloud` uploads their `xp_events`, and mint runs over them under the same 450/day cap keyed on `occurred_at` — so a genuine guest keeps their earnings, and repeated-account-creation gains nothing beyond the cap. Since F9 (security review 2026-11) the server's own day is capped at 450 as well, so a backlog larger than that mints over the following days (the queue retries `daily_mint_limit`) rather than all at once.
 - **No optimistic currency mutation.** Pending state shows immediately; the balance changes only when the RPC returns. Timeout → retry with the *same* key.
 - **Two tabs:** the existing `storage` listener in `AppContext` covers progression; add a balance refetch on `visibilitychange`.
 - **Two devices / simultaneous purchases / last-gem race:** serialized by the `FOR UPDATE` lock — one succeeds, the other gets `insufficient_gems`.
@@ -528,6 +532,7 @@ Flip `FEATURE_FLAGS.shop` to `live` only after §16 passes. Verify earn rate aga
 | 15 | `EXECUTE` on every RPC as `anon` / `PUBLIC` | Denied (A11 revoke) |
 | 16 | `\df+` on all four RPCs | Owner is `postgres`; `search_path` is set (B2) |
 | 17 | Post-migration smoke: privacy toggle, username rename, migration_version write | All still succeed (B1) |
+| 18 | `mint_gems` past 450 `earn` created on one server day, `occurred_at` spread over 30 days | Raises `daily_mint_limit`, inserts nothing; the queue retries later (F9, `backend/supabase/tests/plain_pg/security_2026_11_f9_gem_cap_test.sql`) |
 
 **Precondition (added during Phase 2 implementation, resolved in Phase 4):** between Phase 2 and Phase 4, `consumeStreakFreeze` was local-only (see the §15 Phase 4 deferral note) and could not demonstrate the server-backed, non-restorable-by-cloud-pull property test 5 below describes. As of Phase 4, `consumeItem` calls `consume_item` (fire-and-forget, per §14.4's amended row) so test 5 is unblocked — but it verifies server state directly (`user_inventory.qty`), not just the UI-visible streak count, since the client never awaits the RPC's confirmation.
 
