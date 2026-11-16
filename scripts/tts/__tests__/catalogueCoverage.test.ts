@@ -243,8 +243,8 @@ describe('recorded-voices catalogue coverage', () => {
       }
     }
     expect([...missing]).toEqual([]);
-    // wordPlayTexts re-reads the sentence for every word, so this walks ~4,000 sentences slowly.
-  }, 60_000);
+    // wordPlayTexts re-reads the sentence for every word, so this walks the whole bank slowly.
+  }, 120_000);
 
   it('catalogues the monthly-check benchmark sentences and every word the check can play (Stage 6)', () => {
     const missing = new Set<string>();
@@ -335,6 +335,7 @@ describe('recorded-voices catalogue coverage', () => {
   // 2026-11-16: the Nov 15 topic batches had already taken the catalogue to ~704k, past that guard, and
   // 40 shopping questions (sho_31–sho_70, ~14k) take it to ~718k. Guard raised to 730k so the check matches
   // the catalogue. A full re-record still takes more than one F0 month; a normal run records only missing lines.
+  // 2026-11-16: 40 sports questions (spo_61–spo_100, ~17k) take the catalogue to ~743k. Guard raised to 750k.
   it('keeps the recording budget under the owner-set guard', () => {
     const chars = CATALOGUE.reduce((n, l) => n + l.text.length, 0);
     expect(chars).toBeLessThan(BUDGET_LIMIT_CHARS);

@@ -38,7 +38,7 @@ export const RETRY_BACKOFF_MS = [5000, 15000, 45000] as const;
 // news show's spoken prompts (owner: record them over time); 545k → 560k the same day for the news show's
 // Phase 2 lines (journalist answers, Et après ?; catalogue ≈ 547k), on the same owner decision. See
 // catalogueCoverage.test.ts.
-export const BUDGET_LIMIT_CHARS = 730_000;
+export const BUDGET_LIMIT_CHARS = 750_000;
 export const MIN_AUDIO_BYTES = 1024;
 const LIST_PAGE_SIZE = 1000;
 const PROGRESS_EVERY = 25;
