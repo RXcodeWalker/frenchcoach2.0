@@ -171,7 +171,10 @@ export function ClassTeachersSection({ classId, className }: { classId: string; 
           </>
         }
       >
-        <p className="text-body-s text-ink-muted">{removing?.displayName} will stop seeing this class straight away.</p>
+        <p className="text-body-s text-ink-muted">
+          {removing?.displayName} will stop seeing this class straight away. The co-teacher code is turned off too, so
+          it can't be used to rejoin; make a new one to invite someone else.
+        </p>
       </Modal>
     </section>
   );
