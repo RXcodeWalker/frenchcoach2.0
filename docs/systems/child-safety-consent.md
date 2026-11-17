@@ -66,7 +66,12 @@ All `SECURITY DEFINER`, pinned `search_path`, standard `REVOKE ... FROM PUBLIC` 
   `invalid_or_used_token` if none matches (covers both "never existed" and
   "already used" — no distinction is leaked). On success, stamps
   `granted_at` + the guardian's stated relationship, and flips the child's
-  `consent_status` to `'granted'`.
+  `consent_status` to `'granted'`. Refuses `own_consent` when the caller is
+  the child the row is for (security review F3, migration `20261116090100`).
+  **Known gap:** because `request_guardian_consent` returns the raw token to
+  the child's browser, a child can still sign out (or use another account)
+  and present it; closing that means minting and emailing on the backend,
+  which removes the copy-link fallback — an owner decision, not yet taken.
 - **`revoke_guardian_consent(p_token)`** — `authenticated` and
   `anon`. The guardian presents the same email-link token that granted
   consent (matched by its sha256); a child id alone can no longer revoke
