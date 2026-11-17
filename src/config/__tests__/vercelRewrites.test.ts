@@ -40,3 +40,18 @@ describe('vercel.json rewrites cover every dynamic route', () => {
     for (const r of appRewrites) expect(shells.has(r.destination), `${r.source} → ${r.destination}`).toBe(true);
   });
 });
+
+// Security review F15: no other site may frame the app (clickjacking). The
+// Android app is a Trusted Web Activity, not a frame, so it is unaffected.
+describe('vercel.json forbids framing', () => {
+  it('sends frame-ancestors none on every path', () => {
+    const path = fileURLToPath(new URL('../../../vercel.json', import.meta.url));
+    const config = JSON.parse(readFileSync(path, 'utf-8')) as {
+      headers: { source: string; headers: { key: string; value: string }[] }[];
+    };
+    const all = config.headers.find((h) => h.source === '/(.*)');
+    expect(all, 'a "/(.*)" header block').toBeDefined();
+    const csp = all!.headers.find((h) => h.key === 'Content-Security-Policy');
+    expect(csp?.value).toContain("frame-ancestors 'none'");
+  });
+});
