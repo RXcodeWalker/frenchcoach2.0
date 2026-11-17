@@ -29,7 +29,8 @@ learner makes a private link in **Profile → Parent view**, and the parent open
 - **Effort and progress, not surveillance.** No recordings (never stored), transcripts,
   question text or saved answers reach the page: `get_parent_report` does not select them,
   and `parentView.privacy.test.ts` pins that, along with the page writing no app state,
-  storage, analytics or sound.
+  storage, analytics or sound. Each session's feedback highlight (`best_moment`) and next
+  step (`biggest_opportunity`) are shown, and may quote the learner (owner, 2026-11-17).
 - **The learner controls the link.** Only a sha256 of the token is stored; the raw link is
   shown once. The learner sees each link's last-opened date and view count and can turn it
   off (5 active links max). The token is in the URL **hash**, so it never reaches a server
