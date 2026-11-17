@@ -23,6 +23,7 @@ import {
   type PaymentProvider,
   type PremiumPlan,
 } from '../services/billing/billingClient';
+import { track } from '../services/telemetry/telemetryService';
 
 /**
  * Premium (docs/systems/payments.md, ADR 0014): a Stripe or Razorpay subscription that
@@ -125,7 +126,10 @@ export function Premium() {
     }
     if (result === 'success' && sessionId && user) {
       void syncCheckout(sessionId)
-        .then((r) => setNotice(r.premium ? "You're Premium now — your new limits apply straight away." : 'Payment received. Premium will switch on in a moment.'))
+        .then((r) => {
+          if (r.premium) track({ name: 'upgraded', props: { provider: 'stripe' } });
+          setNotice(r.premium ? "You're Premium now — your new limits apply straight away." : 'Payment received. Premium will switch on in a moment.');
+        })
         .catch(() => setNotice('Payment received. Premium will switch on in a moment.'))
         .finally(() => void refresh());
       return;
@@ -138,8 +142,10 @@ export function Premium() {
     setError(null);
     setNotice(null);
     if (activeProvider?.id === 'razorpay') {
+      track({ name: 'upgrade_started', props: { plan: shownPlan, provider: 'razorpay' } });
       try {
         const result = await startRazorpayCheckout(shownPlan);
+        if (result.premium) track({ name: 'upgraded', props: { provider: 'razorpay' } });
         setNotice(result.premium ? "You're Premium now — your new limits apply straight away." : 'Payment received. Premium will switch on in a moment.');
         await refresh();
       } catch (err) {
@@ -152,6 +158,8 @@ export function Premium() {
       setBusy(false);
       return;
     }
+    // The browser leaves for Stripe next, so send this one as a beacon.
+    track({ name: 'upgrade_started', props: { plan: shownPlan, provider: 'stripe' } }, { beacon: true });
     try {
       await startCheckout(shownPlan);
       // The browser is now leaving for Stripe; keep the button busy.

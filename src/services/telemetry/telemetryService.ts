@@ -463,6 +463,11 @@ interface NotificationOpenedProps {
   channel: 'push' | 'email';
 }
 
+interface PremiumPlanProps {
+  plan: 'monthly' | 'yearly';
+  provider: 'stripe' | 'razorpay';
+}
+
 export type TelemetryEvent =
   | { name: 'session_completed';       props: SessionCompletedProps }
   | { name: 'feedback_received';       props: FeedbackReceivedProps }
@@ -541,7 +546,9 @@ export type TelemetryEvent =
   | { name: 'teacher_mark_saved';      props: TeacherMarkSavedProps }
   | { name: 'class_exported';          props: NoProps }
   | { name: 'homework_opened';         props: HomeworkOpenedProps }
-  | { name: 'notification_opened';     props: NotificationOpenedProps };
+  | { name: 'notification_opened';     props: NotificationOpenedProps }
+  | { name: 'upgrade_started';         props: PremiumPlanProps }
+  | { name: 'upgraded';                props: Pick<PremiumPlanProps, 'provider'> };
 
 export type TelemetryEventName = TelemetryEvent['name'];
 type PropsOf<N extends TelemetryEventName> = Extract<TelemetryEvent, { name: N }>['props'];
@@ -630,6 +637,8 @@ const DECLARED_PROPS = {
   class_exported: [],
   homework_opened: ['kind'],
   notification_opened: ['campaign', 'channel'],
+  upgrade_started: ['plan', 'provider'],
+  upgraded: ['provider'],
 } as const satisfies { [N in TelemetryEventName]: readonly (keyof PropsOf<N> & string)[] };
 
 type UndeclaredProps = {
