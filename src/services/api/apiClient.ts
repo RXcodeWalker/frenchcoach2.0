@@ -93,8 +93,7 @@ async function authHeader(): Promise<Record<string, string>> {
 
 /**
  * For the endpoints that accept a guest while guest access is on
- * (verify_user_or_guest: /api/generate-scenario, /api/roleplay/turn, the
- * allowance reads). Signed in, the token is sent so the account's own limits
+ * (verify_user_or_guest: /api/generate-scenario and the allowance reads). Signed in, the token is sent so the account's own limits
  * apply; signed out, the header is simply omitted.
  */
 async function optionalAuthHeader(): Promise<Record<string, string>> {
