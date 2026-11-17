@@ -244,7 +244,7 @@ describe('recorded-voices catalogue coverage', () => {
     }
     expect([...missing]).toEqual([]);
     // wordPlayTexts re-reads the sentence for every word, so this walks the whole bank slowly.
-    // 1388 questions (emo_71–emo_100) no longer finish inside 120s.
+    // 1427 questions (env_62–env_100) no longer finish inside 120s.
   }, 180_000);
 
   it('catalogues the monthly-check benchmark sentences and every word the check can play (Stage 6)', () => {
@@ -338,6 +338,7 @@ describe('recorded-voices catalogue coverage', () => {
   // the catalogue. A full re-record still takes more than one F0 month; a normal run records only missing lines.
   // 2026-11-16: 40 sports questions (spo_61–spo_100, ~17k) take the catalogue to ~743k. Guard raised to 750k.
   // 2026-11-16: 30 emotions questions (emo_71–emo_100) take the catalogue to ~755k. Guard raised to 765k.
+  // 2026-11-17: 39 environment questions (env_62–env_100, ~19k) take the catalogue to ~774k. Guard raised to 785k.
   it('keeps the recording budget under the owner-set guard', () => {
     const chars = CATALOGUE.reduce((n, l) => n + l.text.length, 0);
     expect(chars).toBeLessThan(BUDGET_LIMIT_CHARS);
