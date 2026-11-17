@@ -19,6 +19,8 @@ on:
 jobs:
   notify:
     runs-on: ubuntu-latest
+    # Hourly job: a stuck run must end before the next one starts (F14).
+    timeout-minutes: 30
     strategy:
       matrix:
         notif-type: [daily_nudge, weekly_report]

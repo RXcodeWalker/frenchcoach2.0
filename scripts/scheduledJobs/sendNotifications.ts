@@ -118,6 +118,10 @@ async function recordRunAndGap(): Promise<number> {
 
 // ── daily nudge ───────────────────────────────────────────────────────────────
 
+// A push endpoint is a URL the learner's browser chose; a slow one must not
+// stall every other learner's nudge in this run (security review F14).
+export const PUSH_TIMEOUT_MS = 10_000;
+
 async function pushTo(c: DailyNudgeCandidate, nudge: Nudge): Promise<boolean> {
   const payload = JSON.stringify({
     title: nudge.title,
@@ -129,7 +133,7 @@ async function pushTo(c: DailyNudgeCandidate, nudge: Nudge): Promise<boolean> {
   let any = false;
   for (const sub of c.subscriptions ?? []) {
     try {
-      await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_key } }, payload, { TTL: 4 * 3600 });
+      await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_key } }, payload, { TTL: 4 * 3600, timeout: PUSH_TIMEOUT_MS });
       any = true;
     } catch (err) {
       const status = (err as { statusCode?: number }).statusCode;
