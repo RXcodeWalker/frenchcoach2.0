@@ -62,7 +62,6 @@ export const ROUTES: RouteEntry[] = [
   { path: '/accent-analyzer', kind: 'app', indexable: false },
   { path: '/listening-mode', kind: 'app', indexable: false },
   { path: '/study-groups', kind: 'app', indexable: false },
-  { path: '/weakness-analysis', kind: 'app', indexable: false },
   { path: '/fix/:skillId', kind: 'dynamic', indexable: false },
   { path: '/sentence-rebuilder', kind: 'app', indexable: false },
   { path: '/rapid-fire', kind: 'app', indexable: false },

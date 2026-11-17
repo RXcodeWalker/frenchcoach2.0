@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 import {
   AudioLines, Bot, Building2, CalendarDays, Dices, Ear, Flame, Gift,
   Handshake, Map, Medal, Mountain, Newspaper, Palmtree, Puzzle, 
-  Rocket, ScanSearch, Search, ShoppingBag, Smile, Sparkles, Swords, Target, Thermometer, Timer, Users, Wrench, Zap,
+  Rocket, ScanSearch, ShoppingBag, Smile, Sparkles, Swords, Target, Thermometer, Timer, Users, Wrench, Zap,
   Briefcase, CloudRain, Plane, Shield, ShoppingBasket, Stethoscope, Ticket,
 } from 'lucide-react';
 
@@ -22,7 +22,6 @@ const ICONS: Record<string, LucideIcon> = {
   scenario_arch: Building2,
   fluency_heat: Thermometer,
   sentence_rebuild: Puzzle,
-  weakness: Search,
   missions: CalendarDays,
   xp_shop: ShoppingBag,
   challenges: Swords,

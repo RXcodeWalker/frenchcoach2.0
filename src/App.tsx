@@ -60,7 +60,6 @@ import {
   DailyChallenge,
   League,
   DuelDetail,
-  WeaknessAnalysis,
   SentenceRebuilder,
   Onboarding,
   OnboardingPlacement,
@@ -366,7 +365,6 @@ function AppShell() {
               <League />
             </ComingSoonGate>
           } />
-          <Route path="/weakness-analysis" element={<WeaknessAnalysis />} />
           <Route path="/fix/:skillId" element={<FixDrill />} />
           <Route path="/sentence-rebuilder" element={
             <ComingSoonGate status={resolveFeatureStatus('sentenceRebuilder')} featureId="sentenceRebuilder" name="Sentence Rebuilder" description="Drag-and-drop grammar exercises to reinforce sentence structure." fallbackRoute="/learn" fallbackLabel="Practice Speaking">

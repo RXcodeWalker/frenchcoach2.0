@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Map, Lock, CheckCircle2, ChevronRight, Info, Target, Sparkles, AlertTriangle, Play } from 'lucide-react';
 import { ROADMAP_LEVELS, SKILL_INFO, evaluateRoadmap } from '../services/progression/roadmapService';
 import { getReport } from '../services/coaching/diagnosticEngine';
+import { hasMicroDrillForSkill } from '../services/coach/recurringGrammar';
 import { RoadmapData } from '../types';
 
 export function FrenchRoadmap() {
@@ -69,12 +70,15 @@ export function FrenchRoadmap() {
                 <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">AI Recovery Recommendation</h3>
                 <p className="text-xs text-ink-muted max-w-lg mt-1">
                   We've detected a trend in your <span className="text-white font-bold">{report.topWeaknesses?.[0]?.name}</span> mistakes.
-                  Diverting to <span className="text-violet-400 font-bold">Weakness Analysis</span> is recommended before proceeding to the next node.
+                  A short drill on it is recommended before proceeding to the next node.
                 </p>
               </div>
             </div>
-            <button 
-              onClick={() => navigate('/weakness-analysis')}
+            <button
+              onClick={() => {
+                const id = report.topWeaknesses?.[0]?.id ?? '';
+                navigate(hasMicroDrillForSkill(id) ? `/fix/${id}` : '/progress');
+              }}
               className="px-6 py-3 bg-violet-600 hover:bg-violet-500 text-white font-black rounded-xl text-[10px] uppercase italic tracking-wider transition-all whitespace-nowrap shadow-lg shadow-violet-600/20"
             >
               Start Recovery

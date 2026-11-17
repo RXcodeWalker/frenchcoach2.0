@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion';
-import { Flame } from 'lucide-react';
+import { ChevronRight, Flame } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { hasMicroDrillForSkill } from '../../services/coach/recurringGrammar';
 import { fadeUp, fill } from '../../components/motion/variants';
 import { CountUp } from '../../components/motion/CountUp';
 import { scoreFill } from '../../domain/scoring';
@@ -69,9 +71,16 @@ export function ConsistencyCard({ days, streakDays, weakSkills }: { days: Practi
           <h3 className="text-eyebrow uppercase text-ink-subtle">Grammar to work on</h3>
           {weakSkills.map(k => (
             <div key={k.id} className="flex flex-col gap-1.5">
-              <span className="flex justify-between gap-2 text-[14px] text-ink">
+              <span className="flex items-center justify-between gap-2 text-[14px] text-ink">
                 <span>{k.name}</span>
-                <span className="font-numeral text-ink-muted">{k.mastery}%</span>
+                <span className="flex items-center gap-3">
+                  {hasMicroDrillForSkill(k.id) && (
+                    <Link to={`/fix/${k.id}`} className="inline-flex items-center gap-0.5 text-[13px] font-medium text-action-text">
+                      Practise <ChevronRight size={14} aria-hidden="true" />
+                    </Link>
+                  )}
+                  <span className="font-numeral text-ink-muted">{k.mastery}%</span>
+                </span>
               </span>
               <span className="block h-1.5 overflow-hidden rounded-pill bg-track">
                 <motion.span

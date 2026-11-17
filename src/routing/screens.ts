@@ -37,7 +37,6 @@ export const Rankings = lazyScreen(() => import('../screens/Rankings'), 'Ranking
 export const DailyChallenge = lazyScreen(() => import('../screens/DailyChallenge'), 'DailyChallenge');
 export const League = lazyScreen(() => import('../screens/League'), 'League');
 export const DuelDetail = lazyScreen(() => import('../screens/DuelDetail'), 'DuelDetail');
-export const WeaknessAnalysis = lazyScreen(() => import('../screens/WeaknessAnalysis'), 'WeaknessAnalysis');
 export const SentenceRebuilder = lazyScreen(() => import('../screens/SentenceRebuilder'), 'SentenceRebuilder');
 export const Onboarding = lazyScreen(() => import('../screens/Onboarding'), 'Onboarding');
 export const OnboardingPlacement = lazyScreen(() => import('../screens/OnboardingPlacement'), 'OnboardingPlacement');
@@ -136,7 +135,6 @@ export const SCREEN_PATHS: ReadonlyArray<readonly [string, readonly AnyScreen[]]
   ['/daily-challenge', [DailyChallenge]],
   ['/league', [League]],
   ['/duel/:duelId', [DuelDetail]],
-  ['/weakness-analysis', [WeaknessAnalysis]],
   ['/sentence-rebuilder', [SentenceRebuilder]],
   ['/onboarding', [Onboarding]],
   ['/onboarding/placement', [OnboardingPlacement]],
