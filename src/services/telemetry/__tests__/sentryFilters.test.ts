@@ -6,8 +6,10 @@ import {
   redactUrl,
   resolveSentryEnvironment,
   stripEventSecrets,
+  stripTransactionSecrets,
   toReportableError,
 } from '../sentryFilters';
+import { sentryBrowserOptions } from '../telemetryService';
 import { AuthRequiredError } from '../../../lib/authToken';
 import { ConsentRequiredError } from '../../../lib/consentRequired';
 import { ApiHttpError, ExaminerQuotaExceededError, TranscribeHttpError, TranscribeTimeoutError } from '../../api/apiClient';
@@ -104,5 +106,44 @@ describe('stripEventSecrets', () => {
 
   it('leaves ordinary URLs alone', () => {
     expect(redactUrl('/api/questions/random?topic=school')).toBe('/api/questions/random?topic=school');
+    expect(redactUrl('/learn#top')).toBe('/learn#top');
+    expect(redactUrl('error #42 at /learn')).toBe('error #42 at /learn');
+  });
+
+  // Security review F13: the parent link's token is a bare hash.
+  it('removes a bare-hash token such as the parent link', () => {
+    const token = 'a'.repeat(64);
+    expect(redactUrl(`https://app.example/parent#${token}`)).toBe('https://app.example/parent#[Filtered]');
+    expect(redactUrl(`navigated to /parent#${token} ok`)).toBe('navigated to /parent#[Filtered] ok');
+  });
+});
+
+describe('stripTransactionSecrets (F13)', () => {
+  const token = 'b'.repeat(64);
+
+  it('redacts the request URL, span descriptions and span data of a trace', () => {
+    const event = stripTransactionSecrets({
+      transaction: `/parent#${token}`,
+      request: { url: `https://app.example/parent#${token}` },
+      spans: [
+        { description: 'GET https://app.example/guardian-consent?token=secret', data: { url: '/unsubscribe?token=abc' } },
+      ],
+      contexts: { trace: { data: { 'http.url': `https://app.example/parent#${token}` } } },
+    });
+    expect(event.transaction).toBe('/parent#[Filtered]');
+    expect(event.request?.url).toBe('https://app.example/parent#[Filtered]');
+    expect(event.spans?.[0].description).toBe('GET https://app.example/guardian-consent?token=[Filtered]');
+    expect(event.spans?.[0].data).toEqual({ url: '/unsubscribe?token=[Filtered]' });
+    expect(event.contexts?.trace?.data).toEqual({ 'http.url': 'https://app.example/parent#[Filtered]' });
+  });
+
+  it('is wired into the browser SDK options', () => {
+    const options = sentryBrowserOptions('https://public@o0.ingest.sentry.io/0', 'sha', 'test');
+    expect(options.beforeSendTransaction).toBeTypeOf('function');
+    const out = options.beforeSendTransaction!(
+      { type: 'transaction', request: { url: `/parent#${token}` } } as never,
+      {},
+    ) as { request?: { url?: string } };
+    expect(out.request?.url).toBe('/parent#[Filtered]');
   });
 });

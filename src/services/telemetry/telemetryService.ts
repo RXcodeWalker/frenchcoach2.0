@@ -10,6 +10,7 @@ import {
   resolveSentryEnvironment,
   stripBreadcrumbSecrets,
   stripEventSecrets,
+  stripTransactionSecrets,
   toReportableError,
 } from './sentryFilters';
 import { captureAnalyticsEvent, initAnalytics } from './posthogClient';
@@ -749,6 +750,7 @@ export function sentryBrowserOptions(dsn: string, release: string | undefined, e
     ignoreErrors: IGNORE_ERRORS,
     denyUrls: DENY_URLS,
     beforeSend: (event) => stripEventSecrets(event),
+    beforeSendTransaction: (event) => stripTransactionSecrets(event),
     beforeBreadcrumb: (crumb) => stripBreadcrumbSecrets(crumb),
   };
 }

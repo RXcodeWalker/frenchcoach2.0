@@ -40,10 +40,21 @@ export function ParentView() {
   const [token, setToken] = useState(() => tokenFromHash(window.location.hash));
   const [load, setLoad] = useState<Load>(() => (token ? { state: 'loading' } : { state: 'error', code: 'missing' }));
 
+  // Security review F13: once read, the token lives only in state, so it is
+  // not left in the address bar for error reports, traces or a shared screen.
+  // A new link pasted in later (hashchange) replaces it; an emptied hash
+  // never clears it.
   useEffect(() => {
-    const onHash = () => setToken(tokenFromHash(window.location.hash));
-    window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    const take = () => {
+      const next = tokenFromHash(window.location.hash);
+      if (next) setToken(next);
+      if (window.location.hash) {
+        window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
+      }
+    };
+    take();
+    window.addEventListener('hashchange', take);
+    return () => window.removeEventListener('hashchange', take);
   }, []);
 
   useEffect(() => {

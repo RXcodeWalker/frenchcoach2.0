@@ -111,9 +111,12 @@ export function resolveSentryEnvironment(vercelEnv: string | undefined, viteMode
 const SECRET_HEADER = /^(authorization|cookie|set-cookie|x-api-key|apikey|x-supabase-auth)$/i;
 const SECRET_QUERY = /([?&#](?:access_token|refresh_token|token|apikey|api_key|code|key)=)[^&#\s]*/gi;
 const BEARER = /Bearer\s+[A-Za-z0-9._~+/=-]+/g;
+// A bare fragment that is itself a token (the parent view's `/parent#<token>`,
+// security review F13). Short fragments ("#top", "error #42") are left alone.
+const BARE_FRAGMENT = /#[^\s#=&"'<>]{16,}(?=$|[\s"'<>])/g;
 
 export function redactUrl(url: string): string {
-  return url.replace(SECRET_QUERY, '$1[Filtered]');
+  return url.replace(SECRET_QUERY, '$1[Filtered]').replace(BARE_FRAGMENT, '#[Filtered]');
 }
 
 function redactString(value: string): string {
@@ -177,5 +180,31 @@ export function stripEventSecrets<E extends EventLike>(event: E): E {
   if (typeof event.message === 'string') event.message = redactString(event.message);
   redactStringValues(event.extra);
   event.breadcrumbs?.forEach(stripBreadcrumbSecrets);
+  return event;
+}
+
+interface SpanLike {
+  description?: string;
+  data?: Record<string, unknown>;
+}
+
+interface TransactionLike extends EventLike {
+  transaction?: string;
+  spans?: SpanLike[];
+  contexts?: { trace?: { data?: Record<string, unknown> } } & Record<string, unknown>;
+}
+
+/**
+ * The same redaction for a performance transaction (page loads, navigations,
+ * fetch spans), which skip `beforeSend` — security review F13.
+ */
+export function stripTransactionSecrets<T extends TransactionLike>(event: T): T {
+  stripEventSecrets(event);
+  if (typeof event.transaction === 'string') event.transaction = redactUrl(event.transaction);
+  for (const span of event.spans ?? []) {
+    if (typeof span.description === 'string') span.description = redactString(span.description);
+    redactStringValues(span.data);
+  }
+  redactStringValues(event.contexts?.trace?.data);
   return event;
 }
