@@ -151,14 +151,20 @@ The client gate above is a convenience, not a control: some audio screens (Say-I
 Analyzer, Shadowing, SpeakingArena/SpeedSpeaking) have no client gate. `backend/lib/consent.py`'s
 `require_speaking_consent` is the first server-side check. It reads `profiles.consent_status` with
 the service key, right after authentication and before the upload is processed, and is applied to
-`/api/pronunciation`, `/api/transcribe` and `POST /api/exam/pronunciation`:
+`/api/pronunciation`, `/api/transcribe`, `POST /api/exam/pronunciation` and, when a recording is
+attached, `/api/feedback` (`/v2`, `/v3`) and `/api/feedback/stream` (security review 2026-11, F2):
 
-- `pending` → 403 `{"error": "consent_required"}`.
+- Only `granted` and `13_plus_not_required` pass; `pending`, `revoked` and anything else → 403
+  `{"error": "consent_required"}` (F15).
 - No `profiles` row at all → 403 (deny): a deleted account, or a request racing a guardian
   revocation, must not reach a provider.
 - Status cannot be read (no service client, RPC error) → 503. Fail closed.
 - Guests are not gated: they have no account or profile, and the client gate only blocks a
-  signed-in `pending` account. (The exam-pronunciation route excludes guests outright.)
+  signed-in `pending` account. (The exam-pronunciation route excludes guests outright.) **So the
+  gate binds signed-in sessions only:** a `pending` account that drops its `Authorization` header
+  is a guest, and its audio is accepted while guest access is on. Known and accepted by the owner
+  (2026-11-17, security review F2) so guests keep spoken practice; closing it means no audio for
+  guests, or guest access off (`GUEST_AI_ENABLED=0`).
 
 Exam answers add a second, automatic caller of `/api/transcribe` (ADR 0011): as each spoken answer
 is stored, `transcribeExamTurns.ts` uploads it with `purpose=exam_turn`, so every spoken exam turn
