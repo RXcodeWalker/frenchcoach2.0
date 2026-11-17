@@ -280,15 +280,16 @@ production and then treated as the record. **Last repo pass: 2026-09-09.**
   shape without that endpoint's per-poll paid-inference cost (a residual issue on the FastAPI
   side, not fixed here — out of scope for this Node-service change).
 - **FastAPI has no IaC.** Its env is Render-dashboard-only. `backend/README.md` documents the
-  start command as `uvicorn main:app --host 0.0.0.0 --port $PORT` — no `--proxy-headers` /
-  `--forwarded-allow-ips`, so slowapi's `get_remote_address` sees Render's edge IP and every
-  user shares one rate-limit bucket. **Still open** (phase-3-plan-tidy-widget.md §3, §4 step 4):
-  fixing this requires confirming Render's actual proxy topology first — not verifiable from
-  code — before setting `--forwarded-allow-ips`; the recommended default once confirmed is
-  `127.0.0.1` (the typical single-hop PaaS edge-connects-as-local-peer model), not `'*'`. Per-user
-  AI-cost quota (Phase 3, `consume_ai_quota`) is unaffected by this bug — it keys off the
-  JWT-verified `user_id`, not IP — but any rate limiting on a still-unauthenticated route (e.g.
-  `/api/exam/*`) is effectively a single global limit across all anonymous users until this lands.
+  start command as `uvicorn main:app --host 0.0.0.0 --port $PORT` — no `--proxy-headers`, so the
+  socket peer is Render's edge. slowapi therefore keys on the verified user id, and otherwise on
+  `lib/guest.py`'s `client_ip` (security review F6), which is also a guest's id: the
+  X-Forwarded-For entry `TRUSTED_PROXY_HOPS` (backend env, default 1) places from the right,
+  i.e. the address the outermost trusted proxy appended — never the first entry, which the caller
+  writes. Browser traffic is Vercel → Render, so with 1 every guest coming through Vercel may share
+  Vercel's egress address (strict, never spoofable). Setting 2 gives each guest their own address
+  only if Vercel overwrites the header with the client's address, and then a caller going straight
+  to `french-coach-backend.onrender.com` can choose theirs; neither was checked against the live
+  services.
 - **`POST /api/admin/roles` now needs a two-key handshake (Phase 1.2).** It grants the `admin`
   role only when **both** `ADMIN_SETUP_ENABLED=true` **and** a matching `ADMIN_SETUP_SECRET` are
   set; otherwise it 404s (not 403 — the route is not advertised). Previously it was gated on the
