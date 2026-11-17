@@ -201,9 +201,10 @@ product and authoritative.
 fallback: if the env var is unset, the client throws (see `topology.md`). Every mark shown to a
 user (`/40` in `ExamResults.tsx`) comes from here.
 
-**2. Legacy and unreached — `backend/evaluator_service.py`.** Its `evaluate_full_exam` is still
-live at `POST /api/exam/finish` and `POST /api/exam/evaluate` in `backend/exam_controller.py`,
-mounted in `backend/main.py`. No caller exists anywhere in `src/`. Its own Communication and
+**2. Legacy and unreached — `backend/evaluator_service.py`.** Its `evaluate_full_exam` has no
+route since the 2026-11 security review (F5) deleted `POST /api/exam/finish` and
+`POST /api/exam/evaluate` with the rest of `backend/exam_controller.py`'s legacy pipeline; the file
+itself remains. No caller existed anywhere in `src/`. Its own Communication and
 Quality of Language bands diverge materially from `rubric.ts`'s: 3 unsourced bands each (with an
 invented "AI Heuristic" description and an invented A\*–U grade-boundary table), versus `rubric.ts`'s
 6 bands per criterion, each carrying an `exactSource(page)` citation into `0520/03/TN/M/J/24`. This

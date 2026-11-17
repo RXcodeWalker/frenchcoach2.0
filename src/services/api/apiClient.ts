@@ -92,9 +92,10 @@ async function authHeader(): Promise<Record<string, string>> {
 }
 
 /**
- * For the endpoints that do NOT gate on verify_jwt (/api/generate-scenario).
- * A guest must still be able to call those, so a missing token is not an
- * error here — the header is simply omitted.
+ * For the endpoints that accept a guest while guest access is on
+ * (verify_user_or_guest: /api/generate-scenario, /api/roleplay/turn, the
+ * allowance reads). Signed in, the token is sent so the account's own limits
+ * apply; signed out, the header is simply omitted.
  */
 async function optionalAuthHeader(): Promise<Record<string, string>> {
   const token = await getAccessToken();
