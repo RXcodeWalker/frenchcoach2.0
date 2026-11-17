@@ -122,7 +122,7 @@ export function ScenarioArchitectSession() {
       // Get AI feedback for coach evidence (fire-and-forget side effect)
       let fb: FeedbackV2;
       try {
-        fb = await getAIFeedback(transcript, { id: 'scenario-architect', text: customScenario.title, topicKey: 'scenario', hint: '', difficulty: 2, followUps: [], modelAnswer: '', keyVocab: [] });
+        fb = await getAIFeedback(transcript, { id: 'scenario-architect', text: customScenario.title, topicKey: 'scenario', hint: '', difficulty: 2, followUps: [], modelAnswer: '', keyVocab: [] }, undefined, undefined, undefined, undefined, undefined, undefined, 'scenario');
       } catch {
         fb = { scores: { overall: 0, communication: 0, language: 0, fluency: 0 }, unscored: 'evaluation_failed', grammar: { critical: [], polish: [] }, vocabulary: [], style: [], fillers: [], wordCount: transcript.split(/\s+/).filter(Boolean).length, cefrLevel: 'A2' };
       }

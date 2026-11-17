@@ -649,7 +649,7 @@ export function isLearnDailyLimitError(err: unknown): err is LearnDailyLimitErro
 
 /** A 429 for Learn's own daily allowance, as opposed to a rate limit or another feature's cap. */
 function learnDailyLimitFrom(err: unknown, requestBody: Record<string, unknown>): LearnDailyLimitError | null {
-  if (!(err instanceof ApiHttpError) || err.status !== 429 || !requestBody.marking) return null;
+  if (!(err instanceof ApiHttpError) || err.status !== 429 || requestBody.surface !== 'learn') return null;
   try {
     const body = JSON.parse(err.body ?? '') as { detail?: { error?: string; limit?: number } };
     return body.detail?.error === 'daily_quota_reached' ? new LearnDailyLimitError(body.detail.limit) : null;
@@ -883,6 +883,14 @@ export function buildDifficultyContext(difficulty: DifficultyTier): { tier: Diff
   return { tier: difficulty };
 }
 
+/**
+ * Which screen a coach-feedback request comes from (backend FEEDBACK_SURFACES,
+ * security review F4). The server decides the daily limit from it: 'learn', or
+ * no surface at all, charges Learn's own allowance (3 a day); the other screens
+ * keep the looser feedback allowance.
+ */
+export type FeedbackSurface = 'learn' | 'placement' | 'news' | 'role_play' | 'scenario';
+
 export async function getAIFeedback(
   transcript: string,
   question: Question,
@@ -897,6 +905,7 @@ export async function getAIFeedback(
    * scheme is sent, never the learner's marking level (ADR 0013 rule 2).
    */
   marking?: LearnMarkingScheme,
+  surface: FeedbackSurface = 'learn',
 ): Promise<FeedbackV2> {
   const startTime = Date.now();
   const tier = classifyTier(transcript);
@@ -960,6 +969,7 @@ export async function getAIFeedback(
     demandSignals: buildDemandSignals(transcript, question),
     depth: buildRequestDepth(transcript, question, tier),
     ...(marking ? { marking } : {}),
+    surface,
   };
 
   // Signed out (guest mode) there is no token to send, and every endpoint in
@@ -1248,6 +1258,8 @@ export async function streamFeedback(
     demandSignals: buildDemandSignals(transcript, question),
     depth: buildRequestDepth(transcript, question, classifyTier(transcript)),
     ...(marking ? { marking } : {}),
+    // Only Learn streams.
+    surface: 'learn' satisfies FeedbackSurface,
   };
 
   if ((await checkGuestAttempt(question.id, transcript)) === 'guest-limit') {

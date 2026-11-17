@@ -137,7 +137,7 @@ export function OnboardingPlacement() {
     let fb;
     try {
       const skillContext = buildSkillContext();
-      fb = await getAIFeedback(transcript, currentQuestion, skillContext, undefined, 'groq');
+      fb = await getAIFeedback(transcript, currentQuestion, skillContext, undefined, 'groq', undefined, undefined, undefined, 'placement');
     } catch {
       submittedIndexesRef.delete(questionIndex);
       setErrorMessage("That didn't record — try again.");

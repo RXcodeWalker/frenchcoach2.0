@@ -272,7 +272,7 @@ function PlayPhase({
     void (async () => {
       let fb: FeedbackV2;
       try {
-        fb = await getAIFeedback(transcript, question);
+        fb = await getAIFeedback(transcript, question, undefined, undefined, undefined, undefined, undefined, undefined, 'role_play');
       } catch {
         fb = { ...buildTier0Result(), unscored: 'no_llm_offline', wordCount: countWords(transcript) };
       }

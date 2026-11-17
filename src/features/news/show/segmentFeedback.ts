@@ -77,7 +77,7 @@ export async function segmentFeedback(answers: readonly string[], question: Ques
   const transcript = answers.map(a => a.trim()).filter(Boolean).join(' ');
   if (!transcript) return null;
   try {
-    return await getAIFeedback(transcript, question, undefined, undefined, 'groq', DEFAULT_DIFFICULTY, 'speech');
+    return await getAIFeedback(transcript, question, undefined, undefined, 'groq', DEFAULT_DIFFICULTY, 'speech', undefined, 'news');
   } catch (error) {
     console.error('Daily News feedback unavailable:', error);
     return null;

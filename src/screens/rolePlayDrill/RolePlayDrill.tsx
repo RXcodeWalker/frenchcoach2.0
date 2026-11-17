@@ -283,7 +283,7 @@ export function RolePlayDrill() {
         fb = { ...buildTier0Result(), unscored: 'evaluation_failed', wordCount };
       } else {
         try {
-          fb = await getAIFeedback(transcript, question);
+          fb = await getAIFeedback(transcript, question, undefined, undefined, undefined, undefined, undefined, undefined, 'role_play');
         } catch {
           fb = { ...buildTier0Result(), unscored: 'no_llm_offline', wordCount };
         }
