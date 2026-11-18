@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { FEATURES } from '../features';
+import { FEATURE_FLAGS } from '../../config/featureFlags';
 
 describe('Explore offline marking (offline support)', () => {
   const byId = new Map(FEATURES.map((f) => [f.id, f]));
@@ -11,8 +12,29 @@ describe('Explore offline marking (offline support)', () => {
   });
 
   it('live speech recognition, AI and server-backed modes are marked as needing a connection', () => {
-    for (const id of ['speaking', 'speed', 'scenario_arch', 'daily_news', 'accent', 'friends', 'rankings', 'xp_shop', 'mystery_box']) {
+    for (const id of ['speaking', 'speed', 'scenario_arch', 'daily_news', 'accent', 'rankings', 'xp_shop', 'mystery_box']) {
       expect(byId.get(id)?.needsConnection, id).toBe(true);
+    }
+  });
+});
+
+describe('Explore tiles match their feature flags', () => {
+  // A tile whose screen is behind a 'coming-soon' flag must be locked, or it opens a "Coming soon" page.
+  const TILE_FLAG = {
+    speaking: 'speakingArena',
+    speed: 'speedSpeaking',
+    listening: 'listeningMode',
+    survival: 'survivalMode',
+    challenges: 'challenges',
+    fluency_heat: 'fluencyHeatmap',
+    roadmap: 'roadmap',
+    mastery: 'mastery',
+  } as const;
+
+  it('locks every tile whose flag is coming-soon', () => {
+    for (const [id, flag] of Object.entries(TILE_FLAG)) {
+      const tile = FEATURES.find((f) => f.id === id);
+      expect(tile?.locked, `${id} vs ${flag}`).toBe(FEATURE_FLAGS[flag] === 'coming-soon');
     }
   });
 });
