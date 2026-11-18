@@ -15,6 +15,8 @@ const whisper = (text: string, extra: Partial<TranscribeAudioResult> = {}): Tran
 });
 
 type Transcribe = NonNullable<Parameters<typeof transcribeLearnAnswer>[0]['transcribe']>;
+// Live captions arrive lower-case and unpunctuated; the answer is tidied (capital, closing stop) as it is captured.
+
 
 const run = (transcribe: Transcribe, liveText = 'ils sont en chien', audio: Blob | null = AUDIO) =>
   transcribeLearnAnswer({ liveText, audio, questionText: QUESTION, earlierAnswers: [], transcribe });
@@ -48,7 +50,7 @@ describe('transcribeLearnAnswer', () => {
   it('makes Whisper primary and keeps the live captions as the second opinion', async () => {
     const transcribe = vi.fn().mockResolvedValue(whisper('Ils ont un chien.'));
     const result = await run(transcribe);
-    expect(result).toEqual({ primaryText: 'Ils ont un chien.', secondaryText: 'ils sont en chien', source: 'whisper', fallbackReason: null });
+    expect(result).toEqual({ primaryText: 'Ils ont un chien.', secondaryText: 'Ils sont en chien.', source: 'whisper', fallbackReason: null });
   });
 
   it('sends the question as the prompt, the learn purpose and the 8 s budget', async () => {
@@ -64,7 +66,7 @@ describe('transcribeLearnAnswer', () => {
   it('uses the live captions when there is no audio, without calling the backend', async () => {
     const transcribe = vi.fn();
     expect(await run(transcribe, 'bonjour', null)).toEqual({
-      primaryText: 'bonjour', secondaryText: '', source: 'live-captions', fallbackReason: 'no-audio',
+      primaryText: 'Bonjour.', secondaryText: '', source: 'live-captions', fallbackReason: 'no-audio',
     });
     expect(transcribe).not.toHaveBeenCalled();
   });
@@ -77,7 +79,7 @@ describe('transcribeLearnAnswer', () => {
     ['a server error', new ApiHttpError('/api/transcribe', 503), 'asr-failed'],
   ])('falls back to the live captions after %s', async (_label, error, reason) => {
     const result = await run(vi.fn().mockRejectedValue(error), 'ils sont en chien');
-    expect(result).toEqual({ primaryText: 'ils sont en chien', secondaryText: '', source: 'live-captions', fallbackReason: reason });
+    expect(result).toEqual({ primaryText: 'Ils sont en chien.', secondaryText: '', source: 'live-captions', fallbackReason: reason });
   });
 
   it('falls back when the backend reports transcription as unavailable', async () => {
@@ -87,7 +89,7 @@ describe('transcribeLearnAnswer', () => {
 
   it('falls back when Whisper heard nothing', async () => {
     const result = await run(vi.fn().mockResolvedValue(whisper('   ')));
-    expect(result).toMatchObject({ primaryText: 'ils sont en chien', source: 'live-captions', fallbackReason: 'asr-rejected' });
+    expect(result).toMatchObject({ primaryText: 'Ils sont en chien.', source: 'live-captions', fallbackReason: 'asr-rejected' });
   });
 
   it('falls back when Whisper’s own confidence says the audio was not speech', async () => {

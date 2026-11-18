@@ -15,6 +15,7 @@ import { deleteSavedAnswer, savedAnswerBlob, type SavedAnswer } from '../../serv
 import { FeedbackExperience } from '../../features/feedback';
 import { LearnExaminerFeedback } from '../../features/feedback/teacher/LearnExaminerFeedback';
 import { getQuestionById } from '../../data/gameData';
+import { tidyAnswer } from '../../domain/transcription/tidyAnswer';
 
 function topicLabel(key: string): string {
   return TOPICS.find((t) => t.key === key)?.labelEn ?? key;
@@ -123,7 +124,7 @@ function SavedAnswerCard({ item, online, onFeedback, onSeeFeedback }: {
 
       {(item.status === 'ready' || item.status === 'marked') && item.transcript && (
         <p className="rounded-control bg-surface-recessed p-3 text-body-s text-ink">
-          <span className="text-ink-muted">We heard: </span>« {item.transcript} »
+          <span className="text-ink-muted">We heard: </span>« {tidyAnswer(item.transcript)} »
         </p>
       )}
       {item.status === 'waiting' && (

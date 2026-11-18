@@ -101,6 +101,11 @@ describe('buildBestAnswerCard', () => {
     expect(card.question).toBe('Parle-moi de ta famille.');
   });
 
+  it('tidies a raw live-caption answer (capital, closing stop) before quoting it', () => {
+    const card = buildBestAnswerCard(answer({ transcript: "oui j'ai déjà essayé la poterie et c'est très amusant j'ai fait un cours de soir" }))!;
+    expect(card.quote).toBe("Oui j'ai déjà essayé la poterie et c'est très amusant j'ai fait un cours de soir.");
+  });
+
   it('is null without a usable score', () => {
     expect(buildBestAnswerCard(answer({ score: null }))).toBeNull();
   });

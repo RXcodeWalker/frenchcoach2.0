@@ -8,6 +8,7 @@ import { TopicChip } from '../../components/ui/TopicChip';
 import { TOPICS } from '../../data/topics';
 import { EXAM_TOTAL_MAX, type PastAttempt } from '../../features/progress/progressSummary';
 import { formatShortDate } from './formatDate';
+import { tidyAnswer } from '../../domain/transcription/tidyAnswer';
 
 export const PAST_ATTEMPTS_PAGE = 20;
 const TRANSCRIPT_PREVIEW = 300;
@@ -155,9 +156,8 @@ function ExamDetail({ attempt }: { attempt: Extract<PastAttempt, { kind: 'exam' 
 }
 
 function LearnDetail({ attempt }: { attempt: Extract<PastAttempt, { kind: 'learn' }> }) {
-  const transcript = attempt.transcript.length > TRANSCRIPT_PREVIEW
-    ? `${attempt.transcript.slice(0, TRANSCRIPT_PREVIEW)}…`
-    : attempt.transcript;
+  const tidy = tidyAnswer(attempt.transcript);
+  const transcript = tidy.length > TRANSCRIPT_PREVIEW ? `${tidy.slice(0, TRANSCRIPT_PREVIEW)}…` : tidy;
   return (
     <>
       {attempt.questionText && <p lang="fr" className="font-semibold text-ink">{attempt.questionText}</p>}

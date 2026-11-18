@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle, CheckCircle2, Calendar } from 'lucide-react';
 import type { MistakeLog } from '../../types';
+import { tidyAnswer } from '../../domain/transcription/tidyAnswer';
 
 interface MistakeLogViewerProps {
   mistakes: MistakeLog[];
@@ -46,7 +47,7 @@ export const MistakeLogViewer: React.FC<MistakeLogViewerProps> = ({ mistakes }) 
                   What you said
                 </div>
                 <p className="text-xs text-ink-muted italic leading-relaxed pl-4 border-l border-rose-500/30">
-                  "{log.transcript}"
+                  "{tidyAnswer(log.transcript)}"
                 </p>
               </div>
             )}

@@ -13,6 +13,7 @@
 import { ConsentRequiredError } from '../../lib/consentRequired';
 import { suspectTranscription } from '../../domain/transcription/suspectTranscription';
 import { spellOutNumbers } from '../../domain/transcription/spokenNumbers';
+import { tidyAnswer } from '../../domain/transcription/tidyAnswer';
 import { ApiHttpError, transcribeAudio, type TranscribeAudioResult } from '../../services/api/apiClient';
 
 /** Fallback reasons share the exam's vocabulary (plan Phase 4) so one set of labels serves both. */
@@ -61,7 +62,7 @@ export function buildTranscriptionPrompt(questionText: string, earlierAnswers: r
 }
 
 function liveCaptionsOnly(liveText: string, fallbackReason: TranscriptionFallbackReason): AnswerTranscription {
-  return { primaryText: spellOutNumbers(liveText), secondaryText: '', source: 'live-captions', fallbackReason };
+  return { primaryText: tidyAnswer(spellOutNumbers(liveText)), secondaryText: '', source: 'live-captions', fallbackReason };
 }
 
 function reasonFor(err: unknown): TranscriptionFallbackReason {
@@ -103,7 +104,7 @@ export async function transcribeLearnAnswer({
   const text = result.text.trim();
   if (!text || suspectTranscription(text, result.segments, prompt)) return liveCaptionsOnly(liveText, 'asr-rejected');
   // Numbers as words in both readings, so « 1er » / « premier » is never a question to confirm.
-  return { primaryText: spellOutNumbers(text), secondaryText: spellOutNumbers(liveText), source: 'whisper', fallbackReason: null };
+  return { primaryText: tidyAnswer(spellOutNumbers(text)), secondaryText: tidyAnswer(spellOutNumbers(liveText)), source: 'whisper', fallbackReason: null };
 }
 
 export type WordRetakeResult = { ok: true; text: string } | { ok: false; reason: TranscriptionFallbackReason };

@@ -14,6 +14,7 @@
 
 import { SITE_URL } from '../../config/site';
 import { localDay, localDayBefore, localDayOf } from '../../lib/localDay';
+import { tidyAnswer } from '../../domain/transcription/tidyAnswer';
 
 export type ShareCardKind = 'streak' | 'best_answer' | 'exam_countdown';
 
@@ -191,7 +192,7 @@ function clip(text: string, max: number): string {
 
 export function buildBestAnswerCard(session: BestAnswerSession): ShareCardModel | null {
   if (typeof session.score !== 'number' || !Number.isFinite(session.score)) return null;
-  const quote = quoteExcerpt(session.transcript);
+  const quote = quoteExcerpt(tidyAnswer(session.transcript));
   if (!quote) return null;
   return {
     kind: 'best_answer',

@@ -48,6 +48,7 @@ import { SpeakingConsentGate } from '../components/SpeakingConsentGate';
 import { TopicGrid } from './learn/TopicGrid';
 import { QuestionCard } from './learn/QuestionCard';
 import { RecordingPanel, type ProcessingStep } from './learn/RecordingPanel';
+import { tidyAnswer } from '../domain/transcription/tidyAnswer';
 import { TranscriptConfirmPanel, type TranscriptConfirmation } from './learn/TranscriptConfirmPanel';
 import { transcribeLearnAnswer, transcribeLearnWord, type AnswerTranscription } from '../features/learn/answerTranscription';
 import { FeedbackExperience } from '../features/feedback';
@@ -842,7 +843,7 @@ export function Learn() {
     }
 
     transcriptSourceRef.current = 'captions';
-    await evaluateTranscript(transcript);
+    await evaluateTranscript(tidyAnswer(transcript));
   };
 
   /** Offline support: keeps this answer's recording in Saved answers and goes on to the next question. */
