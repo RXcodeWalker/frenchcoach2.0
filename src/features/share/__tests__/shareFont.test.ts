@@ -10,6 +10,6 @@ describe('share card typography', () => {
 
   it.each(files)('%s names no serif face', file => {
     const code = readFileSync(join(dir, file), 'utf8');
-    expect(code).not.toMatch(/Baskerville|Georgia|Times New Roman|\bserif\b|font-exam|exam-serif/i);
+    expect(code).not.toMatch(/Baskerville|Georgia|Times New Roman|(?<!sans-)\bserif\b|font-exam|exam-serif/i);
   });
 });
