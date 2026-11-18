@@ -46,6 +46,7 @@ import { achievementTiles, groupAchievementTiles, GROUP_COLLAPSED_TILES, type Ac
 import { achievementHistoryCounts } from '../services/coach/achievementContextBuilder';
 import { TrackSwitch } from '../features/junior/TrackSwitch';
 import { ParentLinksCard } from '../features/parentView/ParentLinksCard';
+import { ShareCardsCard } from '../features/share/ShareCardsCard';
 import { CORE_ONLY, JUNIOR_TRACK_SELECTABLE } from '../config/launchScope';
 import { ReplayTourButton } from '../features/tour/ReplayTourButton';
 import { InstallAppRow } from '../features/install/InstallAppRow';
@@ -101,6 +102,7 @@ export function Profile() {
     };
   }, []);
   const coachProfile = useMemo(() => getCoachProfile(), []);
+  const sessionHistory = useMemo(() => getSessionHistory(), []);
   const { user, signOut, isAdmin, ageBand, consentStatus, refreshConsentStatus } = useAuth();
   const { isGuest: guestFlag, exitGuestMode } = useGuestMode();
   const isGuest = guestFlag && !user; // a signed-in account is never a guest, whatever the stored flag says
@@ -457,6 +459,14 @@ export function Profile() {
                 </motion.div>
               ))}
             </div>
+
+            <ShareCardsCard
+              streakDays={profile.streak_days}
+              sessions={sessionHistory}
+              examDate={coachProfile.examDate}
+              daysLeft={examDays}
+              examLabel={activeGoal ? EXAM_BOARD_LABEL[activeGoal.type] : undefined}
+            />
 
             <motion.section variants={fadeUp} aria-labelledby="profile-achievements" className="flex flex-col gap-4 rounded-card border border-hairline bg-surface p-[clamp(20px,3cqw,24px)]">
               <div className="flex items-baseline justify-between gap-3">

@@ -286,6 +286,16 @@ interface NotebookSavedProps {
   topic_key: string;
 }
 
+// Shareable progress cards (features/share): which card, how it left the app,
+// and how that ended. Enums only — never the card's text or the learner's words.
+interface ShareCardProps {
+  card: 'streak' | 'best_answer' | 'exam_countdown';
+}
+interface ShareCardActionProps extends ShareCardProps {
+  method: 'native' | 'download' | 'copy_link';
+  outcome: 'done' | 'cancelled' | 'failed';
+}
+
 // Pronunciation Lab (docs/plans/pronunciation-lab.md §8). Counts and enums
 // only — never the sentence, a word, a transcript or audio.
 /** Where the Lab was opened from: Learn's practice step, a Learn answer's "How it sounded" card (Stage 3), or the Lab home's sentence picker, sound guide and tricky-words deck (Stage 5). */
@@ -510,6 +520,8 @@ export type TelemetryEvent =
   | { name: 'second_take_used';        props: NoProps }
   | { name: 'followup_answered';       props: FollowupAnsweredProps }
   | { name: 'notebook_saved';          props: NotebookSavedProps }
+  | { name: 'share_card_viewed';       props: ShareCardProps }
+  | { name: 'share_card_action';       props: ShareCardActionProps }
   | { name: 'lab_opened';              props: LabOpenedProps }
   | { name: 'lab_take';                props: LabTakeProps }
   | { name: 'lab_focus_word_used';     props: LabFocusWordUsedProps }
@@ -600,6 +612,8 @@ const DECLARED_PROPS = {
   second_take_used: [],
   followup_answered: ['style'],
   notebook_saved: ['topic_key'],
+  share_card_viewed: ['card'],
+  share_card_action: ['card', 'method', 'outcome'],
   lab_opened: ['entry'],
   lab_take: ['words_clear', 'words_total', 'take_index'],
   lab_focus_word_used: ['verdict'],
