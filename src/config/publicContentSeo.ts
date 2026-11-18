@@ -3,6 +3,8 @@ import { TOPIC_PAGES } from '../data/seo/topics';
 import { ROLE_PLAY_EXAMPLES } from '../data/seo/rolePlays';
 import {
   IGCSE_PATH,
+  MARKING_PATH,
+  MISTAKES_PATH,
   ROLEPLAY_HUB_PATH,
   TOPICS_HUB_PATH,
   rolePlayPath,
@@ -48,6 +50,44 @@ export const ROLEPLAY_HUB_SEO: PageSeo = {
   jsonLd: [
     buildBreadcrumbListSchema([HOME_CRUMB, GUIDE_CRUMB, { name: ROLEPLAY_CRUMB.name, path: ROLEPLAY_HUB_PATH }]),
     buildItemListSchema(ROLE_PLAY_EXAMPLES.map((r) => ({ name: r.title, path: rolePlayPath(r.slug) }))),
+  ],
+};
+
+export const MARKING_SEO: PageSeo = {
+  title: 'How the IGCSE French Speaking Exam Is Marked (Paper 3, 40 Marks)',
+  description:
+    'Where the 40 marks in IGCSE French speaking come from: role play, Communication and Quality of Language, with worked role-play marks and what each criterion rewards.',
+  canonicalPath: MARKING_PATH,
+  robots: 'index, follow',
+  jsonLd: [
+    buildBreadcrumbListSchema([HOME_CRUMB, GUIDE_CRUMB, { name: 'How it is marked', path: MARKING_PATH }]),
+    buildLearningResourceSchema({
+      name: 'How the IGCSE French speaking exam is marked',
+      description:
+        'Where the 40 marks in IGCSE French speaking come from, with worked role-play marks and what Communication and Quality of Language reward.',
+      path: MARKING_PATH,
+      teaches: 'How IGCSE French speaking is marked',
+      learningResourceType: 'Guide',
+    }),
+  ],
+};
+
+export const MISTAKES_SEO: PageSeo = {
+  title: 'Common Mistakes in IGCSE French Speaking (and How to Fix Them)',
+  description:
+    'Four slips that cost marks in IGCSE French speaking: agreement, être or avoir, the wrong tense and answers that stop too soon, each with a fix and a model answer.',
+  canonicalPath: MISTAKES_PATH,
+  robots: 'index, follow',
+  jsonLd: [
+    buildBreadcrumbListSchema([HOME_CRUMB, GUIDE_CRUMB, { name: 'Common mistakes', path: MISTAKES_PATH }]),
+    buildLearningResourceSchema({
+      name: 'Common mistakes in IGCSE French speaking',
+      description:
+        'Four common slips in spoken IGCSE French, with the corrected sentence, a fix and a model answer for each.',
+      path: MISTAKES_PATH,
+      teaches: 'Avoiding common mistakes in spoken French',
+      learningResourceType: 'Guide',
+    }),
   ],
 };
 
@@ -102,6 +142,8 @@ function publicContentSeo(): Map<string, PageSeo> {
   cache = new Map<string, PageSeo>();
   cache.set(TOPICS_HUB_PATH, TOPICS_HUB_SEO);
   cache.set(ROLEPLAY_HUB_PATH, ROLEPLAY_HUB_SEO);
+  cache.set(MARKING_PATH, MARKING_SEO);
+  cache.set(MISTAKES_PATH, MISTAKES_SEO);
   for (const t of TOPIC_PAGES) cache.set(topicPath(t.slug), buildTopicSeo(t));
   for (const r of ROLE_PLAY_EXAMPLES) cache.set(rolePlayPath(r.slug), buildRolePlaySeo(r));
   return cache;

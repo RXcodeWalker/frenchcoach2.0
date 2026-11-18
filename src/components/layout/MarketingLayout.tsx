@@ -60,6 +60,12 @@ export function MarketingLayout({ children, breadcrumb, route, sections, seo }: 
             <a href="/igcse-french-speaking/role-play" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
               IGCSE French role-play examples
             </a>
+            <a href="/igcse-french-speaking/marking" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
+              How IGCSE French speaking is marked
+            </a>
+            <a href="/igcse-french-speaking/common-mistakes" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
+              Common mistakes in IGCSE French speaking
+            </a>
             <a href="/french-roleplay-practice" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
               French roleplay practice scenarios
             </a>

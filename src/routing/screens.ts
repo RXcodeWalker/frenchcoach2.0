@@ -107,6 +107,8 @@ export const RolePlayHub = lazyScreen(() => import('../screens/publicContent/Rol
 export const TopicRoute = lazyScreen(() => import('../screens/publicContent/routes'), 'TopicRoute');
 export const RolePlayRoute = lazyScreen(() => import('../screens/publicContent/routes'), 'RolePlayRoute');
 export const PrivacyPolicy = lazyScreen(() => import('../screens/PrivacyPolicy'), 'PrivacyPolicy');
+export const MarkingGuide = lazyScreen(() => import('../screens/publicContent/MarkingGuide'), 'MarkingGuide');
+export const CommonMistakes = lazyScreen(() => import('../screens/publicContent/CommonMistakes'), 'CommonMistakes');
 export const TermsOfService = lazyScreen(() => import('../screens/TermsOfService'), 'TermsOfService');
 
 type AnyScreen = Pick<LazyScreen<never>, 'preload'>;
@@ -172,6 +174,8 @@ export const SCREEN_PATHS: ReadonlyArray<readonly [string, readonly AnyScreen[]]
   ['/story', [Story]],
   ['/privacy', [PrivacyPolicy]],
   ['/terms', [TermsOfService]],
+  ['/igcse-french-speaking/marking', [MarkingGuide]],
+  ['/igcse-french-speaking/common-mistakes', [CommonMistakes]],
   ['/login', [Auth]],
   ['/auth/callback', [AuthCallback]],
   ['/reset-password', [ResetPassword]],

@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ROUTES } from '../../../config/routes';
 import { getPageSeo } from '../../../config/publicContentSeo';
-import { PUBLIC_CONTENT_HUB_PATHS, PUBLIC_CONTENT_PAGE_PATHS } from '../../../data/seo/paths';
+import { PUBLIC_CONTENT_HUB_PATHS, PUBLIC_CONTENT_PAGE_PATHS, ROLEPLAY_HUB_PATH, TOPICS_HUB_PATH } from '../../../data/seo/paths';
 import { TOPIC_PAGES } from '../../../data/seo/topics';
 import { ROLE_PLAY_EXAMPLES } from '../../../data/seo/rolePlays';
 import { publicContentElement } from '../registry';
 import { TopicPageView } from '../TopicPageView';
 import { RolePlayExampleView } from '../RolePlayExampleView';
+import { MARKING_PATH, MISTAKES_PATH } from '../../../data/seo/paths';
+import { COMMUNICATION, QUALITY_OF_LANGUAGE, ROLE_PLAY, TOTAL_MARKS } from '../../../domain/igcse/rubric';
 
 // The pages the prerender step writes to disk, rendered the same way it does.
 
@@ -120,6 +122,48 @@ describe('public content pages (static prerender output)', () => {
 
     it('answers an unknown slug with a not-found page', () => {
       expect(renderToStaticMarkup(<RolePlayExampleView slug="nope" />)).toContain('Role play not found');
+    });
+  });
+
+  describe('the marking and common-mistakes pages', () => {
+    const marking = textOf(render(MARKING_PATH));
+    const mistakes = textOf(render(MISTAKES_PATH));
+
+    it('state the marks from the sourced rubric, and nothing the notes do not give', () => {
+      expect(marking).toContain(`${TOTAL_MARKS} marks`);
+      expect(marking).toContain(`${ROLE_PLAY.tasks} tasks, ${ROLE_PLAY.marksPerResponse} marks each`);
+      expect(marking).toContain(`(${COMMUNICATION.maxMarks} marks)`);
+      expect(marking).toContain(`(${QUALITY_OF_LANGUAGE.maxMarks} marks)`);
+      // The paper's share of the qualification is unsourced (domain/igcse/unsourced.ts).
+      expect(marking).not.toMatch(/25\s?%|per ?cent of the (qualification|grade)/i);
+    });
+
+    it('never quote a Cambridge descriptor line', () => {
+      const descriptors = [
+        ...COMMUNICATION.bands.flatMap((b) => b.descriptor),
+        ...QUALITY_OF_LANGUAGE.bands.flatMap((b) => b.descriptor),
+        ...ROLE_PLAY.marks.flatMap((m) => m.descriptor),
+      ];
+      for (const line of descriptors) {
+        const needle = line.replace(/[.;]$/, '').toLowerCase();
+        if (needle.length < 25) continue;
+        expect(marking.toLowerCase(), line).not.toContain(needle);
+        expect(mistakes.toLowerCase(), line).not.toContain(needle);
+      }
+    });
+
+    it('link to each other and to the topic pages for examples', () => {
+      expect(render(MARKING_PATH)).toContain(`href="${MISTAKES_PATH}"`);
+      expect(render(MISTAKES_PATH)).toContain(`href="${MARKING_PATH}"`);
+      expect(render(MISTAKES_PATH)).toMatch(/href="\/igcse-french-speaking\/topics\/[a-z-]+"/);
+    });
+
+    it('are linked from the exam guide, both hubs and the shared footer', () => {
+      for (const path of [TOPICS_HUB_PATH, ROLEPLAY_HUB_PATH]) {
+        const html = render(path);
+        expect(html, path).toContain(`href="${MARKING_PATH}"`);
+        expect(html, path).toContain(`href="${MISTAKES_PATH}"`);
+      }
     });
   });
 

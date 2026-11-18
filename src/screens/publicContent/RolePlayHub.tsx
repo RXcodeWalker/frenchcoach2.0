@@ -2,7 +2,7 @@ import { MarketingLayout } from '../../components/layout/MarketingLayout';
 import { ROLEPLAY_HUB_SEO } from '../../config/publicContentSeo';
 import { ROLE_PLAY } from '../../domain/igcse/rubric';
 import { ROLE_PLAY_EXAMPLES } from '../../data/seo/rolePlays';
-import { IGCSE_PATH, ROLEPLAY_HUB_PATH, TOPICS_HUB_PATH, rolePlayPath } from '../../data/seo/paths';
+import { IGCSE_PATH, MARKING_PATH, MISTAKES_PATH, ROLEPLAY_HUB_PATH, TOPICS_HUB_PATH, rolePlayPath } from '../../data/seo/paths';
 import { Eyebrow, LinkCard, PracticePanel } from './parts';
 import { MUTED } from './styles';
 
@@ -40,7 +40,15 @@ export function RolePlayHub() {
           <p className="text-base leading-relaxed" style={MUTED}>
             Short is fine: a reply that communicates the information fully and correctly can earn full marks, and
             you do not need to add extra detail. Some questions come in two parts, and then both parts need an
-            answer. These examples are written for practice; they are not exam papers.
+            answer. These examples are written for practice; they are not exam papers. See{' '}
+            <a href={MARKING_PATH} className="mk-link">
+              how the exam is marked
+            </a>{' '}
+            for worked marks, and{' '}
+            <a href={MISTAKES_PATH} className="mk-link">
+              common mistakes
+            </a>{' '}
+            for slips to avoid.
           </p>
         </section>
 

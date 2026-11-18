@@ -78,6 +78,14 @@ export function IgcseFrenchSpeaking() {
                 <span className="block text-base font-semibold mk-link">Role-play examples</span>
                 <span className="block text-sm mt-1" style={{ color: 'var(--mk-ink-muted)' }}>Six practice role plays with a short model reply to every task</span>
               </a>
+              <a href="/igcse-french-speaking/marking" className="mk-focus block rounded-xl border mk-hairline p-4" style={{ background: 'var(--mk-surface)' }}>
+                <span className="block text-base font-semibold mk-link">How the exam is marked</span>
+                <span className="block text-sm mt-1" style={{ color: 'var(--mk-ink-muted)' }}>Where the 40 marks come from, with worked role-play marks</span>
+              </a>
+              <a href="/igcse-french-speaking/common-mistakes" className="mk-focus block rounded-xl border mk-hairline p-4" style={{ background: 'var(--mk-surface)' }}>
+                <span className="block text-base font-semibold mk-link">Common mistakes</span>
+                <span className="block text-sm mt-1" style={{ color: 'var(--mk-ink-muted)' }}>Agreement, être or avoir, tenses and short answers, with fixes</span>
+              </a>
             </div>
 
             <h2 id="what-french-coach-does" className="font-display text-2xl mb-4 scroll-mt-24">What French Coach does</h2>

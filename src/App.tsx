@@ -96,6 +96,8 @@ import {
   RolePlayHub,
   RolePlayRoute,
   Story,
+  MarkingGuide,
+  CommonMistakes,
   PrivacyPolicy,
   TermsOfService,
   AdminLayout,
@@ -495,6 +497,8 @@ function AppShell() {
         <Route path="/igcse-french-speaking/role-play/:slug" element={<RolePlayRoute />} />
         <Route path="/story" element={<Story />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/igcse-french-speaking/marking" element={<MarkingGuide />} />
+        <Route path="/igcse-french-speaking/common-mistakes" element={<CommonMistakes />} />
         <Route path="/terms" element={<TermsOfService />} />
         {/* The weekly email's unsubscribe link; also in PublicRoutes (a parent is never signed in). */}
         <Route path="/unsubscribe" element={<Unsubscribe />} />

@@ -2,7 +2,7 @@ import { MarketingLayout } from '../../components/layout/MarketingLayout';
 import { TOPICS_HUB_SEO } from '../../config/publicContentSeo';
 import { TOPIC_PAGES } from '../../data/seo/topics';
 import { conversationLabel } from '../../data/seo/syllabus';
-import { IGCSE_PATH, ROLEPLAY_HUB_PATH, TOPICS_HUB_PATH, topicPath } from '../../data/seo/paths';
+import { IGCSE_PATH, MARKING_PATH, MISTAKES_PATH, ROLEPLAY_HUB_PATH, TOPICS_HUB_PATH, topicPath } from '../../data/seo/paths';
 import { Eyebrow, LinkCard, PracticePanel } from './parts';
 import { FAINT, MUTED } from './styles';
 
@@ -47,6 +47,14 @@ export function TopicsHub() {
             . To practise the role-play part, see the{' '}
             <a href={ROLEPLAY_HUB_PATH} className="mk-link">
               role-play examples
+            </a>
+            . To see what the marks reward, read{' '}
+            <a href={MARKING_PATH} className="mk-link">
+              how the exam is marked
+            </a>
+            , and for the slips to avoid,{' '}
+            <a href={MISTAKES_PATH} className="mk-link">
+              common mistakes in IGCSE French speaking
             </a>
             .
           </p>

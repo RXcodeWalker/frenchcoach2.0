@@ -1,11 +1,13 @@
 import { createElement, type ReactElement } from 'react';
 import { TOPIC_PAGES } from '../../data/seo/topics';
 import { ROLE_PLAY_EXAMPLES } from '../../data/seo/rolePlays';
-import { ROLEPLAY_HUB_PATH, TOPICS_HUB_PATH, rolePlayPath, topicPath } from '../../data/seo/paths';
+import { MARKING_PATH, MISTAKES_PATH, ROLEPLAY_HUB_PATH, TOPICS_HUB_PATH, rolePlayPath, topicPath } from '../../data/seo/paths';
 import { TopicsHub } from './TopicsHub';
 import { RolePlayHub } from './RolePlayHub';
 import { TopicPageView } from './TopicPageView';
 import { RolePlayExampleView } from './RolePlayExampleView';
+import { MarkingGuide } from './MarkingGuide';
+import { CommonMistakes } from './CommonMistakes';
 
 /**
  * The page element for a public-content path, or undefined for any other path.
@@ -15,6 +17,8 @@ import { RolePlayExampleView } from './RolePlayExampleView';
 export function publicContentElement(path: string): ReactElement | undefined {
   if (path === TOPICS_HUB_PATH) return createElement(TopicsHub);
   if (path === ROLEPLAY_HUB_PATH) return createElement(RolePlayHub);
+  if (path === MARKING_PATH) return createElement(MarkingGuide);
+  if (path === MISTAKES_PATH) return createElement(CommonMistakes);
   const topic = TOPIC_PAGES.find((t) => topicPath(t.slug) === path);
   if (topic) return createElement(TopicPageView, { slug: topic.slug });
   const example = ROLE_PLAY_EXAMPLES.find((r) => rolePlayPath(r.slug) === path);
