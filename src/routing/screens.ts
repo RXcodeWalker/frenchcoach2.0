@@ -101,6 +101,11 @@ export const GuardianConsent = lazyScreen(() => import('../screens/GuardianConse
 export const IgcseFrenchSpeaking = lazyScreen(() => import('../screens/IgcseFrenchSpeaking'), 'IgcseFrenchSpeaking');
 export const FrenchRoleplayPractice = lazyScreen(() => import('../screens/FrenchRoleplayPractice'), 'FrenchRoleplayPractice');
 export const Story = lazyScreen(() => import('../screens/Story'), 'Story');
+// Public SEO content (docs/systems/public-seo-pages.md): the two hubs and the parameterised topic / role-play pages.
+export const TopicsHub = lazyScreen(() => import('../screens/publicContent/TopicsHub'), 'TopicsHub');
+export const RolePlayHub = lazyScreen(() => import('../screens/publicContent/RolePlayHub'), 'RolePlayHub');
+export const TopicRoute = lazyScreen(() => import('../screens/publicContent/routes'), 'TopicRoute');
+export const RolePlayRoute = lazyScreen(() => import('../screens/publicContent/routes'), 'RolePlayRoute');
 export const PrivacyPolicy = lazyScreen(() => import('../screens/PrivacyPolicy'), 'PrivacyPolicy');
 export const TermsOfService = lazyScreen(() => import('../screens/TermsOfService'), 'TermsOfService');
 
@@ -160,6 +165,10 @@ export const SCREEN_PATHS: ReadonlyArray<readonly [string, readonly AnyScreen[]]
   ['/daily-news', [DailyNewsFlash]],
   ['/igcse-french-speaking', [IgcseFrenchSpeaking]],
   ['/french-roleplay-practice', [FrenchRoleplayPractice]],
+  ['/igcse-french-speaking/topics', [TopicsHub]],
+  ['/igcse-french-speaking/topics/:slug', [TopicRoute]],
+  ['/igcse-french-speaking/role-play', [RolePlayHub]],
+  ['/igcse-french-speaking/role-play/:slug', [RolePlayRoute]],
   ['/story', [Story]],
   ['/privacy', [PrivacyPolicy]],
   ['/terms', [TermsOfService]],

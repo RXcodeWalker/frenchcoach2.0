@@ -121,3 +121,59 @@ export function buildFAQPageSchema(items: FAQItem[]): FAQPageSchema {
     })),
   };
 }
+
+export interface LearningResourceSchema {
+  '@context': 'https://schema.org';
+  '@type': 'LearningResource';
+  name: string;
+  description: string;
+  url: string;
+  inLanguage: 'en';
+  teaches: string;
+  educationalLevel: string;
+  learningResourceType: string;
+  isAccessibleForFree: true;
+}
+
+// For a page that is itself free study material (model answers, worked
+// examples). No author, date or rating is asserted: none is established.
+export function buildLearningResourceSchema(opts: {
+  name: string;
+  description: string;
+  path: string;
+  teaches: string;
+  learningResourceType: string;
+}): LearningResourceSchema {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'LearningResource',
+    name: opts.name,
+    description: opts.description,
+    url: `${SITE_URL}${opts.path}`,
+    inLanguage: 'en',
+    teaches: opts.teaches,
+    educationalLevel: 'IGCSE',
+    learningResourceType: opts.learningResourceType,
+    isAccessibleForFree: true,
+  };
+}
+
+export interface ItemListSchema {
+  '@context': 'https://schema.org';
+  '@type': 'ItemList';
+  itemListElement: Array<{ '@type': 'ListItem'; position: number; name: string; url: string }>;
+}
+
+// Items must be links the page itself renders.
+export function buildItemListSchema(items: { name: string; path: string }[]): ItemListSchema {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      url: `${SITE_URL}${item.path}`,
+    })),
+  };
+}

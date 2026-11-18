@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { SITE_URL } from '../config/site';
-import { PAGE_SEO } from '../config/seo';
+import { PAGE_SEO, type PageSeo } from '../config/seo';
 
 const MANAGED_ATTR = 'data-seo-managed';
 
@@ -47,12 +47,18 @@ function appendJsonLd(blocks: Record<string, unknown>[]) {
 interface SeoProps {
   /** Path-only route key, e.g. "/about". Looked up in PAGE_SEO. */
   route: string;
+  /**
+   * The entry itself, for a page whose head is built from its content (the
+   * public topic and role-play pages). Must be a stable object: the effect
+   * re-runs whenever it changes.
+   */
+  entry?: PageSeo;
 }
 
 // Fail-closed: a route with no PAGE_SEO entry gets noindex and a default
 // title rather than throwing or silently becoming indexable.
-export function Seo({ route }: SeoProps) {
-  const entry = PAGE_SEO[route];
+export function Seo({ route, entry: provided }: SeoProps) {
+  const entry = provided ?? PAGE_SEO[route];
 
   useEffect(() => {
     document.title = entry?.title ?? DEFAULT_TITLE;

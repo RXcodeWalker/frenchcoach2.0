@@ -160,7 +160,11 @@ export type LandingCta =
   | 'final_sign_in'
   | 'igcse_page_start'
   | 'roleplay_page_start'
-  | 'story_page_start';
+  | 'story_page_start'
+  | 'topic_page_start'
+  | 'topics_hub_start'
+  | 'roleplay_example_start'
+  | 'roleplay_examples_hub_start';
 export type FeedbackStyle = 'coach' | 'examiner';
 export type FailureReason = 'timeout' | '5xx' | 'network' | 'quota' | 'auth' | 'consent' | 'unknown';
 export type ExamPartReached = 'roleplay' | 'topic1' | 'topic2';

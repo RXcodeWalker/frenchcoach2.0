@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ROUTES, type RouteEntry } from '../../src/config/routes';
-import { PAGE_SEO } from '../../src/config/seo';
+import { getPageSeo } from '../../src/config/publicContentSeo';
+import { publicContentElement } from '../../src/screens/publicContent/registry';
 import { SITE_URL } from '../../src/config/site';
 import { Landing } from '../../src/screens/Landing';
 import { AboutPublic } from '../../src/screens/AboutPublic';
@@ -40,7 +41,7 @@ function escapeHtml(value: string): string {
 }
 
 function buildHead(route: RouteEntry, template: string): string {
-  const seo = PAGE_SEO[route.path];
+  const seo = getPageSeo(route.path);
   const title = seo?.title ?? 'FrenchCoach';
   const description = seo?.description ?? '';
   const canonical = `${SITE_URL}${seo?.canonicalPath ?? route.path}`;
@@ -98,13 +99,15 @@ function buildHead(route: RouteEntry, template: string): string {
 }
 
 function buildBody(route: RouteEntry, html: string): string {
-  const componentFactory = PUBLIC_PAGE_COMPONENTS[route.path];
-  if (!componentFactory) {
+  // The public SEO content (topic and role-play pages) is enumerated from
+  // src/data/seo; every other public page is in the table above.
+  const element = PUBLIC_PAGE_COMPONENTS[route.path]?.() ?? publicContentElement(route.path);
+  if (!element) {
     // App route: keep the empty #root shell, client hydrates and decides
     // (auth gate / dashboard / onboarding) — nothing to prerender.
     return html;
   }
-  const markup = renderToStaticMarkup(componentFactory());
+  const markup = renderToStaticMarkup(element);
   return html.replace('<div id="root"></div>', `<div id="root">${markup}</div>`);
 }
 

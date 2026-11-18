@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Seo } from '../SEO';
+import type { PageSeo } from '../../config/seo';
 import { SiteHeader, type HeaderSection } from '../marketing/SiteHeader';
 
 interface BreadcrumbItem {
@@ -15,11 +16,14 @@ interface Props {
   route: string;
   /** In-page sections for the sticky header's anchor nav (the landing page). */
   sections?: readonly HeaderSection[];
+  /** A head built from the page's content (public topic / role-play pages); otherwise PAGE_SEO[route]. */
+  seo?: PageSeo;
 }
 
 const NAV_LINKS = [
   { label: 'How it works', href: '/#how-it-works' },
   { label: 'Exam guide', href: '/igcse-french-speaking' },
+  { label: 'Model answers', href: '/igcse-french-speaking/topics' },
   { label: 'Our story', href: '/story' },
 ];
 
@@ -30,10 +34,10 @@ const NAV_LINKS = [
 // stays a cheap, independently-loadable static document. The `.marketing`
 // class scopes src/styles/marketing.css's editorial tokens to this tree only
 // — app screens never see them.
-export function MarketingLayout({ children, breadcrumb, route, sections }: Props) {
+export function MarketingLayout({ children, breadcrumb, route, sections, seo }: Props) {
   return (
     <div className="marketing min-h-screen flex flex-col">
-      <Seo route={route} />
+      <Seo route={route} entry={seo} />
       <SiteHeader sections={sections} links={NAV_LINKS} breadcrumb={breadcrumb} />
 
       <main className="flex-1">{children}</main>
@@ -49,6 +53,12 @@ export function MarketingLayout({ children, breadcrumb, route, sections }: Props
           <div className="flex flex-col items-start">
             <a href="/igcse-french-speaking" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
               IGCSE French Speaking Exam guide
+            </a>
+            <a href="/igcse-french-speaking/topics" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
+              IGCSE French speaking topics and model answers
+            </a>
+            <a href="/igcse-french-speaking/role-play" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
+              IGCSE French role-play examples
             </a>
             <a href="/french-roleplay-practice" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
               French roleplay practice scenarios

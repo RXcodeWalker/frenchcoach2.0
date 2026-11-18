@@ -5,6 +5,10 @@ import {
   AboutPublic,
   IgcseFrenchSpeaking,
   FrenchRoleplayPractice,
+  TopicsHub,
+  TopicRoute,
+  RolePlayHub,
+  RolePlayRoute,
   Story,
   PrivacyPolicy,
   TermsOfService,
@@ -28,6 +32,10 @@ export function PublicRoutes() {
       <Route path="/about" element={<AboutPublic />} />
       <Route path="/igcse-french-speaking" element={<IgcseFrenchSpeaking />} />
       <Route path="/french-roleplay-practice" element={<FrenchRoleplayPractice />} />
+      <Route path="/igcse-french-speaking/topics" element={<TopicsHub />} />
+      <Route path="/igcse-french-speaking/topics/:slug" element={<TopicRoute />} />
+      <Route path="/igcse-french-speaking/role-play" element={<RolePlayHub />} />
+      <Route path="/igcse-french-speaking/role-play/:slug" element={<RolePlayRoute />} />
       <Route path="/story" element={<Story />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />

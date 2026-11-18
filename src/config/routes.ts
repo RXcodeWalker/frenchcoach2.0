@@ -1,4 +1,6 @@
-export type RouteKind = 'public' | 'app' | 'dynamic' | 'unregistered' | 'dev-only';
+import { PUBLIC_CONTENT_HUB_PATHS, PUBLIC_CONTENT_PAGE_PATHS } from '../data/seo/paths';
+
+export type RouteKind = 'public' | 'app' | 'dynamic' | 'unregistered' | 'dev-only' | 'generated';
 
 export interface RouteEntry {
   path: string;
@@ -19,11 +21,17 @@ export interface RouteEntry {
 // user, so it has no App.tsx <Route>.
 // kind:'dev-only' — a <Route> guarded by import.meta.env.DEV; tree-shaken out of
 // production builds, so it must never get a prod shell.
+// kind:'generated' — one concrete path per piece of public SEO content (a topic
+// page, a role-play example), all served by one parameterised <Route> in App.tsx
+// and PublicRoutes.tsx and each prerendered into its own static page. The paths
+// are enumerated from src/data/seo (docs/systems/public-seo-pages.md).
 export const ROUTES: RouteEntry[] = [
   { path: '/', kind: 'app', indexable: true },
   { path: '/about', kind: 'public', indexable: true },
   { path: '/igcse-french-speaking', kind: 'public', indexable: true },
   { path: '/french-roleplay-practice', kind: 'public', indexable: true },
+  ...PUBLIC_CONTENT_HUB_PATHS.map((path): RouteEntry => ({ path, kind: 'public', indexable: true })),
+  ...PUBLIC_CONTENT_PAGE_PATHS.map((path): RouteEntry => ({ path, kind: 'generated', indexable: true })),
   { path: '/story', kind: 'public', indexable: true },
   { path: '/privacy', kind: 'public', indexable: false },
   { path: '/terms', kind: 'public', indexable: false },
@@ -64,6 +72,7 @@ export const ROUTES: RouteEntry[] = [
   { path: '/study-groups', kind: 'app', indexable: false },
   { path: '/fix/:skillId', kind: 'dynamic', indexable: false },
   { path: '/sentence-rebuilder', kind: 'app', indexable: false },
+  { path: '/question-detective', kind: 'app', indexable: false },
   { path: '/rapid-fire', kind: 'app', indexable: false },
   { path: '/speed-speaking', kind: 'app', indexable: false },
   { path: '/roadmap', kind: 'app', indexable: false },

@@ -114,7 +114,8 @@ export function FrenchRoleplayPractice() {
             This is separate from the structured{' '}
             <a href="/igcse-french-speaking" className="mk-link">IGCSE Speaking exam practice</a>:
             roleplay scenarios are open-ended conversational practice, not scored against the
-            Paper 3 mark scheme.
+            Paper 3 mark scheme. For worked exam-style role plays with a model reply to every task, see the{' '}
+            <a href="/igcse-french-speaking/role-play" className="mk-link">IGCSE role-play examples</a>.
           </p>
         </section>
 

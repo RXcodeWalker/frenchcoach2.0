@@ -9,7 +9,7 @@ const BREADCRUMB = [
 ];
 
 const COMPONENTS = [
-  { n: '01', title: 'Role play — 5 transactional tasks', body: 'Two marks each. You have the card for one minute first.', marks: 10 },
+  { n: '01', title: 'Role play — 5 transactional tasks', body: 'Two marks each. You get the role-play card during the 10 minutes of preparation.', marks: 10 },
   { n: '02', title: 'Communication', body: 'Both topic conversations, marked together — how relevant and developed your answers are.', marks: 15 },
   { n: '03', title: 'Quality of Language', body: 'The same two conversations, marked separately — structures, vocabulary, pronunciation.', marks: 15 },
 ];
@@ -35,7 +35,7 @@ export function IgcseFrenchSpeaking() {
               What Paper 3 actually covers, and how French Coach is built to help you practise it.
             </p>
 
-            <h2 className="font-display text-2xl mb-4">What the exam is</h2>
+            <h2 id="what-the-exam-is" className="font-display text-2xl mb-4 scroll-mt-24">What the exam is</h2>
             <p className="text-base leading-relaxed mb-5" style={{ color: 'var(--mk-ink-muted)' }}>
               Cambridge IGCSE French (0520) Paper 3 Speaking makes up{' '}
               <strong style={{ color: 'var(--mk-ink)' }}>25% of the qualification</strong> and is
@@ -65,7 +65,22 @@ export function IgcseFrenchSpeaking() {
               <strong style={{ color: 'var(--mk-ink)' }}>CEFR A2 with elements of B1</strong>.
             </p>
 
-            <h2 className="font-display text-2xl mb-4">What French Coach does</h2>
+            <h2 id="prepare-each-part" className="font-display text-2xl mb-4 scroll-mt-24">Prepare each part</h2>
+            <p className="text-base leading-relaxed mb-4" style={{ color: 'var(--mk-ink-muted)' }}>
+              Read worked examples first, then say your own answers out loud.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2 mb-10">
+              <a href="/igcse-french-speaking/topics" className="mk-focus block rounded-xl border mk-hairline p-4" style={{ background: 'var(--mk-surface)' }}>
+                <span className="block text-base font-semibold mk-link">Topics and model answers</span>
+                <span className="block text-sm mt-1" style={{ color: 'var(--mk-ink-muted)' }}>16 topics, four model answers each, for the two topic conversations</span>
+              </a>
+              <a href="/igcse-french-speaking/role-play" className="mk-focus block rounded-xl border mk-hairline p-4" style={{ background: 'var(--mk-surface)' }}>
+                <span className="block text-base font-semibold mk-link">Role-play examples</span>
+                <span className="block text-sm mt-1" style={{ color: 'var(--mk-ink-muted)' }}>Six practice role plays with a short model reply to every task</span>
+              </a>
+            </div>
+
+            <h2 id="what-french-coach-does" className="font-display text-2xl mb-4 scroll-mt-24">What French Coach does</h2>
             <p className="text-base leading-relaxed mb-2" style={{ color: 'var(--mk-ink-muted)' }}>
               You record spoken answers to role-play and topic-conversation questions and get
               feedback generated from your own transcript. Practise at your own pace in{' '}
@@ -97,8 +112,9 @@ export function IgcseFrenchSpeaking() {
                 On this page
               </p>
               <div className="flex flex-col gap-2.5 text-sm">
-                <a href="#" className="pl-3 border-l-2 font-semibold" style={{ borderColor: 'var(--mk-accent)' }}>What the exam is</a>
-                <a href="#" className="pl-3 border-l-2 mk-link" style={{ borderColor: 'var(--mk-hairline)', color: 'var(--mk-ink-muted)' }}>What French Coach does</a>
+                <a href="#what-the-exam-is" className="pl-3 border-l-2 font-semibold" style={{ borderColor: 'var(--mk-accent)' }}>What the exam is</a>
+                <a href="#prepare-each-part" className="pl-3 border-l-2 mk-link" style={{ borderColor: 'var(--mk-hairline)', color: 'var(--mk-ink-muted)' }}>Prepare each part</a>
+                <a href="#what-french-coach-does" className="pl-3 border-l-2 mk-link" style={{ borderColor: 'var(--mk-hairline)', color: 'var(--mk-ink-muted)' }}>What French Coach does</a>
               </div>
             </div>
             <div className="rounded-xl border mk-hairline p-5">
