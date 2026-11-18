@@ -84,6 +84,12 @@ describe('Landing (static prerender output)', () => {
     }
   });
 
+  it('links the topic and role-play hubs from the body copy, not only the footer', () => {
+    const body = markup.match(/<main[\s\S]*<\/main>/)?.[0] ?? '';
+    expect(body).toContain('href="/igcse-french-speaking/topics"');
+    expect(body).toContain('href="/igcse-french-speaking/role-play"');
+  });
+
   it('does not contain any banned/unbuilt-feature strings', () => {
     for (const banned of BANNED_STRINGS) {
       expect(mainText).not.toContain(banned);

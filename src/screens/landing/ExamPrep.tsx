@@ -83,6 +83,17 @@ export function ExamPrep() {
               </li>
             ))}
           </ol>
+          <p className="text-[15px] leading-relaxed mb-6" style={{ color: 'var(--mk-ink-muted)' }}>
+            Not ready for a mock yet? Read the{' '}
+            <a href="/igcse-french-speaking/topics" className="mk-link">
+              IGCSE French speaking topics and model answers
+            </a>{' '}
+            to see what a strong answer sounds like, or work through the{' '}
+            <a href="/igcse-french-speaking/role-play" className="mk-link">
+              role-play examples
+            </a>{' '}
+            task by task.
+          </p>
           <CtaButton href="/igcse-french-speaking" variant="secondary">Read the full exam guide</CtaButton>
         </Reveal>
         <Reveal delayMs={100}>
