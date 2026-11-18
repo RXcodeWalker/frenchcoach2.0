@@ -1,5 +1,5 @@
 import { MarketingLayout } from '../components/layout/MarketingLayout';
-import { IGCSE_PATH, MARKING_PATH, MISTAKES_PATH, ROLEPLAY_HUB_PATH, TOPICS_HUB_PATH } from '../data/seo/paths';
+import { IGCSE_PATH, MARKING_PATH, MISTAKES_PATH, ROLEPLAY_HUB_PATH, TOPICS_HUB_PATH } from '../data/seo/pathConstants';
 import { Eyebrow, LinkCard, PracticePanel } from './publicContent/parts';
 import { MUTED } from './publicContent/styles';
 import { LIMITS_COPY } from './landing/landingContent';

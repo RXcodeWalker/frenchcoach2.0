@@ -8,8 +8,8 @@
  * of plain English about the French.
  *
  * Rules, checked by `__tests__/mistakes.test.ts`:
- *  - every `example` is a verbatim highlight from the named topic page, so the
- *    page can show the real note beside it and link to where it comes from;
+ *  - every `example` is a verbatim highlight (and note) from the named topic
+ *    page, so the page can show it beside a link to where it comes from;
  *  - no `wrong` form appears in any model answer (the model answers must not
  *    contain the slips they are being compared with);
  *  - a note states a fact about French or about the marking, never a promise.
@@ -27,8 +27,12 @@ export interface MistakeSlip {
 export interface MistakeExample {
   /** Topic page slug (`TopicPage.slug`). */
   topic: string;
+  /** That topic page's English title (`TopicPage.title`), for the link text. */
+  topicTitle: string;
   /** A `Highlight.fr` from that topic's model answers, verbatim. */
   fr: string;
+  /** That highlight's `note`, verbatim. Copied here so this page does not download every topic (~29 KB gzipped); the test holds the copy equal. */
+  note: string;
 }
 
 export interface Mistake {
@@ -74,10 +78,30 @@ export const COMMON_MISTAKES: readonly Mistake[] = [
     ],
     marks: 'Accuracy of grammar is part of the Quality of Language mark.',
     examples: [
-      { topic: 'hobbies-and-free-time', fr: 'je suis allé(e)' },
-      { topic: 'holidays-and-travel', fr: 'je suis parti(e)' },
-      { topic: 'family-and-friends', fr: 'nous sommes allés' },
-      { topic: 'jobs-and-work', fr: "que j'ai économisés" },
+      {
+        topic: "hobbies-and-free-time",
+        topicTitle: "Hobbies and free time",
+        fr: "je suis allé(e)",
+        note: "Verbs of movement use être in the perfect tense, and agree with you.",
+      },
+      {
+        topic: "holidays-and-travel",
+        topicTitle: "Holidays and travel",
+        fr: "je suis parti(e)",
+        note: "Verbs of movement take être and agree with the subject.",
+      },
+      {
+        topic: "family-and-friends",
+        topicTitle: "Family and friends",
+        fr: "nous sommes allés",
+        note: "Aller takes être; the participle agrees with who went.",
+      },
+      {
+        topic: "jobs-and-work",
+        topicTitle: "Jobs and work",
+        fr: "que j'ai économisés",
+        note: "« Que » refers back to « deux cents euros », so the participle agrees: économisés.",
+      },
     ],
   },
   {
@@ -119,12 +143,42 @@ export const COMMON_MISTAKES: readonly Mistake[] = [
     ],
     marks: 'Accuracy of grammar is part of the Quality of Language mark.',
     examples: [
-      { topic: 'family-and-friends', fr: 'Ma sœur a dix ans' },
-      { topic: 'family-and-friends', fr: 'Mon père est ingénieur' },
-      { topic: 'jobs-and-work', fr: 'Mon père est infirmier' },
-      { topic: 'food-and-health', fr: 'j\'ai souvent mal aux dents' },
-      { topic: 'hobbies-and-free-time', fr: 'nous avons patiné' },
-      { topic: 'family-and-friends', fr: 'je me suis beaucoup amusé(e)' },
+      {
+        topic: "family-and-friends",
+        topicTitle: "Family and friends",
+        fr: "Ma sœur a dix ans",
+        note: "Age uses avoir in French: a classic accuracy point.",
+      },
+      {
+        topic: "family-and-friends",
+        topicTitle: "Family and friends",
+        fr: "Mon père est ingénieur",
+        note: "No article after être with a job: « est ingénieur », not « est un ingénieur ».",
+      },
+      {
+        topic: "jobs-and-work",
+        topicTitle: "Jobs and work",
+        fr: "Mon père est infirmier",
+        note: "No article after être with a job: a typical accuracy point.",
+      },
+      {
+        topic: "food-and-health",
+        topicTitle: "Food and health",
+        fr: "j'ai souvent mal aux dents",
+        note: "Avoir mal à + body part is the standard way to talk about pain.",
+      },
+      {
+        topic: "hobbies-and-free-time",
+        topicTitle: "Hobbies and free time",
+        fr: "nous avons patiné",
+        note: "Most other verbs use avoir: keep the auxiliary right.",
+      },
+      {
+        topic: "family-and-friends",
+        topicTitle: "Family and friends",
+        fr: "je me suis beaucoup amusé(e)",
+        note: "Reflexive verbs also use être in the perfect tense.",
+      },
     ],
   },
   {
@@ -151,10 +205,30 @@ export const COMMON_MISTAKES: readonly Mistake[] = [
     ],
     marks: 'A range of structures, used accurately, is part of the Quality of Language mark.',
     examples: [
-      { topic: 'school', fr: 'j\'ai participé à' },
-      { topic: 'school', fr: 'C\'était vraiment intéressant parce que' },
-      { topic: 'clothes-and-fashion', fr: 'Si j\'avais plus d\'argent, j\'achèterais' },
-      { topic: 'school', fr: 'Si j\'ai de bonnes notes, j\'irai' },
+      {
+        topic: "school",
+        topicTitle: "School and education",
+        fr: "j'ai participé à",
+        note: "The perfect tense for a single completed event.",
+      },
+      {
+        topic: "school",
+        topicTitle: "School and education",
+        fr: "C'était vraiment intéressant parce que",
+        note: "The imperfect to describe how things were, then a reason.",
+      },
+      {
+        topic: "clothes-and-fashion",
+        topicTitle: "Clothes and fashion",
+        fr: "Si j'avais plus d'argent, j'achèterais",
+        note: "Si + imperfect, then the conditional.",
+      },
+      {
+        topic: "school",
+        topicTitle: "School and education",
+        fr: "Si j'ai de bonnes notes, j'irai",
+        note: "Si + present, then the future: a condition and its result in one sentence.",
+      },
     ],
   },
   {
@@ -181,10 +255,30 @@ export const COMMON_MISTAKES: readonly Mistake[] = [
     ],
     marks: 'Developing ideas, and giving reasons and explanations, is part of the Communication mark.',
     examples: [
-      { topic: 'school', fr: 'D\'un côté' },
-      { topic: 'hobbies-and-free-time', fr: 'En plus,' },
-      { topic: 'sports-and-fitness', fr: 'Je pense que oui, parce que' },
-      { topic: 'transport', fr: 'De plus,' },
+      {
+        topic: "school",
+        topicTitle: "School and education",
+        fr: "D'un côté",
+        note: "Balancing two sides shows you can develop an argument, not just state a view.",
+      },
+      {
+        topic: "hobbies-and-free-time",
+        topicTitle: "Hobbies and free time",
+        fr: "En plus,",
+        note: "Adds a second reason: developing ideas is what the top Communication band rewards.",
+      },
+      {
+        topic: "sports-and-fitness",
+        topicTitle: "Sports and fitness",
+        fr: "Je pense que oui, parce que",
+        note: "Answer the question directly and give the reason in the same breath.",
+      },
+      {
+        topic: "transport",
+        topicTitle: "Transport",
+        fr: "De plus,",
+        note: "Adds a further reason, so the opinion is developed rather than repeated.",
+      },
     ],
   },
 ];

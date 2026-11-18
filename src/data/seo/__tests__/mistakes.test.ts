@@ -15,13 +15,15 @@ describe('common-mistakes data (docs/systems/public-seo-pages.md)', () => {
     }
   });
 
-  it('every example is a verbatim highlight from the topic page it names', () => {
+  it('every example is a verbatim highlight, with its note and topic title, from the topic page it names', () => {
     for (const m of COMMON_MISTAKES) {
       for (const ex of m.examples) {
         const topic = TOPIC_PAGES.find((t) => t.slug === ex.topic);
         expect(topic, `${m.id}: no topic ${ex.topic}`).toBeDefined();
-        const found = topic!.answers.some((a) => a.highlights.some((h) => h.fr === ex.fr));
-        expect(found, `${m.id}: "${ex.fr}" is not a highlight of ${ex.topic}`).toBe(true);
+        expect(ex.topicTitle, `${m.id}/${ex.topic} title`).toBe(topic!.title);
+        const highlight = topic!.answers.flatMap((a) => a.highlights).find((h) => h.fr === ex.fr);
+        expect(highlight, `${m.id}: "${ex.fr}" is not a highlight of ${ex.topic}`).toBeDefined();
+        expect(ex.note, `${m.id}: note for "${ex.fr}" has drifted from the topic page`).toBe(highlight!.note);
       }
     }
   });

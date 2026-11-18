@@ -12,7 +12,7 @@ import { TOPIC_PAGES } from '../../data/seo/topics';
 import { ROLE_PLAY_EXAMPLES } from '../../data/seo/rolePlays';
 
 // The four older public pages, audited for thin copy, unsourced claims and
-// dead links (docs/systems/public-seo-pages.md §7).
+// dead links (docs/systems/public-seo-pages.md §8).
 
 const PAGES: [string, ComponentType][] = [
   ['/about', AboutPublic],

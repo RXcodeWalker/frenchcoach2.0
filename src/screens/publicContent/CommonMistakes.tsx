@@ -1,24 +1,14 @@
 import { MarketingLayout } from '../../components/layout/MarketingLayout';
-import { MISTAKES_SEO } from '../../config/publicContentSeo';
-import { COMMON_MISTAKES, type MistakeExample } from '../../data/seo/mistakes';
-import { TOPIC_PAGES } from '../../data/seo/topics';
-import { IGCSE_PATH, MARKING_PATH, MISTAKES_PATH, ROLEPLAY_HUB_PATH, TOPICS_HUB_PATH, topicPath } from '../../data/seo/paths';
+import { MISTAKES_SEO } from '../../config/publicGuideSeo';
+import { COMMON_MISTAKES } from '../../data/seo/mistakes';
+import { IGCSE_PATH, MARKING_PATH, MISTAKES_PATH, ROLEPLAY_HUB_PATH, TOPICS_HUB_PATH, topicPath } from '../../data/seo/pathConstants';
 import { Eyebrow, Fr, PracticePanel } from './parts';
 import { MUTED } from './styles';
 
-// /igcse-french-speaking/common-mistakes. The slips are data (data/seo/mistakes.ts);
-// each "see it done right" example is looked up from the topic pages' own
-// highlights at render time, so its note can never drift from the model answer.
-
-function lookup(example: MistakeExample) {
-  const topic = TOPIC_PAGES.find((t) => t.slug === example.topic);
-  if (!topic) return undefined;
-  for (const answer of topic.answers) {
-    const highlight = answer.highlights.find((h) => h.fr === example.fr);
-    if (highlight) return { topic, highlight };
-  }
-  return undefined;
-}
+// /igcse-french-speaking/common-mistakes. The slips and the "see it done right"
+// examples are data (data/seo/mistakes.ts); the examples copy their text from the
+// topic pages and a test holds them equal, so this page never downloads the
+// topic content.
 
 export function CommonMistakes() {
   return (
@@ -88,19 +78,15 @@ export function CommonMistakes() {
 
             <h3 className="text-lg font-semibold mb-2">See it done right</h3>
             <ul className="space-y-3">
-              {m.examples.map((ex) => {
-                const found = lookup(ex);
-                if (!found) return null;
-                return (
-                  <li key={`${ex.topic}:${ex.fr}`} className="text-base leading-relaxed">
-                    <Fr className="font-semibold">{ex.fr}</Fr>
-                    <span style={MUTED}> — {found.highlight.note} </span>
-                    <a href={topicPath(found.topic.slug)} className="mk-link text-sm">
-                      From the {found.topic.title.toLowerCase()} model answers
-                    </a>
-                  </li>
-                );
-              })}
+              {m.examples.map((ex) => (
+                <li key={`${ex.topic}:${ex.fr}`} className="text-base leading-relaxed">
+                  <Fr className="font-semibold">{ex.fr}</Fr>
+                  <span style={MUTED}> — {ex.note} </span>
+                  <a href={topicPath(ex.topic)} className="mk-link text-sm">
+                    From the {ex.topicTitle.toLowerCase()} model answers
+                  </a>
+                </li>
+              ))}
             </ul>
           </section>
         ))}

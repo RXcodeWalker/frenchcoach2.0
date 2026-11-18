@@ -1,5 +1,5 @@
 import { MarketingLayout } from '../../components/layout/MarketingLayout';
-import { MARKING_SEO } from '../../config/publicContentSeo';
+import { MARKING_SEO } from '../../config/publicGuideSeo';
 import {
   COMMUNICATION,
   CRITERIA,
@@ -11,7 +11,7 @@ import {
   TOTAL_MARKS,
   type MarkArea,
 } from '../../features/examGuide/guideContent';
-import { IGCSE_PATH, MISTAKES_PATH, ROLEPLAY_HUB_PATH, MARKING_PATH, TOPICS_HUB_PATH } from '../../data/seo/paths';
+import { IGCSE_PATH, MISTAKES_PATH, ROLEPLAY_HUB_PATH, MARKING_PATH, TOPICS_HUB_PATH } from '../../data/seo/pathConstants';
 import { Eyebrow, Fr, PracticePanel } from './parts';
 import { FAINT, MUTED } from './styles';
 
