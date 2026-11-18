@@ -7,7 +7,8 @@ import { generateDailyPlan } from '../services/coach/decisionEngine';
 import { getActiveRecommendation } from '../services/coach/recommendationEngine';
 import { getSkillLabel } from '../services/coach/skillGraph';
 import { getDueReviewCounts } from '../services/coach/reviewPool';
-import { getCoachBrief } from '../services/coach/coachBriefInput';
+import { getCoachBriefWithInput } from '../services/coach/coachBriefInput';
+import { recordCoachMoveShown } from '../services/coach/coachOutcomeLog';
 import { examPracticeUnlocked } from '../features/junior/examUnlock';
 import type { CoachMoveKind } from '../services/coach/coachBrain';
 import { getLastWeeklyReview, hasSeenWeeklyReviewThisWeek, markWeeklyReviewSeen } from '../services/coach/weeklyReviewService';
@@ -29,6 +30,9 @@ import { CoachPick } from './home/CoachPick';
 import { ThisWeek, type WeekDay } from './home/ThisWeek';
 import { HomeworkCard } from '../features/homework/HomeworkCard';
 import { RecentActivity } from './home/RecentActivity';
+
+/** A coach move counts as shown once it has stayed on Home this long (not a flash before the allowance arrives). */
+const MOVE_SEEN_AFTER_MS = 1500;
 
 // The ring's count the last time Home rendered, so finishing a session and
 // landing back here fills the ring from the old count (the `fill` motion).
@@ -127,8 +131,8 @@ export function Home() {
 
   // The coach's one decision (coachBrain.ts): what to do now, why, and where.
   // Recomputed when a session lands or the allowance arrives; pure and cheap.
-  const brief = useMemo(
-    () => getCoachBrief({
+  const coach = useMemo(
+    () => getCoachBriefWithInput({
       learnAnswersLeft: answersLeft,
       learnerModel: state.learnerModel,
       examUnlocked: examPracticeUnlocked(state.learnerTrack, state.junior?.missionsDone),
@@ -136,6 +140,14 @@ export function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- recentSessions.length marks "a session landed"
     [answersLeft, state.recentSessions.length, state.learnerModel, state.learnerTrack, state.junior?.missionsDone],
   );
+  const brief = coach?.brief ?? null;
+
+  // Coach outcome log (domain/coachOutcomes/): note the move once it has stayed on screen. Local only.
+  useEffect(() => {
+    if (!coach) return;
+    const t = setTimeout(() => recordCoachMoveShown(coach.brief.move, coach.input), MOVE_SEEN_AFTER_MS);
+    return () => clearTimeout(t);
+  }, [coach]);
 
   const handleDismissReview = () => {
     markWeeklyReviewSeen();

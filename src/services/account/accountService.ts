@@ -140,6 +140,7 @@ export async function deleteMyAccount(): Promise<void> {
   storageRemove(STORAGE_KEYS.speakingLog);
   storageRemove(STORAGE_KEYS.learnerTrack);
   storageRemove(STORAGE_KEYS.junior);
+  storageRemove(STORAGE_KEYS.coachOutcomeLog);
   // The learner model's local copy (its cloud row, if synced, cascades with the profile).
   storageRemove(STORAGE_KEYS.learnerModel);
 }

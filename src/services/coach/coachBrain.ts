@@ -25,6 +25,9 @@ import type { CoachGoalType } from '../../types/coach';
 import type { EvidenceDerivedSkillBelief } from '../../types/beliefs';
 import type { StoredSession } from '../analytics/analyticsService';
 import { examSummary, learnTopicPath, EXAM_WINDOW_DAYS, type ExamArea, type ExamAreaKey } from '../../features/progress/progressSummary';
+import type { CoachMoveKind, CoachMoveEvidence } from '../../domain/coachOutcomes/types';
+
+export type { CoachMoveKind, CoachMoveEvidence };
 
 const DAY_MS = 86_400_000;
 
@@ -40,17 +43,6 @@ export const FIRST_EXAM_AFTER_ANSWERS = 3;
 
 export type ExamPhase = 'no_exam' | 'no_date' | 'build' | 'sharpen' | 'exam_month' | 'final_week' | 'after_exam';
 
-export type CoachMoveKind =
-  | 'first_steps'
-  | 'fix_mistake'
-  | 'exam_sim'
-  | 'role_play'
-  | 'develop_answers'
-  | 'weak_skill'
-  | 'review'
-  | 'new_topic'
-  | 'keep_going';
-
 export interface CoachMove {
   kind: CoachMoveKind;
   /** Imperative, short: "Fix your past tense". */
@@ -65,6 +57,8 @@ export interface CoachMove {
   usesLearnAnswer: boolean;
   /** Ranking score; higher wins. Exposed for tests and the debug screen. */
   priority: number;
+  /** The numbers `why` cites, as data (the coach outcome log's baseline). */
+  evidence: CoachMoveEvidence;
 }
 
 export interface CoachStep {
@@ -278,6 +272,19 @@ function topicPath(topic: CoachTopic | null): string {
   return topic ? learnTopicPath(topic.key) : '/learn';
 }
 
+function skillEvidence(id: string, belief: EvidenceDerivedSkillBelief | undefined): NonNullable<CoachMoveEvidence['skill']> {
+  return { id, mastery: belief?.mastery ?? null, evidenceCount: belief?.evidenceCount ?? null, trend: belief?.trend ?? null };
+}
+
+function areaEvidence(a: WeakArea): NonNullable<CoachMoveEvidence['examArea']> {
+  return { key: a.key, mark: a.mark, max: a.max, share: a.share, basis: a.basis };
+}
+
+function topicEvidence(topic: CoachTopic | null, stats: Record<string, CoachTopicStats>): Pick<CoachMoveEvidence, 'topic'> {
+  if (!topic) return {};
+  return { topic: { key: topic.key, averageScore: stats[topic.key]?.averageScore ?? null, sessionsCompleted: stats[topic.key]?.sessionsCompleted ?? 0 } };
+}
+
 // ── The decision ──────────────────────────────────────────────────────────────
 
 export function decideCoachBrief(input: CoachInput): CoachBrief {
@@ -317,6 +324,7 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
       skillIds: [],
       usesLearnAnswer: true,
       priority: 100,
+      evidence: {},
     });
   }
 
@@ -338,6 +346,7 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
       skillIds: [id],
       usesLearnAnswer: true,
       priority: 90,
+      evidence: { skill: skillEvidence(id, belief), ...topicEvidence(topic, stats) },
     });
   }
 
@@ -361,6 +370,7 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
       skillIds: [],
       usesLearnAnswer: false,
       priority: (neverSat ? (warmedUp ? base + 8 : 50) : base) + (answersGone ? 10 : 0),
+      evidence: { examTotal: exam.counted[0]?.total ?? null },
     });
   }
 
@@ -384,6 +394,7 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
       skillIds: [],
       usesLearnAnswer: false,
       priority: rp ? 82 + (late ? 5 : 0) : finalNoExam ? 80 : answersGone ? 72 : 35,
+      evidence: rp && weakArea ? { examArea: areaEvidence(weakArea) } : {},
     });
   }
 
@@ -400,6 +411,7 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
       skillIds: [],
       usesLearnAnswer: true,
       priority: 78 + (late ? 4 : 0),
+      evidence: { examArea: areaEvidence(weakArea), ...topicEvidence(topic, stats) },
     });
   }
 
@@ -433,6 +445,11 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
         skillIds: [id],
         usesLearnAnswer: true,
         priority: 68 + Math.round((WEAK_SKILL_MASTERY - belief.mastery) * 40) + (slipping ? 8 : 0) + (avoided ? 4 : 0) + (qol ? 8 : 0),
+        evidence: {
+          skill: skillEvidence(id, belief),
+          ...(qol ? { examArea: areaEvidence(weakArea) } : {}),
+          ...topicEvidence(topic, stats),
+        },
       });
     }
   }
@@ -453,6 +470,7 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
         skillIds: [],
         usesLearnAnswer: true,
         priority: 60 + Math.min(n, 5) * 3,
+        evidence: { dueCount: n, ...topicEvidence(topic, stats) },
       });
     }
   }
@@ -478,6 +496,7 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
         skillIds: [],
         usesLearnAnswer: true,
         priority: base,
+        evidence: topicEvidence(topic, stats),
       });
     }
   }
@@ -497,6 +516,7 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
       skillIds: [],
       usesLearnAnswer: true,
       priority: 30,
+      evidence: topicEvidence(topic, stats),
     });
   }
 

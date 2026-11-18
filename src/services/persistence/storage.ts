@@ -54,6 +54,9 @@ export const STORAGE_KEYS = {
   coachProblems:              'frenchCoach_coachProblems',
   coachInterventions:         'frenchCoach_coachInterventions',
   coachInterventionOutcomes:  'frenchCoach_coachInterventionOutcomes',
+  // Coach recommendation outcome log (domain/coachOutcomes/): which Home moves were shown, followed and what changed.
+  // Ids and numbers only. Account-scoped, LOCAL ONLY (not in learner_state; no reader yet).
+  coachOutcomeLog:            'frenchCoach_coachOutcomeLog',
   // ── Session cloud sync ────────────────────────────────────────────────────────
   syncedSessionIds:   'frenchCoach_syncedSessionIds',
   pendingSyncSessionIds: 'frenchCoach_pendingSyncSessionIds',

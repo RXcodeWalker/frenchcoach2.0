@@ -103,11 +103,19 @@ export function gatherCoachInput(opts: { learnAnswersLeft: number | null; now?: 
   };
 }
 
-/** The coach's brief for right now. Never throws: a broken store yields null and Home shows its plain fallback. */
-export function getCoachBrief(opts: { learnAnswersLeft: number | null; now?: number; learnerModel?: SyncedSkillModel; examUnlocked?: boolean }): CoachBrief | null {
+type CoachBriefOptions = { learnAnswersLeft: number | null; now?: number; learnerModel?: SyncedSkillModel; examUnlocked?: boolean };
+
+/** The brief and the input it was decided from (the outcome log reads the same input). Never throws. */
+export function getCoachBriefWithInput(opts: CoachBriefOptions): { brief: CoachBrief; input: CoachInput } | null {
   try {
-    return decideCoachBrief(gatherCoachInput(opts));
+    const input = gatherCoachInput(opts);
+    return { brief: decideCoachBrief(input), input };
   } catch {
     return null;
   }
+}
+
+/** The coach's brief for right now. Never throws: a broken store yields null and Home shows its plain fallback. */
+export function getCoachBrief(opts: CoachBriefOptions): CoachBrief | null {
+  return getCoachBriefWithInput(opts)?.brief ?? null;
 }
