@@ -44,6 +44,8 @@ const MOVE_TAG: Record<CoachMoveKind, string> = {
   fix_mistake: 'Recurring mistake',
   exam_sim: 'Weekly Exam Sim',
   role_play: 'Role play',
+  two_part_answers: 'Trying something new',
+  coached_exam: 'Trying something new',
   develop_answers: 'Weakest exam area',
   weak_skill: 'Weakest skill',
   review: 'Due for review',
@@ -56,6 +58,7 @@ const MOVE_PLACE: Partial<Record<CoachMoveKind, string>> = {
   first_steps: 'Learn',
   exam_sim: 'Exam Sim · full 0520 speaking test',
   role_play: 'Role-play drill',
+  coached_exam: 'Coached Practice · full 0520 speaking test',
 };
 
 function firstSentence(text: string): string {

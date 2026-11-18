@@ -11,6 +11,8 @@
 //   weak_skill         skill        skill mastery, after 3 more observations of the skill
 //   develop_answers    exam area    Communication mark, at the next counted Exam Sim
 //   role_play (weak)   exam area    Role-play mark, at the next counted Exam Sim
+//   two_part_answers,
+//   coached_exam       exam area    that area's mark, at the next counted Exam Sim
 //   exam_sim           exam         total /40, at the next counted Exam Sim
 //   review / new_topic topic        topic average /10, after 3 more sessions in the topic
 //   keep_going         topic        topic average /10, after 3 more sessions in the topic
@@ -48,10 +50,11 @@ export type MoveTarget =
   | { type: 'topic'; topicKey: string }
   | { type: 'none' };
 
-/** What doing the move means: an answer in Learn (in `topicKey`, or anywhere when null), a counted Exam Sim, or a role-play drill answer. */
+/** What doing the move means: an answer in Learn (in `topicKey`, or anywhere when null), a counted Exam Sim, a Coached (non-counting) exam, or a role-play drill answer. */
 export type MoveActivity =
   | { type: 'learn'; topicKey: string | null }
   | { type: 'exam_sim' }
+  | { type: 'coached_exam' }
   | { type: 'role_play' };
 
 /** The metric at the time of the show. */
@@ -144,6 +147,8 @@ export function moveTarget(move: ShownMove): MoveTarget {
       return move.skillIds[0] ? { type: 'skill', skillId: move.skillIds[0] } : { type: 'none' };
     case 'develop_answers':
     case 'role_play':
+    case 'two_part_answers':
+    case 'coached_exam':
       return move.evidence.examArea ? { type: 'exam_area', area: move.evidence.examArea.key } : { type: 'none' };
     case 'exam_sim':
       return { type: 'exam' };
@@ -156,11 +161,13 @@ export function moveTarget(move: ShownMove): MoveTarget {
   }
 }
 
-const ACTIVITY: Record<CoachMoveKind, 'learn' | 'exam_sim' | 'role_play'> = {
+const ACTIVITY: Record<CoachMoveKind, 'learn' | 'exam_sim' | 'coached_exam' | 'role_play'> = {
   first_steps: 'learn',
   fix_mistake: 'learn',
   exam_sim: 'exam_sim',
   role_play: 'role_play',
+  two_part_answers: 'learn',
+  coached_exam: 'coached_exam',
   develop_answers: 'learn',
   weak_skill: 'learn',
   review: 'learn',
@@ -221,6 +228,8 @@ export function sessionMatchesActivity(s: OutcomeSession, a: MoveActivity): bool
       return s.mode === 'practice' && (a.topicKey === null || s.topicKey === a.topicKey);
     case 'exam_sim':
       return isCountedExam(s);
+    case 'coached_exam':
+      return s.mode === 'exam' && s.practiceOnly === true;
     case 'role_play':
       return s.mode === 'story';
   }

@@ -28,6 +28,17 @@ export const GRAMMAR_FOCI: { id: GrammarFocus; label: string }[] = [
   { id: 'opinion', label: 'Opinions & reasons' },
 ];
 
+/**
+ * `/learn?topic=<key>&focus=<GrammarFocus>` opens that topic's setup with the
+ * focus chip already on (Home's coach uses it). Learn applies it only where the
+ * chip would be offered, so a link can never produce a near-empty session.
+ */
+export const LEARN_FOCUS_PARAM = 'focus';
+
+export function grammarFocusFromParam(value: string | null): GrammarFocus | null {
+  return GRAMMAR_FOCI.some(f => f.id === value) ? (value as GrammarFocus) : null;
+}
+
 /** A focus chip is offered only where at least this many questions match it (plan Batch 2). */
 export const MIN_FOCUS_MATCHES = 5;
 

@@ -272,3 +272,30 @@ describe('parseOutcomeLog', () => {
     expect(parseOutcomeLog({ v: COACH_OUTCOME_LOG_VERSION, entries: [{ id: 1 }, null] })).toEqual(emptyOutcomeLog());
   });
 });
+
+describe('strategy rungs (two-part answers, Coached exam)', () => {
+  const rpArea = { key: 'rolePlay' as const, mark: 4, max: 10, share: 0.4, basis: 'latest' as const };
+  const twoPart: ShownMove = { kind: 'two_part_answers', topicKey: 'school', skillIds: [], evidence: { examArea: rpArea } };
+  const coached: ShownMove = { kind: 'coached_exam', topicKey: null, skillIds: [], evidence: { examArea: rpArea } };
+
+  it('both target the weak area and are measured at the next counted Exam Sim', () => {
+    expect(moveTarget(twoPart)).toEqual({ type: 'exam_area', area: 'rolePlay' });
+    expect(moveTarget(coached)).toEqual({ type: 'exam_area', area: 'rolePlay' });
+    expect(moveActivity(twoPart)).toEqual({ type: 'learn', topicKey: 'school' });
+    expect(moveActivity(coached)).toEqual({ type: 'coached_exam' });
+  });
+
+  it('a Coached exam is followed only by a non-counting exam attempt; its outcome waits for a counted one', () => {
+    const sim = updateOutcomes(shown(coached), obs(T0 + 2 * HOUR, { sessions: [examAttempt(T0 + HOUR, { rolePlay: 6, communication: 10, qualityOfLanguage: 10 })] }));
+    expect(sim.entries[0].follow.status).toBe('pending');
+
+    const log = updateOutcomes(shown(coached), obs(T0 + 2 * HOUR, { sessions: [examAttempt(T0 + HOUR, { rolePlay: 6, communication: 10, qualityOfLanguage: 10 }, true)] }));
+    expect(log.entries[0].follow).toMatchObject({ status: 'followed' });
+    expect(log.entries[0].outcome.status).toBe('pending');
+
+    const later = updateOutcomes(log, obs(T0 + 9 * DAY, {
+      sessions: [examAttempt(T0 + HOUR, { rolePlay: 6, communication: 10, qualityOfLanguage: 10 }, true), examAttempt(T0 + 8 * DAY, { rolePlay: 7, communication: 10, qualityOfLanguage: 10 })],
+    }));
+    expect(later.entries[0].outcome).toMatchObject({ status: 'measured', value: 7, delta: 3 });
+  });
+});

@@ -10,6 +10,10 @@ export type CoachMoveKind =
   | 'fix_mistake'
   | 'exam_sim'
   | 'role_play'
+  /** Learn questions that want an opinion and a reason — the two-part habit role-play tasks need. */
+  | 'two_part_answers'
+  /** A Coached Practice exam (commentary after every answer; does not count, ADR-0007). */
+  | 'coached_exam'
   | 'develop_answers'
   | 'weak_skill'
   | 'review'

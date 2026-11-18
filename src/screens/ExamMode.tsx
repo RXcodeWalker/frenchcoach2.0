@@ -3,6 +3,7 @@ import { track, captureError, type ExamPartReached, type ExamStep } from '../ser
 import { TrackView } from '../services/telemetry/TrackView';
 import confetti from 'canvas-confetti';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { examModeFromSearch } from '../features/exam/examDeepLink';
 import { shouldOpenGuideBeforeSim, type ExamGuideLocationState, type StartSimLocationState } from '../features/examGuide/guideSeen';
 import { useApp } from '../context/AppContext';
 import { examPracticeUnlocked, EXAM_UNLOCK_MISSIONS, missionsFinished } from '../features/junior/examUnlock';
@@ -1159,6 +1160,7 @@ export function ExamMode() {
         onDismissNotice={() => setResumeDiscardedMessage(null)}
         onRolePlayDrill={() => navigate('/exam/role-play')}
         onGuide={() => navigate('/exam/guide')}
+        initialMode={examModeFromSearch(location.search)}
         homework={homework ? { assignmentId: homework.id, title: homework.title, teacherName: homework.teacherName } : null}
         examLocked={
           examPracticeUnlocked(state.learnerTrack, state.junior?.missionsDone)

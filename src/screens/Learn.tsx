@@ -69,7 +69,7 @@ import { MidSessionToast } from './learn/MidSessionToast';
 import { StreakToast } from './learn/StreakToast';
 import { buildSessionQuestions, learnBeliefSnapshot, makeSessionQuestion, sessionAbility, topicPool, SESSION_TARGET } from '../utils/sessionBuilder';
 import { midSessionAdjust } from '../domain/learn/selection/midSessionAdjust';
-import { NO_FILTERS, hasActiveFilters, visibleGrammarFoci, type LearnFilters } from '../domain/learn/selection/filters';
+import { LEARN_FOCUS_PARAM, NO_FILTERS, grammarFocusFromParam, hasActiveFilters, visibleGrammarFoci, type LearnFilters } from '../domain/learn/selection/filters';
 import { computeSessionTarget, type Aim } from '../domain/learn/selection/sessionTarget';
 import { summarisePreview, type SessionPreview } from '../features/learn/sessionSetup';
 import { getReviewItemFirstRecordedScore } from '../services/coach/reviewPool';
@@ -360,6 +360,7 @@ export function Learn() {
   // outgoing page first, so a Learn that consumed it there would leave the real one with nothing.
   const [searchParams] = useSearchParams();
   const deepLinkTopicKey = searchParams.get(LEARN_TOPIC_PARAM);
+  const deepLinkFocus = grammarFocusFromParam(searchParams.get(LEARN_FOCUS_PARAM));
 
   // Homework (features/homework): `/learn?topic=<key>&assignment=<id>` is a Learn set a
   // teacher assigned. It applies only once the learner's own my_assignments() confirms it,
@@ -386,7 +387,11 @@ export function Learn() {
     if (!topic) return;
     deepLinkHandledRef.current = deepLinkTopicKey;
     selectTopic(topic);
-  }, [deepLinkTopicKey, homework]);
+    // `&focus=<id>` (Home's coach): the focus chip on, only where the chip would be offered.
+    if (deepLinkFocus && visibleGrammarFoci(getTopicQuestions(topic.key)).includes(deepLinkFocus)) {
+      setFilters({ grammar: deepLinkFocus });
+    }
+  }, [deepLinkTopicKey, deepLinkFocus, homework]);
 
   /** How many questions this session keeps: the homework's count, else the answers left today. */
   const sessionLengthFor = useCallback(

@@ -22,6 +22,8 @@ import { resolveFeatureStatus } from '../../config/featureFlags';
 import { coachSkillsView, examAreaStanding } from '../../domain/learnerModel/read';
 import type { SyncedSkillModel } from '../../domain/learnerModel/types';
 import { currentLearnerModel } from '../learnerModel/learnerModelStore';
+import { updateOutcomes } from '../../domain/coachOutcomes/outcomeLog';
+import { observationFromCoachInput, readCoachOutcomeLog } from './coachOutcomeLog';
 
 /** learner-model §7 phase 4: is the Home coach reading the learner model? */
 export function coachReadsLearnerModel(): boolean {
@@ -85,7 +87,7 @@ export function gatherCoachInput(opts: { learnAnswersLeft: number | null; now?: 
     };
   }
 
-  return {
+  const input: CoachInput = {
     now,
     goalType: goal?.type ?? null,
     examDate: profile.examDate ?? null,
@@ -101,6 +103,10 @@ export function gatherCoachInput(opts: { learnAnswersLeft: number | null; now?: 
     learnAnswersLeft: opts.learnAnswersLeft,
     examUnlocked: opts.examUnlocked !== false,
   };
+  // The outcome log, settled in memory against this same input (follows and
+  // outcomes due by now count even before Home writes the next show). Read-only.
+  input.outcomeLog = updateOutcomes(readCoachOutcomeLog(), observationFromCoachInput(input, now));
+  return input;
 }
 
 type CoachBriefOptions = { learnAnswersLeft: number | null; now?: number; learnerModel?: SyncedSkillModel; examUnlocked?: boolean };

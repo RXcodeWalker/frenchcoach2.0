@@ -15,7 +15,12 @@
 //   • the evidence model — a tracked recurring mistake, the weakest skill (and
 //     whether it is slipping), and the topic whose questions actually practise
 //     that skill;
-//   • spaced review due, and syllabus breadth (topics never spoken about).
+//   • spaced review due, and syllabus breadth (topics never spoken about);
+//   • what happened last time (the coach outcome log, domain/coachOutcomes/):
+//     a move the learner followed STALLS_BEFORE_SWITCH times without its metric
+//     rising is lowered and the next strategy for that weakness is offered
+//     (STRATEGY_LADDERS); a move that worked says so, quoting only the log's
+//     own numbers (trackRecord.ts).
 //
 // Pure: every input is passed in (coachBriefInput.ts gathers them), no storage,
 // no network, no React. It writes nothing and emits no mark — it only reads
@@ -26,6 +31,10 @@ import type { EvidenceDerivedSkillBelief } from '../../types/beliefs';
 import type { StoredSession } from '../analytics/analyticsService';
 import { examSummary, learnTopicPath, EXAM_WINDOW_DAYS, type ExamArea, type ExamAreaKey } from '../../features/progress/progressSummary';
 import type { CoachMoveKind, CoachMoveEvidence } from '../../domain/coachOutcomes/types';
+import { moveTarget, type CoachOutcomeLog } from '../../domain/coachOutcomes/outcomeLog';
+import { moveTrackRecord, STALLS_BEFORE_SWITCH, type TrackImprovement } from '../../domain/coachOutcomes/trackRecord';
+import { LEARN_FOCUS_PARAM } from '../../domain/learn/selection/filters';
+import { COACHED_EXAM_PATH } from '../../features/exam/examDeepLink';
 
 export type { CoachMoveKind, CoachMoveEvidence };
 
@@ -40,6 +49,51 @@ export const WEAK_AREA_RATIO = 0.7;
 export const EXAM_RESULT_FRESH_DAYS = 35;
 /** Learn answers on record before the coach suggests a first Exam Sim (a baseline needs some warm-up). */
 export const FIRST_EXAM_AFTER_ANSWERS = 3;
+/**
+ * UNVALIDATED. How far a move that stalled (followed STALLS_BEFORE_SWITCH times
+ * without its metric rising) drops: enough that the next strategy, which takes
+ * the move's old priority, leads — not so far that it vanishes from "Or:".
+ */
+export const STALLED_PRIORITY_DROP = 30;
+
+/**
+ * The strategies for a weak exam area, tried in order: when one stalls, the
+ * next is offered in its place. Each rung is measured on the same area mark at
+ * the next counted Exam Sim (outcomeLog.ts).
+ */
+export const STRATEGY_LADDERS: Partial<Record<ExamAreaKey, readonly CoachMoveKind[]>> = {
+  rolePlay: ['role_play', 'two_part_answers', 'coached_exam'],
+  communication: ['develop_answers', 'coached_exam'],
+};
+
+/**
+ * Moves the track record never demotes: the weekly Exam Sim is the measurement
+ * itself, not a strategy, and first steps have no metric.
+ */
+const NO_TRACK_RECORD: ReadonlySet<CoachMoveKind> = new Set<CoachMoveKind>(['exam_sim', 'first_steps']);
+
+/** "…you followed my advice to <phrase>" */
+const STRATEGY_PHRASE: Partial<Record<CoachMoveKind, string>> = {
+  role_play: 'drill role-play cards',
+  two_part_answers: 'practise two-part answers',
+  coached_exam: 'try a Coached Practice exam',
+  develop_answers: 'develop your answers',
+};
+
+/** "…since you started <gerund>" */
+const STRATEGY_GERUND: Record<CoachMoveKind, string> = {
+  first_steps: 'practising',
+  fix_mistake: 'practising it',
+  exam_sim: 'sitting Exam Sims',
+  role_play: 'drilling role-play cards',
+  two_part_answers: 'practising two-part answers',
+  coached_exam: 'using Coached Practice',
+  develop_answers: 'developing your answers',
+  weak_skill: 'practising it',
+  review: 'reviewing it',
+  new_topic: 'working on it',
+  keep_going: 'working on it',
+};
 
 export type ExamPhase = 'no_exam' | 'no_date' | 'build' | 'sharpen' | 'exam_month' | 'final_week' | 'after_exam';
 
@@ -130,6 +184,11 @@ export interface CoachInput {
    * area is chosen from it and the copy says "across your recent Exam Sims".
    */
   examStanding?: CoachExamStanding[];
+  /**
+   * The coach outcome log, settled against this input (coachBriefInput.ts).
+   * Absent = no track record: every move keeps its normal priority.
+   */
+  outcomeLog?: CoachOutcomeLog;
 }
 
 /** One area of the learner model's exam standing (domain/learnerModel/read.ts ExamAreaReading). */
@@ -520,6 +579,89 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
     });
   }
 
+  // 10. What happened last time: demote a stalled strategy and offer the next
+  //     one for that weakness; say so when a strategy worked.
+  if (input.outcomeLog) {
+    const log = input.outcomeLog;
+    const extra: CoachMove[] = [];
+    for (const c of candidates) {
+      if (NO_TRACK_RECORD.has(c.kind)) continue;
+      const record = moveTrackRecord(log, c.kind, moveTarget(c));
+      if (record.improvement) {
+        const sentence = improvementSentence(c, record.improvement, skillLabel, topics);
+        if (sentence) c.why += ` ${sentence}`;
+      } else if (record.stalls >= STALLS_BEFORE_SWITCH) {
+        const priority = c.priority;
+        c.priority -= STALLED_PRIORITY_DROP;
+        const next = weakArea ? nextStrategy(c, record.stalls, priority, weakArea, log) : null;
+        if (next && !candidates.some(x => x.kind === next.kind)) extra.push(next);
+      }
+    }
+    candidates.push(...extra);
+  }
+
+  /** The rung after `stalled` on its weak area's ladder, skipping rungs that also stalled or can't be started now. */
+  function nextStrategy(stalled: CoachMove, stalls: number, priority: number, area: WeakArea, log: CoachOutcomeLog): CoachMove | null {
+    if (stalled.evidence.examArea?.key !== area.key) return null;
+    const ladder = STRATEGY_LADDERS[area.key];
+    const at = ladder ? ladder.indexOf(stalled.kind) : -1;
+    if (!ladder || at < 0) return null;
+    let prev = { kind: stalled.kind, stalls };
+    for (const kind of ladder.slice(at + 1)) {
+      const m = ladderMove(kind, area, priority - 1, prev);
+      if (!m) continue;
+      const record = moveTrackRecord(log, kind, moveTarget(m));
+      if (record.stalls >= STALLS_BEFORE_SWITCH) {
+        prev = { kind, stalls: record.stalls };
+        continue;
+      }
+      if (record.improvement) {
+        const sentence = improvementSentence(m, record.improvement, skillLabel, topics);
+        if (sentence) m.why += ` ${sentence}`;
+      }
+      return m;
+    }
+    return null;
+  }
+
+  /** A later rung of a weak area's ladder, or null when it can't be started now. */
+  function ladderMove(kind: CoachMoveKind, area: WeakArea, priority: number, prev: { kind: CoachMoveKind; stalls: number }): CoachMove | null {
+    const label = AREA_LABEL[area.key];
+    const times = prev.stalls === 2 ? 'two' : String(prev.stalls);
+    const stalledLine = `The last ${times} times you followed my advice to ${STRATEGY_PHRASE[prev.kind] ?? 'practise it'}, your ${label.toLowerCase()} mark didn’t go up at your next Exam Sim, so let’s try something different.`;
+    if (kind === 'two_part_answers') {
+      const topic = bestTopicForSkill('opinion', topics, stats) ?? lowestAverageTopic(topics, stats) ?? mostRecentTopic(topics, stats);
+      return {
+        kind,
+        title: 'Practise two-part answers',
+        why: `${weakAreaSentence(label, area)}. ${stalledLine} These questions want an opinion and a reason — answering both parts every time is the habit each role-play task needs.`,
+        cta: topic ? `Practise in ${topic.labelEn}` : 'Practise in Learn',
+        to: topic ? `${learnTopicPath(topic.key)}&${LEARN_FOCUS_PARAM}=opinion` : '/learn',
+        topicKey: topic?.key ?? null,
+        skillIds: [],
+        usesLearnAnswer: true,
+        priority,
+        evidence: { examArea: areaEvidence(area), ...topicEvidence(topic, stats) },
+      };
+    }
+    if (kind === 'coached_exam') {
+      if (!examAvailable || input.examUnlocked === false || phase === 'after_exam') return null;
+      return {
+        kind,
+        title: 'Try a Coached Practice exam',
+        why: `${weakAreaSentence(label, area)}. ${stalledLine} Coached Practice comments on every answer as you go, so you hear what each part is missing. It uses this week’s sample exam, and its mark doesn’t count.`,
+        cta: 'Start Coached Practice',
+        to: COACHED_EXAM_PATH,
+        topicKey: null,
+        skillIds: [],
+        usesLearnAnswer: false,
+        priority,
+        evidence: { examArea: areaEvidence(area) },
+      };
+    }
+    return null;
+  }
+
   // Never lead with something that can't be started today.
   if (answersGone) for (const c of candidates) if (c.usesLearnAnswer) c.priority -= 60;
 
@@ -546,7 +688,37 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
   };
 }
 
-function stepsFor(move: CoachMove, skillLabel: (id: string) => string, dueCounts: Record<string, number>): CoachStep[] {
+/**
+ * "Your role play went from 4/15 to 7/15 since you started drilling role-play
+ * cards." Every number is the log's (trackRecord.ts); null when the rounded
+ * numbers wouldn't show a rise or the label is unknown.
+ */
+function improvementSentence(
+  move: CoachMove,
+  imp: TrackImprovement,
+  skillLabel: (id: string) => string,
+  topics: CoachTopic[],
+): string | null {
+  const since = `since you started ${STRATEGY_GERUND[move.kind]}`;
+  const target = moveTarget(move);
+  switch (imp.metric) {
+    case 'exam_area':
+      if (target.type !== 'exam_area') return null;
+      return `Your ${AREA_LABEL[target.area].toLowerCase()} went from ${imp.from}/${imp.max} to ${imp.to}/${imp.max} ${since}.`;
+    case 'skill_mastery':
+      if (target.type !== 'skill' || pct(imp.to) <= pct(imp.from)) return null;
+      return `${skillLabel(target.skillId)} went from ${pct(imp.from)}% to ${pct(imp.to)}% right ${since}.`;
+    case 'topic_average': {
+      const topic = target.type === 'topic' ? topics.find(t => t.key === target.topicKey) : undefined;
+      if (!topic || imp.to.toFixed(1) === imp.from.toFixed(1)) return null;
+      return `Your ${topic.labelEn} average went from ${imp.from.toFixed(1)} to ${imp.to.toFixed(1)}/10 ${since}.`;
+    }
+    case 'exam_total':
+      return `Your Exam Sim went from ${imp.from} to ${imp.to}/40 ${since}.`;
+  }
+}
+
+function stepsFor(move: CoachMove,skillLabel: (id: string) => string, dueCounts: Record<string, number>): CoachStep[] {
   switch (move.kind) {
     case 'exam_sim':
       return [
@@ -559,6 +731,18 @@ function stepsFor(move: CoachMove, skillLabel: (id: string) => string, dueCounts
         { title: 'Pick a card', sub: 'An exam-style situation' },
         { title: 'Every task', sub: 'Answer every part of each one' },
         { title: 'Feedback', sub: 'What a full answer needed' },
+      ];
+    case 'two_part_answers':
+      return [
+        { title: 'Warm up', sub: 'A question at your level' },
+        { title: 'Part one', sub: 'Give your opinion' },
+        { title: 'Part two', sub: 'Say why, with an example' },
+      ];
+    case 'coached_exam':
+      return [
+        { title: 'Prepare', sub: '10 minutes with the role-play card' },
+        { title: 'Role play', sub: 'Commentary after every task' },
+        { title: 'Conversations', sub: 'A practice mark — it doesn’t count' },
       ];
     case 'develop_answers':
       return [

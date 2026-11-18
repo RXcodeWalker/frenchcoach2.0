@@ -54,6 +54,8 @@ interface Props {
    * Homework bypasses this. Default open.
    */
   examLocked?: { done: number; need: number } | null;
+  /** The toggle's starting position (`/exam?mode=coached`, features/exam/examDeepLink.ts). Default Exam Sim. */
+  initialMode?: 'coached' | 'sim';
 }
 
 type ExamModeChoice = 'coached' | 'sim';
@@ -72,7 +74,7 @@ type RemoteState =
   | { phase: 'ready'; sets: AuthoredQuestionSet[] }
   | { phase: 'offline-only' };
 
-export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, onRolePlayDrill, onGuide, homework, examLocked = null }: Props) {
+export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, onRolePlayDrill, onGuide, homework, examLocked = null, initialMode = 'sim' }: Props) {
   // Available synchronously — no network — so a card is on screen from the first paint.
   const offlineSets = useMemo(() => getOfflineAuthoredSets(), []);
   const [remote, setRemote] = useState<RemoteState>({ phase: 'loading' });
@@ -82,7 +84,7 @@ export function ExamSelect({ onSelect, onAutoFallback, notice, onDismissNotice, 
   // submission) — see simulationSession.ts's `coached` flag. Step 5: defaults
   // to Exam Sim, so a candidate who doesn't notice the toggle still gets a
   // mark that counts.
-  const [chosenMode, setMode] = useState<ExamModeChoice>('sim');
+  const [chosenMode, setMode] = useState<ExamModeChoice>(initialMode);
   const mode: ExamModeChoice = homework ? 'sim' : chosenMode;
   const isSim = mode === 'sim';
   const homeworkId = homework?.assignmentId ?? null;

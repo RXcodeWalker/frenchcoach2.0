@@ -42,6 +42,17 @@ describe('ExamSelect — Exam Sim hides topics and the role-play card (Batch 3)'
     expect(onAutoFallback).toHaveBeenCalledWith(false);
   });
 
+  it('initialMode="coached" (the coach’s /exam?mode=coached) opens with Coached Practice selected', () => {
+    render(<ExamSelect onSelect={vi.fn()} onAutoFallback={vi.fn()} initialMode="coached" />);
+    expect(screen.getByText('Coached Practice').closest('button')?.getAttribute('aria-pressed')).toBe('true');
+    expect(screen.queryByText('Start Exam Sim')).toBeNull();
+  });
+
+  it('a homework mock stays Exam Sim even with initialMode="coached"', () => {
+    render(<ExamSelect onSelect={vi.fn()} onAutoFallback={vi.fn()} initialMode="coached" homework={{ assignmentId: 'a', title: 'Mock', teacherName: 'T' }} />);
+    expect(screen.getByText('Start Exam Sim')).toBeTruthy();
+  });
+
   it('Coached Practice still shows the full catalog (topics, sub-topics, role-play titles)', () => {
     render(<ExamSelect onSelect={vi.fn()} onAutoFallback={vi.fn()} />);
     fireEvent.click(screen.getByText('Coached Practice'));
