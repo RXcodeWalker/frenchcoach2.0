@@ -120,6 +120,21 @@ export function FrenchRoleplayPractice() {
         </section>
 
         <section>
+          <h2 className="font-display text-2xl mb-4">Getting the most from a scenario</h2>
+          <ul className="list-disc pl-5 space-y-2 text-base leading-relaxed" style={{ color: 'var(--mk-ink-muted)' }}>
+            <li>Answer in full sentences, not single words: the conversation moves on from what you actually say.</li>
+            <li>With staff and strangers, say <span lang="fr">vous</span>; keep <span lang="fr">tu</span> for friends and family.</li>
+            <li>Read the feedback, then play the same scenario again and use the fix. The second go is where it sticks.</li>
+          </ul>
+          <p className="text-base leading-relaxed mt-4" style={{ color: 'var(--mk-ink-muted)' }}>
+            Preparing for Paper 3? See{' '}
+            <a href="/igcse-french-speaking/marking" className="mk-link">how the role play is marked</a>{' '}
+            and the{' '}
+            <a href="/igcse-french-speaking/common-mistakes" className="mk-link">common mistakes to avoid</a>.
+          </p>
+        </section>
+
+        <section>
           <h2 className="font-display text-2xl mb-6">Scenarios</h2>
           <div className="flex flex-col gap-9">
             {TIERS.map((tier) => (

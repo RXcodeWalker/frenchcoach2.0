@@ -15,7 +15,6 @@ const COMPONENTS = [
 ];
 
 const AT_A_GLANCE = [
-  { label: 'Weight', value: '25%' },
   { label: 'Marks', value: '40' },
   { label: 'Assessed time', value: '~10 min' },
   { label: 'Prep time', value: '10 min' },
@@ -37,11 +36,18 @@ export function IgcseFrenchSpeaking() {
 
             <h2 id="what-the-exam-is" className="font-display text-2xl mb-4 scroll-mt-24">What the exam is</h2>
             <p className="text-base leading-relaxed mb-5" style={{ color: 'var(--mk-ink-muted)' }}>
-              Cambridge IGCSE French (0520) Paper 3 Speaking makes up{' '}
-              <strong style={{ color: 'var(--mk-ink)' }}>25% of the qualification</strong> and is
-              worth 40 marks. Each candidate sits it individually: about ten minutes of assessed
-              conversation, preceded by ten minutes of preparation and a non-assessed 30-second
-              greeting.
+              Cambridge IGCSE French (0520) Paper 3 Speaking is worth{' '}
+              <strong style={{ color: 'var(--mk-ink)' }}>40 marks</strong>. Each candidate sits it
+              individually: about ten minutes of assessed conversation, preceded by ten minutes of
+              preparation and a non-assessed 30-second greeting.
+            </p>
+            <p className="text-base leading-relaxed mb-5" style={{ color: 'var(--mk-ink-muted)' }}>
+              The assessed part runs in three steps. First comes a role play of about two minutes, in
+              which the examiner plays a character from your card and asks five questions. Then come
+              two topic conversations of about four minutes each: the first on a topic from
+              Everyday activities or Personal and social life, the second on a topic from The world
+              around us, The world of work or The international world. You are told each topic as the
+              conversation starts, so it pays to prepare several.
             </p>
 
             <div className="rounded-xl border mk-hairline overflow-hidden mb-5">
@@ -62,7 +68,9 @@ export function IgcseFrenchSpeaking() {
             </div>
             <p className="text-base leading-relaxed mb-10" style={{ color: 'var(--mk-ink-muted)' }}>
               The qualification targets language proficiency at{' '}
-              <strong style={{ color: 'var(--mk-ink)' }}>CEFR A2 with elements of B1</strong>.
+              <strong style={{ color: 'var(--mk-ink)' }}>CEFR A2 with elements of B1</strong>. For
+              what each criterion rewards, with worked role-play marks, see{' '}
+              <a href="/igcse-french-speaking/marking" className="mk-link">how the exam is marked</a>.
             </p>
 
             <h2 id="prepare-each-part" className="font-display text-2xl mb-4 scroll-mt-24">Prepare each part</h2>

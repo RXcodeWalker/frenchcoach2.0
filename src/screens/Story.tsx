@@ -20,7 +20,7 @@ const BREADCRUMB = [
 const STATS = [
   { value: '97%', label: 'IGCSE French, A*' },
   { value: 'A2 · B1', label: 'DELF, with distinction' },
-  { value: '60s', label: 'avg. speaking time / class' },
+  { value: '60s', label: 'my estimate of speaking time per student, per class' },
   { value: 'B2', label: 'DELF target, next' },
 ];
 
@@ -294,8 +294,14 @@ export function Story() {
               Back to French Coach
             </CtaButton>
           </div>
-          <p className="text-xs" style={{ color: 'var(--mk-ink-faint)' }}>
-            No account, no card. Your first session takes twelve minutes.
+          <p className="text-xs mb-6" style={{ color: 'var(--mk-ink-faint)' }}>
+            No account, no card.
+          </p>
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--mk-ink-muted)' }}>
+            Want to see what it practises? Read the{' '}
+            <a href="/igcse-french-speaking" className="mk-link">IGCSE French speaking exam guide</a>, the{' '}
+            <a href="/igcse-french-speaking/topics" className="mk-link">topics and model answers</a> or{' '}
+            <a href="/about" className="mk-link">what French Coach is</a>.
           </p>
         </Reveal>
       </section>

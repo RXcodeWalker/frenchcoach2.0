@@ -42,7 +42,7 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   '/about': {
     title: 'About French Coach | AI-Powered IGCSE French Speaking Coach',
     description:
-      'French Coach is a speaking-practice coach for IGCSE French learners: record answers, get structured feedback, and track skill mastery over time.',
+      'French Coach is a speaking-practice coach for IGCSE French learners: answer out loud, see what you said, and get structured feedback on what to change, with free practice to start.',
     canonicalPath: '/about',
     robots: 'index, follow',
     // Mirrors the visible breadcrumb rendered by MarketingLayout on this route.

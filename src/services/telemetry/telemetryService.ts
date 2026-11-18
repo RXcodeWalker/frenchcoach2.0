@@ -166,7 +166,8 @@ export type LandingCta =
   | 'roleplay_example_start'
   | 'roleplay_examples_hub_start'
   | 'marking_page_start'
-  | 'mistakes_page_start';
+  | 'mistakes_page_start'
+  | 'about_page_start';
 export type FeedbackStyle = 'coach' | 'examiner';
 export type FailureReason = 'timeout' | '5xx' | 'network' | 'quota' | 'auth' | 'consent' | 'unknown';
 export type ExamPartReached = 'roleplay' | 'topic1' | 'topic2';
