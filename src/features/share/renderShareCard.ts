@@ -33,7 +33,6 @@ const ACCENTS: Record<ShareAccent, { solid: string; text: string; soft: string }
 };
 
 const SANS = '"Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif';
-const SERIF = '"Libre Baskerville", Georgia, "Times New Roman", serif';
 
 const PAD = 88;
 const INNER_W = CARD_WIDTH - PAD * 2;
@@ -44,7 +43,6 @@ async function ensureFonts(): Promise<void> {
   const loads = [
     document.fonts.load(`700 80px "Bricolage Grotesque"`),
     document.fonts.load(`500 40px "Bricolage Grotesque"`),
-    document.fonts.load(`italic 400 40px "Libre Baskerville"`),
   ];
   await Promise.race([
     Promise.allSettled(loads),
@@ -230,13 +228,13 @@ function drawBestAnswerBody(ctx: Ctx, m: ShareCardModel, accent: { solid: string
     y = paragraph(ctx, m.question, PAD, y + 44, INNER_W, 3, 40, 54, INK);
   }
 
-  // The learner's own words, set in the quoted-answer serif.
+  // The learner's own words, in the site's own face (Bricolage), medium weight.
   y += 44;
   const barX = PAD;
   const textX = PAD + 40;
   const quoteW = INNER_W - 40;
   // 5 lines at 74px keeps the score chip clear of the footer rule (CARD_HEIGHT - 300).
-  setFont(ctx, 400, 50, SERIF, 'italic');
+  setFont(ctx, 500, 50);
   const lines = wrapText(m.quote ?? '', quoteW, 5, s => ctx.measureText(s).width);
   const lineH = 74;
   ctx.fillStyle = accent.solid;
