@@ -67,7 +67,6 @@ import {
   InviteCode,
   RapidFire,
   SpeedSpeaking,
-  FriendChallenges,
   FrenchRoadmap,
   FluencyHeatmap,
   RolePlayDrill,
@@ -381,13 +380,9 @@ function AppShell() {
               <SpeedSpeaking />
             </ComingSoonGate>
           } />
-          <Route path="/friend-challenges" element={
-            <ComingSoonGate status={resolveFeatureStatus('friendChallenges')} featureId="friendChallenges" name="Friend Challenges" description="Challenge your friends and track who improves faster." fallbackRoute="/progress" fallbackLabel="View Progress">
-              <FriendChallenges />
-            </ComingSoonGate>
-          } />
+          {/* Friend Challenges screen removed 2026-11-18 (friends live in Rankings); /duel/:id stays so an in-flight duel can finish. */}
           <Route path="/duel/:duelId" element={
-            <ComingSoonGate status={resolveFeatureStatus('friendChallenges')} featureId="friendChallenges" name="Friend Duels" description="Challenge a friend to a head-to-head speaking duel." fallbackRoute="/friend-challenges" fallbackLabel="Back to Challenges">
+            <ComingSoonGate status={resolveFeatureStatus('friendChallenges')} featureId="friendChallenges" name="Friend Duels" description="Challenge a friend to a head-to-head speaking duel." fallbackRoute="/rankings" fallbackLabel="Back to Rankings">
               <DuelDetail />
             </ComingSoonGate>
           } />

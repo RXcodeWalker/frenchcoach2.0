@@ -44,7 +44,6 @@ export const AgeBand = lazyScreen(() => import('../screens/AgeBand'), 'AgeBand')
 export const InviteCode = lazyScreen(() => import('../screens/InviteCode'), 'InviteCode');
 export const RapidFire = lazyScreen(() => import('../screens/RapidFire'), 'RapidFire');
 export const SpeedSpeaking = lazyScreen(() => import('../screens/SpeedSpeaking'), 'SpeedSpeaking');
-export const FriendChallenges = lazyScreen(() => import('../screens/FriendChallenges'), 'FriendChallenges');
 export const FrenchRoadmap = lazyScreen(() => import('../screens/FrenchRoadmap'), 'FrenchRoadmap');
 export const FluencyHeatmap = lazyScreen(() => import('../screens/FluencyHeatmap'), 'FluencyHeatmap');
 export const ScenarioArchitect = lazyScreen(() => import('../screens/ScenarioArchitect'), 'ScenarioArchitect');
@@ -142,7 +141,6 @@ export const SCREEN_PATHS: ReadonlyArray<readonly [string, readonly AnyScreen[]]
   ['/invite-code', [InviteCode]],
   ['/rapid-fire', [RapidFire]],
   ['/speed-speaking', [SpeedSpeaking]],
-  ['/friend-challenges', [FriendChallenges]],
   ['/roadmap', [FrenchRoadmap]],
   ['/fluency-heatmap', [FluencyHeatmap]],
   ['/scenario/:scenarioId', [RoleplaySession]],
