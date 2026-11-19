@@ -38,3 +38,20 @@ describe('suspectTranscription', () => {
     expect(suspectTranscription('Ma famille est petite et sympa', [seg(0.1)], 'Parle-moi de ta famille.')).toBeNull();
   });
 });
+
+describe('Whisper silence phrases (Learn only)', () => {
+  it('rejects subtitle credits Whisper writes on silence', async () => {
+    const { suspectTranscription } = await import('../suspectTranscription');
+    const on = { screenSilencePhrases: true };
+    expect(suspectTranscription('Sous-titre FR', [], undefined, on)).toBe('silence-phrase');
+    expect(suspectTranscription("Sous-titres réalisés par la communauté d'Amara.org", [], undefined, on)).toBe('silence-phrase');
+    expect(suspectTranscription("Merci d'avoir regardé !", [], undefined, on)).toBe('silence-phrase');
+  });
+
+  it('keeps a real answer, and leaves the exam screen unchanged', async () => {
+    const { suspectTranscription } = await import('../suspectTranscription');
+    expect(suspectTranscription('le', [], undefined, { screenSilencePhrases: true })).toBeNull();
+    expect(suspectTranscription('Merci, je vais bien.', [], undefined, { screenSilencePhrases: true })).toBeNull();
+    expect(suspectTranscription('Sous-titre FR', [])).toBeNull();
+  });
+});

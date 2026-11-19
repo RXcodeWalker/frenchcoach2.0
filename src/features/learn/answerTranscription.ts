@@ -102,7 +102,7 @@ export async function transcribeLearnAnswer({
 
   if (result.source === 'transcription-unavailable') return liveCaptionsOnly(liveText, 'asr-failed');
   const text = result.text.trim();
-  if (!text || suspectTranscription(text, result.segments, prompt)) return liveCaptionsOnly(liveText, 'asr-rejected');
+  if (!text || suspectTranscription(text, result.segments, prompt, { screenSilencePhrases: true })) return liveCaptionsOnly(liveText, 'asr-rejected');
   // Numbers as words in both readings, so « 1er » / « premier » is never a question to confirm.
   return { primaryText: tidyAnswer(spellOutNumbers(text)), secondaryText: tidyAnswer(spellOutNumbers(liveText)), source: 'whisper', fallbackReason: null };
 }
@@ -131,6 +131,6 @@ export async function transcribeLearnWord({
   }
   if (result.source === 'transcription-unavailable') return { ok: false, reason: 'asr-failed' };
   const text = result.text.trim().replace(/[.!?…]+$/u, '').trim();
-  if (!text || suspectTranscription(text, result.segments, prompt)) return { ok: false, reason: 'asr-rejected' };
+  if (!text || suspectTranscription(text, result.segments, prompt, { screenSilencePhrases: true })) return { ok: false, reason: 'asr-rejected' };
   return { ok: true, text: spellOutNumbers(text) };
 }

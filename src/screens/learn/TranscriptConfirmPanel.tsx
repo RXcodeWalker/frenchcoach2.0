@@ -6,11 +6,13 @@ import { Modal } from '../../components/ui/Modal';
 import { SpeakingConsentGate } from '../../components/SpeakingConsentGate';
 import { swappedWords, type RecogniserAlignment } from '../../domain/transcription/alignRecognisers';
 import { resolveObviousHearings } from '../../domain/transcription/obviousHearing';
-import { matchCase, tokenize } from '../../domain/igcse/stt/homophones/text';
+import { tokenize } from '../../domain/igcse/stt/homophones/text';
 import type { AnswerTranscription, WordRetakeResult } from '../../features/learn/answerTranscription';
 import { RecordControl } from '../../features/pronunciation/RecordControl';
 import { useAudioBlobRecorder } from '../../features/recording/useAudioBlobRecorder';
 import { useSpaceToRecord } from '../../lib/useSpaceToRecord';
+import { measureAnswerSpeech } from '../../features/pronunciation/audio/answerSpeech';
+import { caseForPosition } from '../../domain/transcription/caseForPosition';
 
 export interface TranscriptConfirmation {
   /** The text feedback will be about: the primary transcript with any swaps the student chose. */
@@ -73,12 +75,13 @@ function spanWords(
   if (said !== undefined && span.end > span.start) {
     const first = tokens[span.start];
     const last = tokens[span.end - 1];
-    return `${first.lead}${matchCase(first.core, said)}${last.trail}`;
+    const sentenceStart = span.start === 0 || tokens[span.start - 1].endsSentence;
+    return `${first.lead}${caseForPosition(first.core, said, sentenceStart)}${last.trail}`;
   }
   return chosen.has(index) ? swappedWords(alignment, index) : null;
 }
 
-type RetakeStatus = 'idle' | 'recording' | 'checking' | 'failed';
+type RetakeStatus = 'idle' | 'recording' | 'checking' | 'failed' | 'silent';
 
 /**
  * Re-records ONE underlined word or phrase: the rest of the answer is kept and
@@ -100,6 +103,8 @@ function WordRetake({
   const [status, setStatus] = useState<RetakeStatus>('idle');
   const [micFailed, setMicFailed] = useState(false);
   const alive = useRef(true);
+  /** Bumped by Cancel: a take still being checked is then ignored when it returns. */
+  const attempt = useRef(0);
   useEffect(() => {
     alive.current = true;
     return () => {
@@ -120,18 +125,33 @@ function WordRetake({
 
   const stop = async () => {
     if (status !== 'recording') return;
+    const mine = ++attempt.current;
+    const current = () => alive.current && attempt.current === mine;
+    setStatus('checking');
     const captured = await recorder.stop();
-    if (!alive.current) return;
+    if (!current()) return;
     if (!captured) {
       setStatus('idle');
       setMicFailed(true);
       return;
     }
-    setStatus('checking');
+    // Nothing said: never send it (Whisper writes « Sous-titres… » on silence).
+    const speech = await measureAnswerSpeech(captured.blob);
+    if (!current()) return;
+    if (speech && !speech.hasSpeech) {
+      setStatus('silent');
+      return;
+    }
     const result = await transcribeWord(captured.blob);
-    if (!alive.current) return;
+    if (!current()) return;
     if (result.ok) onHeard(result.text);
     else setStatus('failed');
+  };
+
+  const cancel = () => {
+    attempt.current += 1;
+    if (recorder.isRecording) void recorder.stop();
+    onCancel();
   };
 
   useSpaceToRecord({
@@ -158,6 +178,11 @@ function WordRetake({
           level={recorder.micLevel}
         />
       </SpeakingConsentGate>
+      {status === 'silent' && (
+        <p className="text-[13px] text-ink-muted" role="status">
+          I didn’t hear anything. Tap the mic and say the word.
+        </p>
+      )}
       {status === 'failed' && (
         <p className="text-[13px] text-ink-muted" role="status">
           I couldn’t catch that. Try the word again, or pick one of the readings.
@@ -166,7 +191,7 @@ function WordRetake({
       {micFailed && (
         <p className="text-[13px] text-ink-muted" role="status">The microphone isn’t available right now.</p>
       )}
-      <Button variant="quiet" size="sm" disabled={status === 'recording' || status === 'checking'} onClick={onCancel}>
+      <Button variant="quiet" size="sm" onClick={cancel}>
         Cancel
       </Button>
     </div>

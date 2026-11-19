@@ -102,3 +102,42 @@ describe('resolveObviousHearings — exam marks are untouched', () => {
     expect(heard.some((w) => w === 'de' || w === 'des')).toBe(true);
   });
 });
+
+describe('resolveObviousHearings — spelling only, and le / l\'ai', () => {
+  const WHISPER =
+    "Oui, j'aime faire de la pâtisserie le week-end. C'est très intéressant. Chaque week-end, je lis une nouvelle recette et je fais la pâtisserie. Je le fais avec mes amis.";
+  const CHROME =
+    "oui j'aime faire de la pâtisserie le weekend c'est très intéressant chaque weekend je lis une nouvelle recette et je fais la pâtisserie je le fais avec mes amis";
+
+  it('never asks about the same word spelled two ways, and keeps the shown spelling', () => {
+    const resolved = resolveObviousHearings(WHISPER, CHROME);
+    expect(resolved.spans).toEqual([]);
+    expect(resolved.primaryText).toContain('le week-end.');
+    expect(resolved.primaryText).toContain('Chaque week-end,');
+  });
+
+  it('ignores spaces, apostrophes and listed variant spellings', () => {
+    expect(resolveObviousHearings('parce que je veux', 'parceque je veux').spans).toEqual([]);
+    expect(resolveObviousHearings("j'ai perdu ma clé", "j'ai perdu ma clef").spans).toEqual([]);
+    expect(resolveObviousHearings("j'aime les maths", "j'aime les math").spans).toEqual([]);
+    expect(resolveObviousHearings('un t-shirt rouge', 'un tee-shirt rouge').spans).toEqual([]);
+  });
+
+  it('still asks about a real word difference', () => {
+    expect(resolveObviousHearings('je suis gourmand', 'je suis gourmande').spans).toHaveLength(1);
+  });
+
+  it("takes « le » before a present-tense verb and « l'ai » before a participle", () => {
+    const present = resolveObviousHearings("je l'ai mange avec mes amis", 'je le mange avec mes amis');
+    expect(present.spans).toEqual([]);
+    expect(present.primaryText).toBe('je le mange avec mes amis');
+
+    const past = resolveObviousHearings('je le mangé hier', "je l'ai mangé hier");
+    expect(past.spans).toEqual([]);
+    expect(past.primaryText).toBe("je l'ai mangé hier");
+  });
+
+  it("still asks when the verb sounds the same both ways (je le fais / je l'ai fait)", () => {
+    expect(resolveObviousHearings('je le fais avec mes amis', "je l'ai fait avec mes amis").spans).toHaveLength(1);
+  });
+});

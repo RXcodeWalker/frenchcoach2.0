@@ -13,6 +13,17 @@
  * still go either way (ont / sont, un / en, poisson / poison, « de sciences »
  * after a noun) is left underlined.
  *
+ *  - Spelling only. « week-end » / « weekend », « parce que » / « parceque »,
+ *    « clé » / « clef »: the same word written two ways is never a question.
+ *    Hyphens, spaces, apostrophes, punctuation and case are ignored, and
+ *    `SPELLING_VARIANTS` lists accepted alternative spellings. The primary
+ *    recogniser's spelling is kept. A new pair belongs in that list, never in
+ *    a screen.
+ *  - « je le mange » / « je l'ai mange ». The word after says which: avoir
+ *    needs a past participle (« je l'ai mangé »), a present-tense verb needs
+ *    the object pronoun (« je le mange »). When the verb sounds the same
+ *    either way (« je le fais » / « je l'ai fait ») it is still asked.
+ *
  * The exam marker does not use this. `alignRecognisers` stays the one
  * definition of "do these transcripts agree", and Category B words stay
  * uncertain for the judge. This file is the confirm screen's policy on top.
@@ -23,6 +34,7 @@ import {
   AUX_ETRE,
   AUDIBLE_PLURAL,
   AUDIBLE_SINGULAR,
+  CONSONANT_VERB_PAIRS,
   ER_VERBS,
   INFINITIVE_PREPOSITIONS,
   INFINITIVE_TRIGGERS,
@@ -34,7 +46,7 @@ import {
 } from '../igcse/stt/homophones/lexicon';
 import { AUDIBLE_FINAL_S } from '../igcse/stt/homophones/classes';
 import { nearPairOf } from '../igcse/stt/homophones/nearPairs';
-import { startsWithVowelSound, tokenize, type Token } from '../igcse/stt/homophones/text';
+import { normalizeWord, startsWithVowelSound, tokenize, type Token } from '../igcse/stt/homophones/text';
 import { alignRecognisers, applyAlternatives, swappedWords, type AlignedSpan, type RecogniserAlignment } from './alignRecognisers';
 
 const SUBJECTS: ReadonlySet<string> = new Set([...SUBJECT_PRONOUNS, 'ça', 'cela', 'ceci', 'qui']);
@@ -327,6 +339,76 @@ function cliticOrPossessive(clitic: string, possessive: string, next: readonly T
 
 type Side = 'primary' | 'secondary';
 
+/**
+ * The same word spelled two accepted ways. Each group is one word; the first
+ * entry is the canonical form used only for comparing. Differences of hyphen,
+ * space, apostrophe, punctuation and case need no entry here.
+ */
+const SPELLING_VARIANTS: readonly (readonly string[])[] = [
+  ['clé', 'clef'], ['clés', 'clefs'],
+  ['événement', 'évènement'], ['événements', 'évènements'],
+  ['oignon', 'ognon'], ['oignons', 'ognons'],
+  ['paie', 'paye'], ['cuillère', 'cuiller'], ['cuillères', 'cuillers'],
+  ['tshirt', 'teeshirt'], ['tshirts', 'teeshirts'],
+  ['ok', 'okay', 'oké'],
+  ['maths', 'math'],
+];
+
+const CANONICAL_SPELLING: ReadonlyMap<string, string> = new Map(
+  SPELLING_VARIANTS.flatMap((group) => group.map((word) => [word, group[0]] as const)),
+);
+
+/** Letters only, lower-case, each word mapped to its canonical spelling. */
+function spellingKey(text: string): string {
+  return text
+    .split(/\s+/)
+    .map((word) => normalizeWord(word).replace(/[^\p{L}\p{N}]/gu, ''))
+    .filter(Boolean)
+    .map((word) => CANONICAL_SPELLING.get(word) ?? word)
+    .join('');
+}
+
+function spellingOnly(span: AlignedSpan): boolean {
+  if (!span.swappable) return false;
+  const primary = spellingKey(span.primaryWords);
+  return primary !== '' && primary === spellingKey(span.secondaryWords);
+}
+
+const OBJECT_PRONOUNS: ReadonlySet<string> = new Set(['le', 'la', 'les']);
+const ELIDED_AUX: ReadonlySet<string> = new Set(["l'ai", "l'as", "l'a", "l'avons", "l'avez", "l'ont"]);
+/** je/tu form ↔ il form of the verbs whose two forms sound the same (fais / fait). */
+const SAME_SOUND_FORM: ReadonlyMap<string, string> = new Map(
+  CONSONANT_VERB_PAIRS.flatMap(([jeTu, il]) => [[jeTu, il], [il, jeTu]] as const),
+);
+
+function isPresentForm(word: string): boolean {
+  return isFiniteVerb(word) || SAME_SOUND_FORM.has(word);
+}
+
+/**
+ * « je le mange » against « je l'ai mange »: the verb after the span decides.
+ * The verb is checked in every spelling that sounds the same, so « je le
+ * fais » / « je l'ai fait » (both real French) is still asked.
+ */
+function pronounOrAuxWinner(tokens: readonly Token[], span: AlignedSpan): Side | null {
+  const primary = single(span.primaryWords);
+  const secondary = single(span.secondaryWords);
+  if (!primary || !secondary) return null;
+  let auxSide: Side;
+  if (OBJECT_PRONOUNS.has(primary) && ELIDED_AUX.has(secondary)) auxSide = 'secondary';
+  else if (ELIDED_AUX.has(primary) && OBJECT_PRONOUNS.has(secondary)) auxSide = 'primary';
+  else return null;
+  const pronounSide: Side = auxSide === 'primary' ? 'secondary' : 'primary';
+
+  const next = tokens[span.end];
+  if (!next || next.prefix !== '') return null;
+  const spellings = [next.lower, SAME_SOUND_FORM.get(next.lower)].filter((w): w is string => !!w);
+  const auxFits = spellings.some(isParticiple);
+  const pronounFits = spellings.some(isPresentForm);
+  if (auxFits === pronounFits) return null;
+  return auxFits ? auxSide : pronounSide;
+}
+
 function functionWordWinner(tokens: readonly Token[], span: AlignedSpan): Side | null {
   const primary = single(span.primaryWords);
   const secondary = single(span.secondaryWords);
@@ -352,9 +434,10 @@ function functionWordWinner(tokens: readonly Token[], span: AlignedSpan): Side |
 function winningSide(alignment: RecogniserAlignment, span: AlignedSpan): Side | null {
   if (!span.swappable) return null;
   const tokens = tokenize(alignment.primaryText);
+  if (spellingOnly(span)) return 'primary';
   const nasal = matchNasal(span);
   if (nasal) return nasalWinner(tokens, span, nasal);
-  return functionWordWinner(tokens, span);
+  return pronounOrAuxWinner(tokens, span) ?? functionWordWinner(tokens, span);
 }
 
 /**

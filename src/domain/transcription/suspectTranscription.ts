@@ -21,7 +21,7 @@ export interface ScreenableSegment {
   compressionRatio: number | null;
 }
 
-export type SuspectReason = 'no-speech' | 'repetition' | 'prompt-echo';
+export type SuspectReason = 'no-speech' | 'repetition' | 'prompt-echo' | 'silence-phrase';
 
 function words(text: string): string[] {
   return text
@@ -34,12 +34,43 @@ function words(text: string): string[] {
     .filter(Boolean);
 }
 
-/** Why the result should not be trusted, or null when nothing about it is suspect. */
+/**
+ * What Whisper writes on silence or noise: subtitle credits from its training
+ * data (« Sous-titres réalisés par la communauté d'Amara.org », « Sous-titre
+ * FR », « Merci d'avoir regardé »). A learner answering a question never says
+ * these. Matched on the whole text, so an answer that merely contains « merci »
+ * is kept.
+ */
+const SILENCE_PHRASES: readonly RegExp[] = [
+  /^sous[ -]?titr/, // sous-titres réalisés par…, sous-titre fr, sous-titrage st'501
+  /amara/,
+  /^merci d'avoir regardé/,
+  /^merci de (?:votre|nous avoir) (?:attention|regardé|suivi)/,
+  /abonnez[ -]vous/,
+  /^(?:♪|musique|\[musique\]|\(musique\))$/,
+  /^thanks? (?:you )?for watching/,
+];
+
+/** Whether the whole text is one of Whisper's silence phrases. */
+export function isSilencePhrase(text: string): boolean {
+  const said = words(text).join(' ');
+  const raw = text.normalize('NFC').toLowerCase().trim();
+  return SILENCE_PHRASES.some((re) => re.test(said) || re.test(raw));
+}
+
+/**
+ * Why the result should not be trusted, or null when nothing about it is
+ * suspect. `screenSilencePhrases` is Learn's: the exam's `asr-rejected` does
+ * not pass it (changing which answers fall back there is an Assessment-Engine
+ * change).
+ */
 export function suspectTranscription(
   text: string,
   segments: readonly ScreenableSegment[],
   prompt?: string,
+  options: { screenSilencePhrases?: boolean } = {},
 ): SuspectReason | null {
+  if (options.screenSilencePhrases && isSilencePhrase(text)) return 'silence-phrase';
   const reported = segments.filter((s) => s.noSpeechProb !== null);
   if (reported.length > 0 && reported.every((s) => (s.noSpeechProb as number) >= NO_SPEECH_PROB_LIMIT)) return 'no-speech';
   if (segments.some((s) => s.compressionRatio !== null && s.compressionRatio > COMPRESSION_RATIO_LIMIT)) return 'repetition';

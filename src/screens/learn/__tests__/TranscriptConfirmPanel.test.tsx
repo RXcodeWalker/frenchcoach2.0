@@ -18,9 +18,16 @@ vi.mock('../../../features/recording/useAudioBlobRecorder', () => ({
     stop: recorder.stop,
   }),
 }));
+const speech = vi.hoisted(() => ({ result: null as { hasSpeech: boolean } | null }));
+vi.mock('../../../features/pronunciation/audio/answerSpeech', () => ({
+  measureAnswerSpeech: vi.fn(async () => speech.result),
+}));
 vi.mock('../../../features/recording/LevelBars', () => ({ LevelBars: () => null }));
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  speech.result = null;
+});
 
 const whisper = (primaryText: string, secondaryText: string): AnswerTranscription => ({
   primaryText,
@@ -123,6 +130,57 @@ describe('TranscriptConfirmPanel', () => {
     });
     expect(screen.getByText(/couldn’t catch that/i)).toBeTruthy();
     expect(screen.getByTestId('heard-text').textContent).toBe('Ils ont un chien.');
+  });
+
+  it('sends nothing when the re-said word was silence', async () => {
+    speech.result = { hasSpeech: false };
+    const transcribeWord = vi.fn(async () => ({ ok: true as const, text: 'Sous-titre FR' }));
+    setup(whisper('Je le fais.', "je l'ai fais"), false, transcribeWord);
+    fireEvent.click(screen.getByTestId('uncertain-word'));
+    fireEvent.click(screen.getByText('Say this word again'));
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText('Tap and say the word'));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText('Stop and check'));
+    });
+    expect(transcribeWord).not.toHaveBeenCalled();
+    expect(screen.getByText(/didn’t hear anything/i)).toBeTruthy();
+    expect(screen.getByTestId('heard-text').textContent).toBe('Je le fais.');
+  });
+
+  it('lets Cancel work while a word is being checked, and ignores the late result', async () => {
+    let finish: (r: WordRetakeResult) => void = () => {};
+    const transcribeWord = vi.fn(() => new Promise<WordRetakeResult>((resolve) => { finish = resolve; }));
+    setup(whisper('Ils ont un chien.', 'ils sont en chien'), false, transcribeWord);
+    fireEvent.click(screen.getByTestId('uncertain-word'));
+    fireEvent.click(screen.getByText('Say this word again'));
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText('Tap and say the word'));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText('Stop and check'));
+    });
+    const cancel = screen.getByText('Cancel').closest('button') as HTMLButtonElement;
+    expect(cancel.disabled).toBe(false);
+    fireEvent.click(cancel);
+    expect(screen.queryByTestId('word-retake')).toBeNull();
+    await act(async () => finish({ ok: true, text: 'sont en' }));
+    expect(screen.getByTestId('heard-text').textContent).toBe('Ils ont un chien.');
+  });
+
+  it('gives a re-said word the capital of where it sits', async () => {
+    const transcribeWord = vi.fn(async () => ({ ok: true as const, text: 'Sont' }));
+    setup(whisper('Ils ont un chien.', 'ils sont un chien'), false, transcribeWord);
+    fireEvent.click(screen.getByTestId('uncertain-word'));
+    fireEvent.click(screen.getByText('Say this word again'));
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText('Tap and say the word'));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText('Stop and check'));
+    });
+    expect(screen.getByTestId('heard-text').textContent).toBe('Ils sont un chien.');
   });
 
   it('asks "Are you sure?" before throwing the whole answer away', () => {
