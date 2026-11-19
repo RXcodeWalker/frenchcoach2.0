@@ -28,6 +28,8 @@ import { TopContextBar } from '../components/TopContextBar';
 import { HeroMission, type PlanStep } from './home/HeroMission';
 import { CoachPick } from './home/CoachPick';
 import { ThisWeek, type WeekDay } from './home/ThisWeek';
+import { PlanWeek } from './home/PlanWeek';
+import { buildWeekPlan } from '../services/coach/weekPlan';
 import { HomeworkCard } from '../features/homework/HomeworkCard';
 import { RecentActivity } from './home/RecentActivity';
 
@@ -156,6 +158,8 @@ export function Home() {
     [answersLeft, lossTick, state.recentSessions.length, state.learnerModel, state.learnerTrack, state.junior?.missionsDone],
   );
   const brief = coach?.brief ?? null;
+  // The week built backwards from the exam and the limits; it recomputes with the coach, i.e. when a session lands.
+  const weekPlan = useMemo(() => (coach ? buildWeekPlan(coach.input, coach.brief) : null), [coach]);
 
   // Coach outcome log (domain/coachOutcomes/): note the move once it has stayed on screen. Local only.
   useEffect(() => {
@@ -299,6 +303,8 @@ export function Home() {
             ? { label: desktop ? 'Practise in Learn' : 'Learn', onClick: () => navigate('/learn') }
             : undefined}
         />
+
+        {weekPlan && <PlanWeek plan={weekPlan} compact={!desktop} onOpen={to => navigate(to)} />}
 
         <HomeworkCard />
 
