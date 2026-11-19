@@ -22,6 +22,7 @@ import { loadLabHistory, recordLabTake, saveMonthlyCheck } from './labStore';
 import { track } from '../../services/telemetry/telemetryService';
 import { useAudioBlobRecorder } from '../recording/useAudioBlobRecorder';
 import { playClip, stopClip } from './audio/clipPlayer';
+import { ListenSpeedControl, useListenSpeed } from './ListenSpeed';
 import { playNative, stopNative } from './audio/nativeVoice';
 import { CompareSentence, Legend } from './LabPractice';
 import { RecordControl } from './RecordControl';
@@ -152,7 +153,8 @@ export function MonthlyCheck({ onDone }: Props) {
     stopNative();
   };
 
-  const native = async (text: string | readonly string[], speed = 1) => {
+  const [listenSpeed, setListenSpeed] = useListenSpeed();
+  const native = async (text: string | readonly string[], speed = listenSpeed) => {
     // The benchmark sentences are recorded in advance (`collectLines.ts`), so no on-demand synthesis is asked for.
     const result = await playNative(text, { speed });
     if (alive.current && result === 'unavailable') setNativeUnavailable(true);
@@ -315,8 +317,8 @@ export function MonthlyCheck({ onDone }: Props) {
           <p className="text-[20px] leading-relaxed text-ink" lang="fr">{sentence}</p>
           <div className="flex flex-wrap items-center gap-2">
             <PlayButton label="Listen" icon={<Volume2 size={16} aria-hidden="true" />} play={() => { stopAudio(); return native(sentence); }} />
-            <PlayButton label="Slowly" icon={<Volume2 size={16} aria-hidden="true" />} play={() => { stopAudio(); return native(sentence, 0.75); }} />
           </div>
+          <ListenSpeedControl speed={listenSpeed} onChange={setListenSpeed} />
           <SpeakingConsentGate>
             <RecordControl
               recording={state.activity.kind === 'recording'}

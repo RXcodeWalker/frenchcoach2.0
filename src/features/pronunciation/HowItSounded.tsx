@@ -12,6 +12,7 @@ import { playClip, stopClip } from './audio/clipPlayer';
 import { playNative, stopNative } from './audio/nativeVoice';
 import { NATIVE_PREPARING, NATIVE_UNAVAILABLE, flowLine } from './labCopy';
 import { LabPractice } from './LabPractice';
+import { ListenSpeedControl, useListenSpeed } from './ListenSpeed';
 
 /**
  * "How it sounded" — the pronunciation card on a Learn answer
@@ -45,36 +46,9 @@ interface Props {
   onPractiseOpened?: () => void;
 }
 
-/** The slowest the native voice goes (`nativeVoice` clamps to 0.5–1). */
-const MIN_SPEED = 0.5;
-const PRESETS = [0.5, 0.75, 1];
-const SPEED_KEY = 'frenchCoach_listenSpeed';
-
-const clampSpeed = (n: number) =>
-  Number.isFinite(n) ? Math.min(1, Math.max(MIN_SPEED, Math.round(n * 20) / 20)) : 1;
-const formatSpeed = (n: number) => String(Number(n.toFixed(2)));
-
-function loadSpeed(): number {
-  try {
-    const raw = window.localStorage.getItem(SPEED_KEY);
-    return raw === null ? 1 : clampSpeed(Number(raw));
-  } catch {
-    return 1;
-  }
-}
-
 export function HowItSounded({ answerBlob, sentence, onPractiseOpened }: Props) {
   const reduced = useReducedMotion() ?? false;
-  const [speed, setSpeed] = useState(loadSpeed);
-  const changeSpeed = (n: number) => {
-    const next = clampSpeed(n);
-    setSpeed(next);
-    try {
-      window.localStorage.setItem(SPEED_KEY, String(next));
-    } catch {
-      /* a per-device convenience; fine without it */
-    }
-  };
+  const [speed, changeSpeed] = useListenSpeed();
   const [pauses, setPauses] = useState<PauseStats | null>(null);
   const [practising, setPractising] = useState(false);
   const [nativeUnavailable, setNativeUnavailable] = useState(false);
@@ -158,40 +132,7 @@ export function HowItSounded({ answerBlob, sentence, onPractiseOpened }: Props) 
             <PlayButton label="Native" icon={<Volume2 size={16} aria-hidden="true" />} play={() => native(target, speed, true)} />
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <label htmlFor="listen-speed" className="text-caption text-ink-muted">
-            Speed
-          </label>
-          <input
-            id="listen-speed"
-            type="range"
-            min={MIN_SPEED}
-            max={1}
-            step={0.05}
-            value={speed}
-            onChange={(e) => changeSpeed(Number(e.target.value))}
-            aria-valuetext={`${formatSpeed(speed)}×`}
-            className="h-2 w-40 accent-[var(--action)]"
-          />
-          <span className="w-12 text-caption tabular-nums text-ink" aria-hidden="true">
-            {formatSpeed(speed)}×
-          </span>
-          {PRESETS.map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => changeSpeed(p)}
-              aria-pressed={Math.abs(speed - p) < 0.001}
-              className={`rounded-pill border px-3 py-1 text-caption transition-colors duration-state ease-smooth ${
-                Math.abs(speed - p) < 0.001
-                  ? 'border-action bg-action-soft text-action-text'
-                  : 'border-hairline text-ink-muted hover:bg-track'
-              }`}
-            >
-              {formatSpeed(p)}×
-            </button>
-          ))}
-        </div>
+        <ListenSpeedControl speed={speed} onChange={changeSpeed} />
         {nativePreparing && (
           <p className="text-caption text-ink-muted" role="status">
             {NATIVE_PREPARING}

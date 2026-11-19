@@ -106,19 +106,22 @@ describe('LabPractice', () => {
     expect(new Set(days).size).toBe(days.length);
   });
 
-  it('Listen: the sentence, Listen / Slowly, and a record button; lab_opened is tracked', () => {
+  it('Listen: the sentence, Listen, a speed slider, and a record button; lab_opened is tracked', () => {
     renderLab();
     expect(trackMock).toHaveBeenCalledWith({ name: 'lab_opened', props: { entry: 'learn_feedback' } });
     expect(screen.getByRole('button', { name: /Listen/ })).toBeTruthy();
-    expect(screen.getByRole('button', { name: /Slowly/ })).toBeTruthy();
+    expect(screen.getByLabelText('Speed')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Tap and say the sentence' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Hear « enfants »' })).toBeTruthy();
   });
 
-  it('Listen plays the sentence through the native voice, slow at 0.75', async () => {
+  it('Listen plays the sentence through the native voice at the slider speed', async () => {
     renderLab();
-    await click(screen.getByRole('button', { name: /Slowly/ }));
-    expect(audio.playNative).toHaveBeenCalledWith(SENTENCE, expect.objectContaining({ speed: 0.75, synthesize: true }));
+    await click(screen.getByRole('button', { name: /Listen/ }));
+    expect(audio.playNative).toHaveBeenLastCalledWith(SENTENCE, expect.objectContaining({ speed: 1, synthesize: true }));
+    fireEvent.change(screen.getByLabelText('Speed'), { target: { value: '0.75' } });
+    await click(screen.getByRole('button', { name: /Listen/ }));
+    expect(audio.playNative).toHaveBeenLastCalledWith(SENTENCE, expect.objectContaining({ speed: 0.75, synthesize: true }));
   });
 
   it('a take is checked in scripted mode as the Lab, and shows "N of M words clear" with a legend — never a 0–100 number', async () => {
@@ -179,15 +182,15 @@ describe('LabPractice', () => {
     expect(audio.playNative).toHaveBeenLastCalledWith(SENTENCE, expect.objectContaining({ speed: 1, synthesize: true }));
   });
 
-  it('focus drill: tip, hear it slowly, record the word alone, a verdict that never says wrong; then the sentence again, first vs best', async () => {
+  it('focus drill: tip, hear it, record the word alone, a verdict that never says wrong; then the sentence again, first vs best', async () => {
     assessMock.mockResolvedValueOnce(sentenceResult([95, 40, 95, 95, 95, 70]));
     renderLab();
     await recordTake(/Tap and say the sentence/);
     await click(screen.getByRole('button', { name: 'Practise these words' }));
 
     expect(screen.getByText('Word 1 of 2', { exact: false })).toBeTruthy();
-    await click(screen.getByRole('button', { name: /Hear it slowly/ }));
-    expect(audio.playNative).toHaveBeenLastCalledWith('enfants', expect.objectContaining({ speed: 0.75, synthesize: false }));
+    await click(screen.getByRole('button', { name: /Hear it/ }));
+    expect(audio.playNative).toHaveBeenLastCalledWith('enfants', expect.objectContaining({ speed: 1, synthesize: false }));
 
     assessMock.mockResolvedValueOnce(scripted([azureWord('enfants', 45)]));
     await recordTake(/Tap and say the word/);

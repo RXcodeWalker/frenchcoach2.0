@@ -21,6 +21,7 @@ import { RecordControl } from './RecordControl';
 import { TRICKY_DRILL_FULL, trickyProgressLine } from './soundsCopy';
 import { useLabAllowance } from './useLabAllowance';
 import { useNativePlayer } from './useNativePlayer';
+import { ListenSpeedControl, useListenSpeed } from './ListenSpeed';
 import { playClip, stopClip } from './audio/clipPlayer';
 
 /**
@@ -57,6 +58,7 @@ export function WordDrill({ word, onClose }: Props) {
   const reduced = useReducedMotion() ?? false;
   const recorder = useAudioBlobRecorder();
   const native = useNativePlayer();
+  const [listenSpeed, setListenSpeed] = useListenSpeed();
   const allowance = useLabAllowance();
   const [allowanceUsed, setAllowanceUsed] = useState(false);
   const family = familyOf(word);
@@ -186,11 +188,8 @@ export function WordDrill({ word, onClose }: Props) {
       <p className="text-display-m text-ink" lang="fr">{word}</p>
       <p className="text-body-s text-ink">{tipFor(family, word)}</p>
       <div className="flex flex-wrap gap-2">
-        <Button variant="secondary" size="sm" onClick={() => void native.play(word)}>
+        <Button variant="secondary" size="sm" onClick={() => void native.play(word, listenSpeed)}>
           <Volume2 size={16} aria-hidden="true" /> Hear it
-        </Button>
-        <Button variant="secondary" size="sm" onClick={() => void native.play(word, 0.75)}>
-          <Volume2 size={16} aria-hidden="true" /> Hear it slowly
         </Button>
         {blob.current && (
           <Button variant="secondary" size="sm" onClick={() => { native.stop(); if (blob.current) void playClip(blob.current); }}>
@@ -198,6 +197,7 @@ export function WordDrill({ word, onClose }: Props) {
           </Button>
         )}
       </div>
+      <ListenSpeedControl speed={listenSpeed} onChange={setListenSpeed} />
       <SpeakingConsentGate>
         <RecordControl
           size="md"

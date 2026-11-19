@@ -84,11 +84,12 @@ async function tryOnce() {
 const result = (score: number) => scripted([azureWord('tout', score, { phonemeScores: [score, score, score] })]);
 
 describe('WordDrill', () => {
-  it('shows the word, a tip and plays it (also slowly) through the native voice', async () => {
+  it('shows the word, a tip and plays it at the slider speed through the native voice', async () => {
     render(<WordDrill word="tout" onClose={vi.fn()} />);
     expect(screen.getByText('tout')).toBeTruthy();
     expect(screen.getByText(/ou — round your lips/)).toBeTruthy();
-    await click(screen.getByRole('button', { name: /Hear it slowly/ }));
+    fireEvent.change(screen.getByLabelText('Speed'), { target: { value: '0.75' } });
+    await click(screen.getByRole('button', { name: /Hear it/ }));
     expect(audio.playNative).toHaveBeenCalledWith('tout', expect.objectContaining({ speed: 0.75 }));
   });
 
@@ -175,7 +176,7 @@ describe('WordDrill', () => {
       expect(screen.getByText(/used today's checks/)).toBeTruthy();
       expect(screen.queryByText(/couldn't check that take/)).toBeNull();
       expect((screen.getByRole('button', { name: 'No checks left today' }) as HTMLButtonElement).disabled).toBe(true);
-      await click(screen.getByRole('button', { name: /Hear it slowly/ }));
+      await click(screen.getByRole('button', { name: /Hear it/ }));
       expect(audio.playNative).toHaveBeenCalled();
     });
 

@@ -20,6 +20,7 @@ import { failureOf } from './checkFailure';
 import { recordLabDrill, recordLabTake } from './labStore';
 import { RecordControl } from './RecordControl';
 import { playClip, stopClip } from './audio/clipPlayer';
+import { ListenSpeedControl, useListenSpeed } from './ListenSpeed';
 import { playNative, stopNative } from './audio/nativeVoice';
 import { useLabAllowance } from './useLabAllowance';
 import {
@@ -238,6 +239,7 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
   const [nativePreparing, setNativePreparing] = useState(false);
   /** Only the latest Native play may clear the "preparing" line (an older one resolves 'stopped' later). */
   const nativeCall = useRef(0);
+  const [listenSpeed, setListenSpeed] = useListenSpeed();
 
   useEffect(() => {
     track({ name: 'lab_opened', props: { entry } });
@@ -268,7 +270,7 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
   }, [state.takes]);
 
   /** `sentence`: the whole target sentence, which may be AI-written — recorded on demand when it has no file (Stage 4b). */
-  const native = async (text: string | readonly string[], speed = 1, sentence = false) => {
+  const native = async (text: string | readonly string[], speed = listenSpeed, sentence = false) => {
     const call = ++nativeCall.current;
     const result = await playNative(text, {
       speed,
@@ -388,7 +390,7 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
       await playClip(blob);
       if (seq !== playSeq.current || !alive.current) return;
     }
-    await native(targetSentence, 1, true);
+    await native(targetSentence, listenSpeed, true);
   };
 
   const playYourWord = async (tokenIndex: number) => {
@@ -464,14 +466,10 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
             <PlayButton
               label="Listen"
               icon={<Volume2 size={16} aria-hidden="true" />}
-              play={() => { stopAudio(); return native(targetSentence, 1, true); }}
-            />
-            <PlayButton
-              label="Slowly"
-              icon={<Volume2 size={16} aria-hidden="true" />}
-              play={() => { stopAudio(); return native(targetSentence, 0.75, true); }}
+              play={() => { stopAudio(); return native(targetSentence, listenSpeed, true); }}
             />
           </div>
+          <ListenSpeedControl speed={listenSpeed} onChange={setListenSpeed} />
           {underlines.size > 0 && (
             <p className="text-caption text-ink-muted">Dotted letters are sounds to listen for. Tap any word to hear it on its own.</p>
           )}
@@ -560,9 +558,9 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
           <p className="text-body-s text-ink">{tipFor(focusWord.family, focusWord.text)}</p>
           <div className="flex flex-wrap gap-2">
             <PlayButton
-              label="Hear it slowly"
+              label="Hear it"
               icon={<Volume2 size={16} aria-hidden="true" />}
-              play={() => { stopAudio(); return native(focusText(state.focusIndex), 0.75); }}
+              play={() => { stopAudio(); return native(focusText(state.focusIndex)); }}
             />
             {hasYourWord && <PlayButton label="Your take" play={() => playYourWord(focusWord.tokenIndex)} />}
           </div>

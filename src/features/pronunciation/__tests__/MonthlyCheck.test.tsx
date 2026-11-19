@@ -253,7 +253,10 @@ describe('MonthlyCheck', () => {
   it('Listen asks for the recorded sentence without on-demand synthesis', async () => {
     render(<MonthlyCheck onDone={vi.fn()} />);
     await click(screen.getByRole('button', { name: 'Start the check' }));
-    await click(screen.getByRole('button', { name: /Slowly/ }));
-    expect(audio.playNative).toHaveBeenCalledWith(BENCHMARK_SENTENCES[0], { speed: 0.75 });
+    await click(screen.getByRole('button', { name: /Listen/ }));
+    expect(audio.playNative).toHaveBeenLastCalledWith(BENCHMARK_SENTENCES[0], { speed: 1 });
+    fireEvent.change(screen.getByLabelText('Speed'), { target: { value: '0.75' } });
+    await click(screen.getByRole('button', { name: /Listen/ }));
+    expect(audio.playNative).toHaveBeenLastCalledWith(BENCHMARK_SENTENCES[0], { speed: 0.75 });
   });
 });
