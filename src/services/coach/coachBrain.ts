@@ -29,12 +29,14 @@
 import type { CoachGoalType } from '../../types/coach';
 import type { EvidenceDerivedSkillBelief } from '../../types/beliefs';
 import type { StoredSession } from '../analytics/analyticsService';
-import { examSummary, learnTopicPath, EXAM_WINDOW_DAYS, type ExamArea, type ExamAreaKey } from '../../features/progress/progressSummary';
+import { examSummary, examAreas, learnTopicPath, EXAM_WINDOW_DAYS, type ExamArea, type ExamAreaKey } from '../../features/progress/progressSummary';
 import type { CoachMoveKind, CoachMoveEvidence } from '../../domain/coachOutcomes/types';
 import { moveTarget, type CoachOutcomeLog } from '../../domain/coachOutcomes/outcomeLog';
 import { moveTrackRecord, STALLS_BEFORE_SWITCH, type TrackImprovement } from '../../domain/coachOutcomes/trackRecord';
 import { LEARN_FOCUS_PARAM } from '../../domain/learn/selection/filters';
 import { COACHED_EXAM_PATH } from '../../features/exam/examDeepLink';
+import type { LossReason } from '../../domain/coachLosses/types';
+import { lossAction, lossChip, lossSentence, pickTopLoss, routeForLoss, type LossRoute } from '../../domain/coachLosses/lossCoaching';
 
 export type { CoachMoveKind, CoachMoveEvidence };
 
@@ -55,6 +57,12 @@ export const FIRST_EXAM_AFTER_ANSWERS = 3;
  * the move's old priority, leads — not so far that it vanishes from "Or:".
  */
 export const STALLED_PRIORITY_DROP = 30;
+/**
+ * UNVALIDATED. Added to the move that carries the biggest lost-marks reason of
+ * the last counted Exam Sim, so "where the marks went" outranks the same area's
+ * generic advice without overriding a tracked recurring mistake or the exam itself.
+ */
+export const LOSS_TOP_BONUS = 6;
 
 /**
  * The strategies for a weak exam area, tried in order: when one stalls, the
@@ -189,6 +197,13 @@ export interface CoachInput {
    * Absent = no track record: every move keeps its normal priority.
    */
   outcomeLog?: CoachOutcomeLog;
+  /**
+   * Why marks were lost in the latest counted Exam Sim (domain/coachLosses/):
+   * the reason codes the device holds for that attempt. `attemptId` is the app
+   * Session id it belongs to; the brain ignores it unless it is the newest counted
+   * attempt and still fresh. Absent = the old rule (area totals only).
+   */
+  examLosses?: { attemptId: string; reasons: LossReason[] } | null;
 }
 
 /** One area of the learner model's exam standing (domain/learnerModel/read.ts ExamAreaReading). */
@@ -344,6 +359,30 @@ function topicEvidence(topic: CoachTopic | null, stats: Record<string, CoachTopi
   return { topic: { key: topic.key, averageScore: stats[topic.key]?.averageScore ?? null, sessionsCompleted: stats[topic.key]?.sessionsCompleted ?? 0 } };
 }
 
+/** The biggest routable lost-marks reason of the newest counted Exam Sim, with its area's marks and its drill. */
+interface TopLoss { reason: LossReason; area: WeakArea; route: LossRoute }
+
+function topLossFor(input: CoachInput, exam: ReturnType<typeof examSummary>, now: number): TopLoss | null {
+  const losses = input.examLosses;
+  const attempt = exam.counted[0];
+  if (!losses || !attempt || losses.attemptId !== attempt.id || !attempt.marks) return null;
+  if (now - new Date(attempt.date).getTime() > EXAM_RESULT_FRESH_DAYS * DAY_MS) return null;
+  const reason = pickTopLoss(losses.reasons);
+  const route = reason ? routeForLoss(reason) : null;
+  const a = reason ? examAreas(attempt.marks).find(x => x.key === reason.area) : undefined;
+  if (!reason || !route || !a) return null;
+  return { reason, route, area: { ...a, basis: 'latest', share: a.mark / a.max } };
+}
+
+function lostReasonEvidence(l: LossReason): NonNullable<CoachMoveEvidence['lostReason']> {
+  return { code: l.code, area: l.area, marksBelowMax: l.marksBelowMax };
+}
+
+/** `?topic=…` Learn link with the grammar-focus chip on; a bare /learn has no setup to focus. */
+function withFocus(path: string, focus: LossRoute['focus']): string {
+  return focus && path.includes('?') ? `${path}&${LEARN_FOCUS_PARAM}=${focus}` : path;
+}
+
 // ── The decision ──────────────────────────────────────────────────────────────
 
 export function decideCoachBrief(input: CoachInput): CoachBrief {
@@ -363,6 +402,8 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
   const latest = exam.latestWithAreas;
   const latestFresh = latest !== null && now - new Date(latest.date).getTime() <= EXAM_RESULT_FRESH_DAYS * DAY_MS;
   const weakArea: WeakArea | null = chooseWeakArea(input.examStanding, latestFresh ? exam.weakestArea : null);
+  // Why the last counted attempt fell short (not just where): its biggest routable reason.
+  const lossTop = topLossFor(input, exam, now);
 
   const dueTotal = Object.values(input.dueCounts).reduce((a, b) => a + b, 0);
   const answersGone = input.learnAnswersLeft === 0;
@@ -435,13 +476,17 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
 
   // 4. Role-play drill: the fix for a weak role play, and the best use of time when Learn is spent.
   {
-    const rp = weakArea?.key === 'rolePlay';
+    const lossRp = lossTop?.reason.area === 'rolePlay';
+    const rp = weakArea?.key === 'rolePlay' || lossRp;
+    const rpArea = weakArea?.key === 'rolePlay' ? weakArea : lossRp ? lossTop.area : null;
     const finalNoExam = phase === 'final_week' && !examAvailable;
     add({
       kind: 'role_play',
       title: 'Drill role plays',
-      why: rp
-        ? `${weakAreaSentence('Role play', weakArea)}. Each task wants a full answer to every part — drilling the cards is the fastest fix.`
+      why: lossRp
+        ? `${lossSentence(lossTop.reason)} ${lossAction(lossTop.reason)}`
+        : rp && weakArea
+          ? `${weakAreaSentence('Role play', weakArea)}. Each task wants a full answer to every part — drilling the cards is the fastest fix.`
         : finalNoExam
           ? 'Final week: role plays are quick, familiar wins — and they don’t use today’s marked answers.'
           : answersGone
@@ -452,25 +497,33 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
       topicKey: null,
       skillIds: [],
       usesLearnAnswer: false,
-      priority: rp ? 82 + (late ? 5 : 0) : finalNoExam ? 80 : answersGone ? 72 : 35,
-      evidence: rp && weakArea ? { examArea: areaEvidence(weakArea) } : {},
+      priority: rp ? 82 + (late ? 5 : 0) + (lossRp ? LOSS_TOP_BONUS : 0) : finalNoExam ? 80 : answersGone ? 72 : 35,
+      evidence: rpArea ? { examArea: areaEvidence(rpArea), ...(lossRp ? { lostReason: lostReasonEvidence(lossTop.reason) } : {}) } : {},
     });
   }
 
   // 5. Weak Communication: longer, developed answers.
-  if (weakArea?.key === 'communication') {
+  const lossComm = lossTop?.reason.area === 'communication';
+  if (weakArea?.key === 'communication' || lossComm) {
+    const commArea = weakArea?.key === 'communication' ? weakArea : lossTop?.area;
     const topic = lowestAverageTopic(topics, stats) ?? mostRecentTopic(topics, stats) ?? topics[0] ?? null;
     add({
       kind: 'develop_answers',
       title: 'Develop your answers',
-      why: `${weakAreaSentence('Communication', weakArea)}. Those marks come from developed answers: give an opinion, say why, and add a past or future example.`,
+      why: lossComm
+        ? `${lossSentence(lossTop.reason)} ${lossAction(lossTop.reason)}`
+        : `${weakAreaSentence('Communication', weakArea as WeakArea)}. Those marks come from developed answers: give an opinion, say why, and add a past or future example.`,
       cta: topic ? `Practise in ${topic.labelEn}` : 'Practise in Learn',
-      to: topicPath(topic),
+      to: withFocus(topicPath(topic), lossComm ? lossTop.route.focus : undefined),
       topicKey: topic?.key ?? null,
       skillIds: [],
       usesLearnAnswer: true,
-      priority: 78 + (late ? 4 : 0),
-      evidence: { examArea: areaEvidence(weakArea), ...topicEvidence(topic, stats) },
+      priority: 78 + (late ? 4 : 0) + (lossComm ? LOSS_TOP_BONUS : 0),
+      evidence: {
+        examArea: areaEvidence(commArea as WeakArea),
+        ...(lossComm ? { lostReason: lostReasonEvidence(lossTop.reason) } : {}),
+        ...topicEvidence(topic, stats),
+      },
     });
   }
 
@@ -509,6 +562,36 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
           ...(qol ? { examArea: areaEvidence(weakArea) } : {}),
           ...topicEvidence(topic, stats),
         },
+      });
+    }
+  }
+
+  // 6b. The biggest lost-marks reason is a Quality-of-language one with a drill
+  //     (a category of mistake, or a thin vocabulary): lead with it. If the same
+  //     skill is already a candidate (tracked mistake / weakest skill) it takes the
+  //     reason as its "why" instead of a second move for the same skill.
+  if (lossTop && lossTop.reason.area === 'qualityOfLanguage' && lossTop.route.kind === 'weak_skill' && lossTop.route.skillId) {
+    const id = lossTop.route.skillId;
+    const sentence = lossSentence(lossTop.reason);
+    const existing = candidates.find(c => (c.kind === 'weak_skill' || c.kind === 'fix_mistake') && c.skillIds[0] === id);
+    if (existing) {
+      existing.why = `${sentence} ${existing.why}`;
+      existing.priority += LOSS_TOP_BONUS;
+      existing.evidence = { ...existing.evidence, examArea: areaEvidence(lossTop.area), lostReason: lostReasonEvidence(lossTop.reason) };
+    } else {
+      const label = skillLabel(id);
+      const topic = bestTopicForSkill(id, topics, stats) ?? lowestAverageTopic(topics, stats);
+      add({
+        kind: 'weak_skill',
+        title: `Practise ${label}`,
+        why: `${sentence}${topic && (topic.skillCoverage[id] ?? 0) > 0 ? ` ${topic.labelEn} has the most questions that need ${label.toLowerCase()}.` : ''}`,
+        cta: topic ? `Practise in ${topic.labelEn}` : 'Practise in Learn',
+        to: withFocus(topicPath(topic), lossTop.route.focus),
+        topicKey: topic?.key ?? null,
+        skillIds: [id],
+        usesLearnAnswer: true,
+        priority: 76 + (late ? 4 : 0) + LOSS_TOP_BONUS,
+        evidence: { skill: skillEvidence(id, skills[id]), examArea: areaEvidence(lossTop.area), lostReason: lostReasonEvidence(lossTop.reason), ...topicEvidence(topic, stats) },
       });
     }
   }
@@ -682,7 +765,7 @@ export function decideCoachBrief(input: CoachInput): CoachBrief {
     move,
     alternatives,
     steps: stepsFor(move, skillLabel, input.dueCounts),
-    signals: buildSignals({ phase, days, exam, weakArea, move, skills, skillLabel, dueTotal, learnAnswersLeft: input.learnAnswersLeft, nextExamAt, examGoal }),
+    signals: buildSignals({ phase, days, exam, weakArea, move, skills, skillLabel, dueTotal, learnAnswersLeft: input.learnAnswersLeft, nextExamAt, examGoal, lossChip: lossTop && move.evidence.lostReason ? lossChip(lossTop.reason) : null }),
     examAvailable,
     nextExamAt,
   };
@@ -794,10 +877,12 @@ function buildSignals(a: {
   learnAnswersLeft: number | null;
   nextExamAt: string | null;
   examGoal: boolean;
+  lossChip: string | null;
 }): string[] {
   const out: string[] = [];
   if (a.days !== null && a.days >= 0 && a.examGoal) out.push(a.days === 0 ? 'Exam today' : `Exam in ${plural(a.days, 'day')}`);
   if (a.exam.counted.length > 0) out.push(`Last Exam Sim ${a.exam.counted[0].total}/40`);
+  if (a.lossChip) out.push(a.lossChip);
   if (a.weakArea) {
     out.push(a.weakArea.basis === 'latest'
       ? `Weakest exam area: ${a.weakArea.label} ${a.weakArea.mark}/${a.weakArea.max}`

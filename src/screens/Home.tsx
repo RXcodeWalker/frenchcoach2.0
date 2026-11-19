@@ -87,6 +87,8 @@ export function Home() {
   const [showReviewBanner, setShowReviewBanner] = useState(false);
   // Today's AI-marked Learn answers left (read-only lookup); null while unknown.
   const [answersLeft, setAnswersLeft] = useState<number | null>(null);
+  // Bumped when the device learns why the last Exam Sim lost marks (examLossBackfill), so the coach re-reads it.
+  const [lossTick, setLossTick] = useState(0);
 
   const stats = useMemo(() => getStats(), []);
   const week: WeekDay[] = useMemo(
@@ -132,6 +134,16 @@ export function Home() {
     return () => { live = false; };
   }, []);
 
+  // The last counted Exam Sim's reasons, re-read from the server's persisted marking when this
+  // device lacks them (free reads, loaded on demand — Home doesn't download the scoring client up front).
+  useEffect(() => {
+    let live = true;
+    void import('../services/coach/examLossBackfill')
+      .then(m => m.ensureExamLossRecord())
+      .then(changed => { if (live && changed) setLossTick(t => t + 1); }, () => {});
+    return () => { live = false; };
+  }, [state.recentSessions.length]);
+
   // The coach's one decision (coachBrain.ts): what to do now, why, and where.
   // Recomputed when a session lands or the allowance arrives; pure and cheap.
   const coach = useMemo(
@@ -141,7 +153,7 @@ export function Home() {
       examUnlocked: examPracticeUnlocked(state.learnerTrack, state.junior?.missionsDone),
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- recentSessions.length marks "a session landed"
-    [answersLeft, state.recentSessions.length, state.learnerModel, state.learnerTrack, state.junior?.missionsDone],
+    [answersLeft, lossTick, state.recentSessions.length, state.learnerModel, state.learnerTrack, state.junior?.missionsDone],
   );
   const brief = coach?.brief ?? null;
 

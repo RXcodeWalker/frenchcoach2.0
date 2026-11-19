@@ -34,6 +34,8 @@ interface Props {
   resumed?: boolean;
   /** Phase 3 Batch A: fetches the post-marking report. Injected for tests; defaults to the scoring service. */
   requestFeedback?: (sessionId: string) => Promise<ExamFeedbackReport>;
+  /** The report arrived (read-only: the coach keeps why marks were lost; nothing here changes a mark). */
+  onReportReady?: (view: EnvelopeView, report: ExamFeedbackReport) => void;
   /**
    * Exam-pronunciation Batch 6: the opt-in pronunciation section (feedback
    * only, never a mark). Owned by ExamMode so a Coached part card's result is
@@ -125,6 +127,7 @@ export function ExamResults({
   earlyStart = false,
   resumed = false,
   requestFeedback = requestExamFeedback,
+  onReportReady,
   pronunciation,
 }: Props) {
   const candidateUtterances = transcript.utterances.filter((u) => u.role === 'candidate');
@@ -172,6 +175,10 @@ export function ExamResults({
     };
   }, [sessionIdForFeedback, loadFeedback]);
   const feedbackReport = feedback.status === 'ready' ? feedback.report : null;
+  useEffect(() => {
+    if (feedbackReport && envelopeView) onReportReady?.(envelopeView, feedbackReport);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per arriving report
+  }, [feedbackReport]);
   const envelopeQolErrors = envelopeView?.criteria.find((c) => c.criterion === 'qualityOfLanguage')?.errors ?? [];
 
   const rolePlaySubtotal = envelopeView

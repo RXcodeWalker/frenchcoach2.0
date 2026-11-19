@@ -57,6 +57,8 @@ export const STORAGE_KEYS = {
   // Coach recommendation outcome log (domain/coachOutcomes/): which Home moves were shown, followed and what changed.
   // Ids and numbers only. Account-scoped, LOCAL ONLY (not in learner_state; no reader yet).
   coachOutcomeLog:            'frenchCoach_coachOutcomeLog',
+  // Why the latest counted Exam Sims lost marks (domain/coachLosses/): reason codes and counts only. Account-scoped, LOCAL ONLY.
+  coachExamLosses:            'frenchCoach_coachExamLosses',
   // ── Session cloud sync ────────────────────────────────────────────────────────
   syncedSessionIds:   'frenchCoach_syncedSessionIds',
   pendingSyncSessionIds: 'frenchCoach_pendingSyncSessionIds',

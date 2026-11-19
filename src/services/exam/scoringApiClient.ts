@@ -287,6 +287,32 @@ async function parseEnvelopeResponse(res: Response): Promise<EnvelopeView> {
   return res.json() as Promise<EnvelopeView>;
 }
 
+/**
+ * The post-marking report for an already-scored session, only if one is already
+ * stored — a read (GET /feedback): it never generates one and never charges the
+ * quota. null when there is none yet (404). The coach reads it to learn why marks
+ * were lost; the learner's own report screen keeps using requestExamFeedback.
+ */
+export async function fetchStoredExamFeedback(sessionId: string): Promise<ExamFeedbackReport | null> {
+  if (!SCORING_API_BASE) {
+    throw new ScoringApiError('Scoring service is not configured (VITE_SCORING_API_URL unset)');
+  }
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), POLL_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${SCORING_API_BASE}/feedback?sessionId=${encodeURIComponent(sessionId)}`, {
+      headers: await authHeaders(),
+      signal: controller.signal,
+    });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new ScoringApiError(`Stored feedback lookup failed (${res.status})`, res.status);
+    const body = (await res.json()) as { report?: unknown };
+    return isExamFeedbackReport(body.report) ? body.report : null;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 /** Phase 3 Batch A: client cap on POST /feedback (one model call, plus at most one retry server-side). */
 const FEEDBACK_TIMEOUT_MS = 90_000;
 

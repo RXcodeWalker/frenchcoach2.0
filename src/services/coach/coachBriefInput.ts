@@ -24,6 +24,8 @@ import type { SyncedSkillModel } from '../../domain/learnerModel/types';
 import { currentLearnerModel } from '../learnerModel/learnerModelStore';
 import { updateOutcomes } from '../../domain/coachOutcomes/outcomeLog';
 import { observationFromCoachInput, readCoachOutcomeLog } from './coachOutcomeLog';
+import { examSummary } from '../../features/progress/progressSummary';
+import { readExamLossRecord } from './examLossStore';
 
 /** learner-model §7 phase 4: is the Home coach reading the learner model? */
 export function coachReadsLearnerModel(): boolean {
@@ -52,6 +54,14 @@ export function learnerModelCoachFields(model: SyncedSkillModel, now: number): P
 export function topicSkillCoverage(): Record<string, Record<string, number>> {
   // The registry's table (a superset) once the coach reads the learner model.
   return (coachReadsLearnerModel() ? TOPIC_SKILL_COVERAGE_V2 : TOPIC_SKILL_COVERAGE) as Record<string, Record<string, number>>;
+}
+
+/** Why the newest counted Exam Sim lost marks, when this device holds its reasons (examLossStore.ts). */
+function examLossesFor(sessions: CoachInput['sessions']): CoachInput['examLosses'] {
+  const latest = examSummary(sessions).counted[0];
+  const scoringId = latest ? sessions.find(s => s.id === latest.id)?.scoringSessionId : undefined;
+  const record = scoringId ? readExamLossRecord(scoringId) : null;
+  return latest && record ? { attemptId: latest.id, reasons: record.reasons } : null;
 }
 
 /** Topics the Learn grid would let the learner open (the same rule as topicDeepLink.ts). */
@@ -87,11 +97,12 @@ export function gatherCoachInput(opts: { learnAnswersLeft: number | null; now?: 
     };
   }
 
+  const sessions = getSessionHistory();
   const input: CoachInput = {
     now,
     goalType: goal?.type ?? null,
     examDate: profile.examDate ?? null,
-    sessions: getSessionHistory(),
+    sessions,
     ...(fromModel ?? { skills: snapshot?.skills ?? {}, weakestSkillIds: snapshot?.weakestSkillIds ?? [] }),
     skillLabel: getSkillLabel,
     activeProblemNodeId:
@@ -102,6 +113,7 @@ export function gatherCoachInput(opts: { learnAnswersLeft: number | null; now?: 
     topicStats,
     learnAnswersLeft: opts.learnAnswersLeft,
     examUnlocked: opts.examUnlocked !== false,
+    examLosses: examLossesFor(sessions),
   };
   // The outcome log, settled in memory against this same input (follows and
   // outcomes due by now count even before Home writes the next show). Read-only.

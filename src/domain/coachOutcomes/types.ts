@@ -38,4 +38,6 @@ export interface CoachMoveEvidence {
   topic?: { key: string; averageScore: number | null; sessionsCompleted: number };
   /** Spaced-review answers due in that topic. Review moves only. */
   dueCount?: number;
+  /** The lost-marks reason (domain/coachLosses/) the move's `why` leads with: its code, area and marks below the maximum. */
+  lostReason?: { code: string; area: CoachExamAreaKey; marksBelowMax: number };
 }

@@ -14,6 +14,7 @@ import { checkAchievements, getProgressionState, awardParticipationXP } from '..
 import { recordSession as persistSession } from '../services/analytics/analyticsService';
 import { buildAchievementContext } from '../services/coach/achievementContextBuilder';
 import { examMarksFromView } from '../features/progress/examMarks';
+import { recordExamLosses, refineExamLosses } from '../services/coach/examLossStore';
 import type { Session } from '../types/index';
 import { useRecording } from '../features/recording/useRecording';
 import { useSessionClock } from '../features/recording/useSessionClock';
@@ -1110,6 +1111,8 @@ export function ExamMode() {
       };
 
       persistSession(appSession);
+      // The coach's "why marks were lost" (domain/coachLosses/): counted attempts only; reads the view, never a mark.
+      if (view && attemptStatus.countsTowardProgress) recordExamLosses(view);
       // D5: participation XP either way — score-derived XP would need calibration-backed
       // meaning behind a /40 Cambridge total that S6 hasn't established yet (see the
       // "Unvalidated estimate" framing in ExamResults).
@@ -1254,6 +1257,7 @@ export function ExamMode() {
         earlyStart={earlyStartRef.current}
         resumed={resumedRef.current}
         pronunciation={pronunciation}
+        onReportReady={refineExamLosses}
         onRetake={() => {
           clearExamAudio(sessionIdRef.current);
           turnTranscriberRef.current?.cancel();
