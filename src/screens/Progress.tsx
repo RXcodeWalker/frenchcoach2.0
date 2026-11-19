@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
@@ -12,7 +12,9 @@ import { track } from '../services/telemetry/telemetryService';
 import { getDueReviewCounts } from '../services/coach/reviewPool';
 import { TOPICS } from '../data/topics';
 import { isTopicVisible } from '../features/learn/sessionSetup';
-import { examSummary, learnAverage, learnSummary, nextStep, pastAttempts, practiceDays } from '../features/progress/progressSummary';
+import { examSummary, learnAverage, learnSummary, pastAttempts, practiceDays } from '../features/progress/progressSummary';
+import { getCoachBrief } from '../services/coach/coachBriefInput';
+import { examPracticeUnlocked } from '../features/junior/examUnlock';
 import { weakSkillsFromModel } from '../features/progress/modelWeakSkills';
 import { fadeUp } from '../components/motion/variants';
 import { PageShell } from '../components/layout/PageShell';
@@ -53,7 +55,24 @@ export function Progress() {
       ? { weakSkillsOverride: weakSkillsFromModel(state.learnerModel, Date.now()) }
       : {}),
   });
-  const step = nextStep({ sessions, exam, learn });
+  // The coach's one decision, the same as Home's (coachBrain.ts): never a second picker here.
+  const [answersLeft, setAnswersLeft] = useState<number | null>(null);
+  useEffect(() => {
+    let live = true;
+    void import('../services/api/apiClient')
+      .then(m => m.getLearnAllowance())
+      .then(a => { if (live && a) setAnswersLeft(a.remaining); }, () => {});
+    return () => { live = false; };
+  }, []);
+  const move = useMemo(
+    () => getCoachBrief({
+      learnAnswersLeft: answersLeft,
+      learnerModel: state.learnerModel,
+      examUnlocked: examPracticeUnlocked(state.learnerTrack, state.junior?.missionsDone),
+    })?.move ?? null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- recentSessions.length marks "a session landed"
+    [answersLeft, state.recentSessions.length, state.learnerModel, state.learnerTrack, state.junior?.missionsDone],
+  );
   const attempts = pastAttempts(sessions, TOPICS);
   const { user } = useAuth();
   // "Your French sounds" (pronunciation-lab plan §3.4) only while the Lab is live.
@@ -80,7 +99,7 @@ export function Progress() {
           <p className="text-body-l text-ink-muted [text-wrap:pretty]">Your exam marks, your Learn practice and what to do next.</p>
         </motion.div>
 
-        <NextStepCard step={step} />
+        {move && <NextStepCard move={move} />}
         <AtAGlance exam={exam} learn={learn} learnAvg={learnAverage(sessions)} />
         <div className="flex flex-wrap items-stretch gap-4">
           <ExamProgress exam={exam} />

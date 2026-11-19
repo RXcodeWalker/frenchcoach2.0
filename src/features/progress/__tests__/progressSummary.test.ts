@@ -5,7 +5,6 @@ import {
   examSummary,
   examTotalOutOf40,
   learnSummary,
-  nextStep,
   pastAttempts,
   learnAverage,
   practiceDays,
@@ -142,45 +141,6 @@ describe('weakSkills', () => {
       opinion: { name: 'Opinion', score: 0.9, lastSeen: 0, feedbackCount: 5, mastery: 'mastered' },
     };
     expect(weakSkills(profile).map(s => s.id)).toEqual(['gender', 'negation']);
-  });
-});
-
-describe('nextStep', () => {
-  const run = (sessions: StoredSession[], over: Partial<LearnSummaryInput> = {}) =>
-    nextStep({ sessions, exam: examSummary(sessions), learn: learnSummary(learnInput({ sessions, ...over })), now: NOW });
-
-  it('sends a new learner to Learn', () => {
-    expect(run([]).kind).toBe('first-session');
-    expect(run([session({ mode: 'story' })]).to).toBe('/learn');
-  });
-
-  it('sends due spaced review to the topic with the most due', () => {
-    const step = run([session({})], {
-      topicMastery: { school: mastery('school'), hobbies: mastery('hobbies') },
-      dueCounts: { school: 1, hobbies: 3 },
-    });
-    expect(step.kind).toBe('review-due');
-    expect(step.to).toBe('/learn?topic=hobbies');
-  });
-
-  it('suggests Exam Sim when no exam was sat in the last 7 days', () => {
-    expect(run([session({}), session({ mode: 'exam', date: daysAgo(9) })]).kind).toBe('exam-sim');
-  });
-
-  it('a Coached attempt this week still uses up the weekly window', () => {
-    const step = run([session({ mode: 'exam', practiceOnly: true, date: daysAgo(2) })], {
-      topicMastery: { school: mastery('school', { averageScore: 5 }), hobbies: mastery('hobbies', { averageScore: 7 }) },
-    });
-    expect(step.kind).toBe('weakest-topic');
-    expect(step.to).toBe('/learn?topic=school');
-  });
-
-  it('never ranks a null-average topic as the weakest', () => {
-    const step = run([session({ mode: 'exam', date: daysAgo(2), examMarks: marks({}) })], {
-      topicMastery: { school: mastery('school', { averageScore: null }) },
-    });
-    expect(step.kind).toBe('new-topic');
-    expect(step.detail).toContain('Quality of language');
   });
 });
 

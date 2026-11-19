@@ -7,7 +7,6 @@
 import type { StoredSession } from '../../services/analytics/analyticsService';
 import type { ExamAreaMarks, SkillProfile, Topic, TopicMasteryEntry } from '../../types';
 
-const DAY_MS = 86_400_000;
 export const EXAM_TOTAL_MAX = 40;
 export const EXAM_WINDOW_DAYS = 7;
 export const CONSISTENCY_WINDOW_DAYS = 14;
@@ -232,88 +231,8 @@ function lastPractised(topicMastery: Record<string, TopicMasteryEntry>, key: str
 
 // ── Next step ────────────────────────────────────────────────────────────────
 
-export type NextStepKind = 'first-session' | 'review-due' | 'exam-sim' | 'weakest-topic' | 'new-topic';
-
-export interface NextStep {
-  kind: NextStepKind;
-  title: string;
-  detail: string;
-  cta: string;
-  to: string;
-}
-
-export interface NextStepInput {
-  sessions: StoredSession[];
-  exam: ExamSummary;
-  learn: LearnSummary;
-  now?: number;
-}
-
 export function learnTopicPath(topicKey: string): string {
   return `/learn?topic=${encodeURIComponent(topicKey)}`;
-}
-
-/**
- * One recommendation, first match wins: nothing yet → Learn; answers due for
- * spaced review → that topic; no exam sat in the weekly window → Exam Sim;
- * otherwise the weakest-scoring practised topic. The weekly-window check uses
- * any exam attempt, Coached included, because the sample-exam allowance does.
- */
-export function nextStep({ sessions, exam, learn, now = Date.now() }: NextStepInput): NextStep {
-  if (!sessions.some(isLearnOrExam)) {
-    return {
-      kind: 'first-session',
-      title: 'Answer your first Learn question',
-      detail: 'Pick a topic, speak your answer in French and get feedback on it. Your progress starts here.',
-      cta: 'Go to Learn',
-      to: '/learn',
-    };
-  }
-
-  const mostDue = [...learn.topics].filter(t => t.dueForReview > 0).sort((a, b) => b.dueForReview - a.dueForReview)[0];
-  if (mostDue) {
-    return {
-      kind: 'review-due',
-      title: `Review ${mostDue.label}`,
-      detail: `${plural(mostDue.dueForReview, 'answer')} from this topic ${mostDue.dueForReview === 1 ? 'is' : 'are'} due for spaced review.`,
-      cta: 'Start review',
-      to: learnTopicPath(mostDue.key),
-    };
-  }
-
-  const windowStart = now - EXAM_WINDOW_DAYS * DAY_MS;
-  const examThisWindow = sessions.some(s => s.mode === 'exam' && new Date(s.date).getTime() >= windowStart);
-  if (!examThisWindow) {
-    return {
-      kind: 'exam-sim',
-      title: exam.counted.length === 0 ? 'Sit your first Exam Sim' : 'Sit this week’s Exam Sim',
-      detail: 'A full 0520 speaking exam marked out of 40. You get one sample exam every 7 days.',
-      cta: 'Start Exam Sim',
-      to: '/exam',
-    };
-  }
-
-  const areaNote = exam.weakestArea ? ` ${exam.weakestArea.label} was your weakest exam area last time.` : '';
-  const weakest = learn.topics
-    .filter(t => t.averageScore !== null && !t.mastered)
-    .sort((a, b) => (a.averageScore as number) - (b.averageScore as number))[0];
-  if (weakest) {
-    return {
-      kind: 'weakest-topic',
-      title: `Practise ${weakest.label}`,
-      detail: `Your lowest-scoring Learn topic (${(weakest.averageScore as number).toFixed(1)}/10).${areaNote}`,
-      cta: 'Practise this topic',
-      to: learnTopicPath(weakest.key),
-    };
-  }
-
-  return {
-    kind: 'new-topic',
-    title: 'Try a new Learn topic',
-    detail: `Broaden what you can talk about in the exam.${areaNote}`,
-    cta: 'Go to Learn',
-    to: '/learn',
-  };
 }
 
 // ── Past attempts ────────────────────────────────────────────────────────────
@@ -373,8 +292,4 @@ export function pastAttempts(sessions: StoredSession[], topics: Topic[]): PastAt
 
 function isLearnOrExam(s: Pick<StoredSession, 'mode'>): boolean {
   return s.mode === 'practice' || s.mode === 'exam';
-}
-
-function plural(n: number, word: string): string {
-  return `${n} ${word}${n === 1 ? '' : 's'}`;
 }
