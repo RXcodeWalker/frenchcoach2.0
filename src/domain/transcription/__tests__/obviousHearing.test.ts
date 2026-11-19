@@ -123,6 +123,44 @@ describe('resolveObviousHearings — spelling only, and le / l\'ai', () => {
     expect(resolveObviousHearings('un t-shirt rouge', 'un tee-shirt rouge').spans).toEqual([]);
   });
 
+  it('ignores 1990-reform and ligature spelling variants', () => {
+    const same = (a: string, b: string) =>
+      expect(resolveObviousHearings(a, b).spans).toEqual([]);
+    same('je veux connaître Paris', 'je veux connaitre Paris');
+    same('il connaît Paris', 'il connait Paris');
+    same('il va paraître', 'il va paraitre');
+    same('les espèces vont disparaître', 'les espèces vont disparaitre');
+    same('mon maître est gentil', 'mon maitre est gentil');
+    same('mes maîtres sont gentils', 'mes maitres sont gentils');
+    same('je vais dîner tard', 'je vais diner tard');
+    same('je dîne à huit heures', 'je dine à huit heures');
+    same("j'ai dîné chez ma tante", "j'ai diné chez ma tante");
+    same('une boîte bleue', 'une boite bleue');
+    same('des boîtes bleues', 'des boites bleues');
+    same('ma chaîne préférée', 'ma chaine préférée');
+    same('les chaînes de télé', 'les chaines de télé');
+    same('je veux m’entraîner', 'je veux m’entrainer');
+    same("il s'entraîne souvent", "il s'entraine souvent");
+    same("l'entraînement est dur", "l'entrainement est dur");
+    same('le coût est élevé', 'le cout est élevé');
+    same('ça coûte cher', 'ça coute cher');
+    same('ça va coûter cher', 'ça va couter cher');
+    same("j'aime le goût du fromage", "j'aime le gout du fromage");
+    same('je prends un goûter', 'je prends un gouter');
+    same("s'il vous plaît", "s'il vous plait");
+    same('des cacahuètes salées', 'des cacahouètes salées');
+    same('la cacahuète est bonne', 'la cacahouète est bonne');
+    same('ma sœur est petite', 'ma soeur est petite');
+    same('mes sœurs sont petites', 'mes soeurs sont petites');
+    same("j'ai bon cœur", "j'ai bon coeur");
+    same('un œuf dur', 'un oeuf dur');
+    same('des œufs durs', 'des oeufs durs');
+  });
+
+  it('still asks when the pair is two different words (mur / mûr)', () => {
+    expect(resolveObviousHearings('le fruit est mûr', 'le fruit est mur').spans).toHaveLength(1);
+  });
+
   it('still asks about a real word difference', () => {
     expect(resolveObviousHearings('je suis gourmand', 'je suis gourmande').spans).toHaveLength(1);
   });

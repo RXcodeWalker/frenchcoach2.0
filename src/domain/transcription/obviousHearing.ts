@@ -46,7 +46,7 @@ import {
 } from '../igcse/stt/homophones/lexicon';
 import { AUDIBLE_FINAL_S } from '../igcse/stt/homophones/classes';
 import { nearPairOf } from '../igcse/stt/homophones/nearPairs';
-import { normalizeWord, startsWithVowelSound, tokenize, type Token } from '../igcse/stt/homophones/text';
+import { normalizeWord, splitElision, startsWithVowelSound, tokenize, type Token } from '../igcse/stt/homophones/text';
 import { alignRecognisers, applyAlternatives, swappedWords, type AlignedSpan, type RecogniserAlignment } from './alignRecognisers';
 
 const SUBJECTS: ReadonlySet<string> = new Set([...SUBJECT_PRONOUNS, 'ça', 'cela', 'ceci', 'qui']);
@@ -352,6 +352,22 @@ const SPELLING_VARIANTS: readonly (readonly string[])[] = [
   ['tshirt', 'teeshirt'], ['tshirts', 'teeshirts'],
   ['ok', 'okay', 'oké'],
   ['maths', 'math'],
+  // 1990 reform: the circumflex on i / u may be dropped; the sound does not change.
+  ['connaître', 'connaitre'], ['connaît', 'connait'],
+  ['paraître', 'paraitre'], ['disparaître', 'disparaitre'],
+  ['maître', 'maitre'], ['maîtres', 'maitres'],
+  ['dîner', 'diner'], ['dîne', 'dine'], ['dîné', 'diné'],
+  ['boîte', 'boite'], ['boîtes', 'boites'],
+  ['chaîne', 'chaine'], ['chaînes', 'chaines'],
+  ['entraîner', 'entrainer'], ['entraîne', 'entraine'], ['entraînement', 'entrainement'],
+  ['coût', 'cout'], ['coûte', 'coute'], ['coûter', 'couter'],
+  ['goût', 'gout'], ['goûter', 'gouter'],
+  ['plaît', 'plait'],
+  // Two accepted spellings of the same word.
+  ['cacahuète', 'cacahouète'], ['cacahuètes', 'cacahouètes'],
+  // Ligature typed as two letters (œ → oe): the same word, the same sound.
+  ['sœur', 'soeur'], ['sœurs', 'soeurs'], ['cœur', 'coeur'],
+  ['œuf', 'oeuf'], ['œufs', 'oeufs'],
 ];
 
 const CANONICAL_SPELLING: ReadonlyMap<string, string> = new Map(
@@ -362,9 +378,13 @@ const CANONICAL_SPELLING: ReadonlyMap<string, string> = new Map(
 function spellingKey(text: string): string {
   return text
     .split(/\s+/)
-    .map((word) => normalizeWord(word).replace(/[^\p{L}\p{N}]/gu, ''))
+    .map((word) => {
+      // « m'entraîner »: the variant is the word after the elided clitic.
+      const { prefix, word: rest } = splitElision(normalizeWord(word));
+      const bare = rest.replace(/[^\p{L}\p{N}]/gu, '');
+      return prefix.replace(/[^\p{L}]/gu, '') + (CANONICAL_SPELLING.get(bare) ?? bare);
+    })
     .filter(Boolean)
-    .map((word) => CANONICAL_SPELLING.get(word) ?? word)
     .join('');
 }
 
