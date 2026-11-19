@@ -69,14 +69,32 @@ describe('How it sounded', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Native' }));
     expect(audio.playNative).toHaveBeenLastCalledWith(SENTENCE, expect.objectContaining({ speed: 1, synthesize: true }));
 
-    const slow = screen.getByRole('button', { name: 'Slow (0.75×)' });
-    expect(slow.getAttribute('aria-pressed')).toBe('false');
-    fireEvent.click(slow);
-    expect(slow.getAttribute('aria-pressed')).toBe('true');
+    const preset = screen.getByRole('button', { name: '0.75×' });
+    expect(preset.getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(preset);
+    expect(preset.getAttribute('aria-pressed')).toBe('true');
     fireEvent.click(screen.getByRole('button', { name: 'Your answer' }));
     expect(audio.playClip).toHaveBeenLastCalledWith(BLOB, null, { rate: 0.75 });
     fireEvent.click(screen.getByRole('button', { name: 'Native' }));
     expect(audio.playNative).toHaveBeenLastCalledWith(SENTENCE, expect.objectContaining({ speed: 0.75, synthesize: true }));
+  });
+
+  it('takes any speed from the slider, clamps it to 0.5–1×, and remembers it', async () => {
+    window.localStorage.removeItem('frenchCoach_listenSpeed');
+    await renderCard();
+    const slider = screen.getByLabelText('Speed') as HTMLInputElement;
+    fireEvent.change(slider, { target: { value: '0.6' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Your answer' }));
+    expect(audio.playClip).toHaveBeenLastCalledWith(BLOB, null, { rate: 0.6 });
+    fireEvent.click(screen.getByRole('button', { name: 'Native' }));
+    expect(audio.playNative).toHaveBeenLastCalledWith(SENTENCE, expect.objectContaining({ speed: 0.6 }));
+    fireEvent.change(slider, { target: { value: '0.1' } });
+    expect(slider.value).toBe('0.5');
+
+    cleanup();
+    await renderCard();
+    expect((screen.getByLabelText('Speed') as HTMLInputElement).value).toBe('0.5');
+    window.localStorage.removeItem('frenchCoach_listenSpeed');
   });
 
   it('says the native voice is being prepared while a new corrected sentence is recorded (Stage 4b)', async () => {

@@ -24,7 +24,7 @@ import { LabPractice } from './LabPractice';
  *
  *  1. Listen back — ▶ Your answer (the in-memory recording) and ▶ Native (the
  *     corrected sentence; with no recording yet, the backend records it once
- *     in Henri's voice — Stage 4b), with one Slow (0.75×) toggle for both.
+ *     in Henri's voice — Stage 4b), with one speed slider (0.5–1×, presets, remembered on the device) for both.
  *  2. Flow — one descriptive line from pauses measured in the browser.
  *  3. Watch out for — up to 3 sound features of the corrected sentence, found
  *     by rules on its spelling (never a verdict on the learner); each plays.
@@ -45,11 +45,36 @@ interface Props {
   onPractiseOpened?: () => void;
 }
 
-const SLOW = 0.75;
+/** The slowest the native voice goes (`nativeVoice` clamps to 0.5–1). */
+const MIN_SPEED = 0.5;
+const PRESETS = [0.5, 0.75, 1];
+const SPEED_KEY = 'frenchCoach_listenSpeed';
+
+const clampSpeed = (n: number) =>
+  Number.isFinite(n) ? Math.min(1, Math.max(MIN_SPEED, Math.round(n * 20) / 20)) : 1;
+const formatSpeed = (n: number) => String(Number(n.toFixed(2)));
+
+function loadSpeed(): number {
+  try {
+    const raw = window.localStorage.getItem(SPEED_KEY);
+    return raw === null ? 1 : clampSpeed(Number(raw));
+  } catch {
+    return 1;
+  }
+}
 
 export function HowItSounded({ answerBlob, sentence, onPractiseOpened }: Props) {
   const reduced = useReducedMotion() ?? false;
-  const [slow, setSlow] = useState(false);
+  const [speed, setSpeed] = useState(loadSpeed);
+  const changeSpeed = (n: number) => {
+    const next = clampSpeed(n);
+    setSpeed(next);
+    try {
+      window.localStorage.setItem(SPEED_KEY, String(next));
+    } catch {
+      /* a per-device convenience; fine without it */
+    }
+  };
   const [pauses, setPauses] = useState<PauseStats | null>(null);
   const [practising, setPractising] = useState(false);
   const [nativeUnavailable, setNativeUnavailable] = useState(false);
@@ -86,7 +111,6 @@ export function HowItSounded({ answerBlob, sentence, onPractiseOpened }: Props) 
   }
   if (!answerBlob && !target) return null;
 
-  const speed = slow ? SLOW : 1;
   /** `sentence`: the corrected answer is AI-written, so it is recorded on demand when it has no file (Stage 4b). */
   const native = async (text: string, rate: number, sentence = false) => {
     stopClip();
@@ -133,16 +157,40 @@ export function HowItSounded({ answerBlob, sentence, onPractiseOpened }: Props) 
           {target && (
             <PlayButton label="Native" icon={<Volume2 size={16} aria-hidden="true" />} play={() => native(target, speed, true)} />
           )}
-          <button
-            type="button"
-            onClick={() => setSlow((s) => !s)}
-            aria-pressed={slow}
-            className={`rounded-pill border px-3 py-1 text-caption transition-colors duration-state ease-smooth ${
-              slow ? 'border-action bg-action-soft text-action-text' : 'border-hairline text-ink-muted hover:bg-track'
-            }`}
-          >
-            Slow (0.75×)
-          </button>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <label htmlFor="listen-speed" className="text-caption text-ink-muted">
+            Speed
+          </label>
+          <input
+            id="listen-speed"
+            type="range"
+            min={MIN_SPEED}
+            max={1}
+            step={0.05}
+            value={speed}
+            onChange={(e) => changeSpeed(Number(e.target.value))}
+            aria-valuetext={`${formatSpeed(speed)}×`}
+            className="h-2 w-40 accent-[var(--action)]"
+          />
+          <span className="w-12 text-caption tabular-nums text-ink" aria-hidden="true">
+            {formatSpeed(speed)}×
+          </span>
+          {PRESETS.map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => changeSpeed(p)}
+              aria-pressed={Math.abs(speed - p) < 0.001}
+              className={`rounded-pill border px-3 py-1 text-caption transition-colors duration-state ease-smooth ${
+                Math.abs(speed - p) < 0.001
+                  ? 'border-action bg-action-soft text-action-text'
+                  : 'border-hairline text-ink-muted hover:bg-track'
+              }`}
+            >
+              {formatSpeed(p)}×
+            </button>
+          ))}
         </div>
         {nativePreparing && (
           <p className="text-caption text-ink-muted" role="status">
