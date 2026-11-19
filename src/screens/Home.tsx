@@ -11,8 +11,9 @@ import { getCoachBriefWithInput } from '../services/coach/coachBriefInput';
 import { recordCoachMoveShown } from '../services/coach/coachOutcomeLog';
 import { examPracticeUnlocked } from '../features/junior/examUnlock';
 import type { CoachMoveKind } from '../services/coach/coachBrain';
-import { getLastWeeklyReview, hasSeenWeeklyReviewThisWeek, markWeeklyReviewSeen } from '../services/coach/weeklyReviewService';
-import type { CoachRecommendation, DailyPlan, WeeklyReview } from '../types/coach';
+import { ensureWeeklyReview, hasSeenWeeklyReviewThisWeek, markWeeklyReviewSeen } from '../services/coach/weeklyReviewService';
+import type { WeeklyReview } from '../domain/coachOutcomes/weeklyReview';
+import type { CoachRecommendation, DailyPlan } from '../types/coach';
 import { WeeklyReviewCard } from './progress/WeeklyReviewCard';
 import { useApp } from '../context/AppContext';
 import { getDailyStats, getStats } from '../services/analytics/analyticsService';
@@ -117,14 +118,6 @@ export function Home() {
     } catch {
       // Non-critical — Home still renders without a coach plan
     }
-    const review = getLastWeeklyReview();
-    if (review) {
-      setWeeklyReview(review);
-      const isSunday = new Date().getDay() === 0;
-      if (isSunday || !hasSeenWeeklyReviewThisWeek()) {
-        setShowReviewBanner(true);
-      }
-    }
   }, []);
 
   useEffect(() => {
@@ -160,6 +153,14 @@ export function Home() {
   const brief = coach?.brief ?? null;
   // The week built backwards from the exam and the limits; it recomputes with the coach, i.e. when a session lands.
   const weekPlan = useMemo(() => (coach ? buildWeekPlan(coach.input, coach.brief) : null), [coach]);
+
+  // Weekly review: generated once per local week from the outcome log and the week plan, then read back.
+  useEffect(() => {
+    if (!coach) return;
+    const review = ensureWeeklyReview(coach.input, coach.brief);
+    setWeeklyReview(review);
+    setShowReviewBanner(review !== null && !hasSeenWeeklyReviewThisWeek());
+  }, [coach]);
 
   // Coach outcome log (domain/coachOutcomes/): note the move once it has stayed on screen. Local only.
   useEffect(() => {

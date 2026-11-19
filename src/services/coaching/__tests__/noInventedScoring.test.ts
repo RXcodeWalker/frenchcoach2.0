@@ -40,10 +40,6 @@ const WEIGHTED_SUM_PATTERN = /[)\]\w]\s*\*\s*\d+(\.\d+)?\s*[+-]|[+-]\s*\(?[\w.]+
 // Each entry: why this file's weighted-sum-shaped arithmetic is NOT an
 // invented Cambridge mark.
 const ALLOWED: Record<string, string> = {
-  'src/services/coach/weeklyReviewService.ts':
-    'computeExamReadiness blends avgScore + skill-mastery bias into a 0-100 ' +
-    '"exam readiness" coaching estimate, not a Cambridge mark — explicitly ' +
-    'advisory UI content, never fed back into scoring',
   'src/services/coach/coachProfileService.ts':
     'computeConsistencyScore blends streak/volume into a 0-1 habit-consistency ' +
     'score for the coach profile UI — a practice-habit metric, not a language ' +

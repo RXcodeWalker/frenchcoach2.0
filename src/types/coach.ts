@@ -215,37 +215,4 @@ export interface OrchestratorResult {
   activeProblem: LearningProblem | null;
 }
 
-// ── Weekly review types ───────────────────────────────────────────────────────
-
-export interface SkillMovement {
-  skillId: string;
-  label: string;
-  before: number;
-  after: number;
-  delta: number;
-}
-
-export interface WeeklyReview {
-  generatedAt: string;
-  periodStart: string;   // ISO date
-  periodEnd: string;
-  sessionsCompleted: number;
-  totalMinutes: number;
-  improved: SkillMovement[];
-  slipping: SkillMovement[];
-  newlyVisible: string[];       // skill IDs surfaced for first time
-  topMistakeIds: string[];
-  avoidancePatterns: string[];  // skill IDs being avoided
-  confidenceTrend: 'rising' | 'stable' | 'falling' | 'unknown';
-  examReadiness?: ExamReadiness;
-  weekFocusPriorities: string[]; // 2–3 plain-language bullet points
-  tutorSummary: string;           // 1–2 sentence narrative
-}
-
-export interface ExamReadiness {
-  predictedScore: number;        // 0–100
-  confidenceInterval: [number, number];
-  topRisks: string[];
-  daysUntilExam: number | null;
-  readinessLevel: 'on_track' | 'at_risk' | 'critical' | 'no_exam';
-}
+// The weekly review's shape lives in domain/coachOutcomes/weeklyReview.ts.
