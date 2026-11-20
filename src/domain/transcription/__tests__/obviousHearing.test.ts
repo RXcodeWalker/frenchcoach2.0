@@ -157,6 +157,32 @@ describe('resolveObviousHearings — spelling only, and le / l\'ai', () => {
     same('des œufs durs', 'des oeufs durs');
   });
 
+  it('ignores further same-sound spelling variants', () => {
+    const same = (a: string, b: string) =>
+      expect(resolveObviousHearings(a, b).spans).toEqual([]);
+    same("j'aime le bœuf", "j'aime le boeuf");
+    same('je ferme les yeux, un œil', 'je ferme les yeux, un oeil');
+    same('mes vœux sont sincères', 'mes voeux sont sincères');
+    same('un nœud rouge', 'un noeud rouge');
+    same('une œuvre célèbre', 'une oeuvre célèbre');
+    same('il paraît fatigué', 'il parait fatigué');
+    same('les animaux disparaissent, il disparaît', 'les animaux disparaissent, il disparait');
+    same('je reconnais, il reconnaît', 'je reconnais, il reconnait');
+    same('ma maîtresse est gentille', 'ma maitresse est gentille');
+    same('mon entraîneur est strict', 'mon entraineur est strict');
+    same('un voyage coûteux', 'un voyage couteux');
+    same('une croûte de pain', 'une croute de pain');
+    same('en août', 'en aout');
+    same('je veux m’asseoir', 'je veux m’assoir');
+    same('une canette de coca', 'une cannette de coca');
+    same('un shampooing doux', 'un shampoing doux');
+    same('une île, un îlot', 'une île, un ilot');
+  });
+
+  it('still asks about sécheresse / sècheresse (the vowel sound differs)', () => {
+    expect(resolveObviousHearings('la sécheresse', 'la sècheresse').spans).toHaveLength(1);
+  });
+
   it('still asks when the pair is two different words (mur / mûr)', () => {
     expect(resolveObviousHearings('le fruit est mûr', 'le fruit est mur').spans).toHaveLength(1);
   });

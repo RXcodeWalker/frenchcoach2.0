@@ -367,7 +367,26 @@ const SPELLING_VARIANTS: readonly (readonly string[])[] = [
   ['cacahuète', 'cacahouète'], ['cacahuètes', 'cacahouètes'],
   // Ligature typed as two letters (œ → oe): the same word, the same sound.
   ['sœur', 'soeur'], ['sœurs', 'soeurs'], ['cœur', 'coeur'],
-  ['œuf', 'oeuf'], ['œufs', 'oeufs'],
+  ['œuf', 'oeuf'], ['œufs', 'oeufs'], ['cœurs', 'coeurs'],
+  ['œil', 'oeil'], ['bœuf', 'boeuf'], ['bœufs', 'boeufs'],
+  ['vœu', 'voeu'], ['vœux', 'voeux'], ['nœud', 'noeud'], ['nœuds', 'noeuds'],
+  ['œuvre', 'oeuvre'], ['œuvres', 'oeuvres'], ['chœur', 'choeur'],
+  ['manœuvre', 'manoeuvre'], ['mœurs', 'moeurs'],
+  // More reform pairs (circumflex on i / u), all pronounced the same.
+  ['paraît', 'parait'], ['apparaître', 'apparaitre'], ['apparaît', 'apparait'],
+  ['disparaît', 'disparait'], ['reconnaître', 'reconnaitre'], ['reconnaît', 'reconnait'],
+  ['naître', 'naitre'], ['naît', 'nait'],
+  ['maîtresse', 'maitresse'], ['maîtrise', 'maitrise'], ['maîtriser', 'maitriser'],
+  ['dîners', 'diners'], ['entraîneur', 'entraineur'], ['entraîneurs', 'entraineurs'],
+  ['traîner', 'trainer'], ['abîme', 'abime'], ['abîmer', 'abimer'],
+  ['coûteux', 'couteux'], ['coûteuse', 'couteuse'], ['coûts', 'couts'], ['goûts', 'gouts'],
+  ['croûte', 'croute'], ['croûtes', 'croutes'],
+  ['îlot', 'ilot'], ['août', 'aout'],
+  ['chariot', 'charriot'], ['nénuphar', 'nénufar'],
+  ['asseoir', 'assoir'],
+  // Other accepted double spellings, same sound.
+  ['canette', 'cannette'], ['canettes', 'cannettes'],
+  ['shampooing', 'shampoing'], ['allô', 'allo'],
 ];
 
 const CANONICAL_SPELLING: ReadonlyMap<string, string> = new Map(
