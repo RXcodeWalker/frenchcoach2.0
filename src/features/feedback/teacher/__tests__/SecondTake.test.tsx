@@ -60,17 +60,17 @@ describe('SecondTake', () => {
     const rows = [...document.querySelectorAll('[data-state]')].map((el) => [el.getAttribute('data-state'), el.textContent]);
     expect(rows).toEqual([
       ['heard', 'I heard « je suis allé » ✓'],
-      ['still', 'Still there: « le maison »'],
+      ['still', 'Still there: « le maison » — you said this again. Watch out for it next time.'],
       ['kept', 'Kept « avec mes amis » ✓'],
     ]);
   });
 
-  it('a paraphrase is "not in this take" — neutral, never a miss', async () => {
+  it('an error that is gone is "not in this take ✓" (green), never a miss', async () => {
     const view = render(<SecondTake groups={GROUPS} />);
     await take(view, 'hier nous avons visité un musée');
     const states = [...document.querySelectorAll('[data-state]')].map((el) => el.getAttribute('data-state'));
     expect(states).toEqual(['absent', 'absent']);
-    expect(document.body.textContent).toContain('not in this take');
+    expect(document.body.textContent).toContain('not in this take ✓');
   });
 
   it('an empty take is not a verdict: it just offers another go', async () => {

@@ -17,9 +17,10 @@ import { retakeTargets } from './retakeTargets';
  *    it must not feed the beliefs that drive the level read-out.
  *  - No new AI call, no score, no guest-attempt use: the check is the pure
  *    `compareRetake` over the transcript the browser's recogniser produced.
- *  - The wording reports what was heard, never a verdict. Only "Still there" is
- *    ever negative, and only when the exact error words came back without the
- *    correction; a paraphrase is "Not in this take", which is neutral.
+ *  - The wording reports what was heard, never a score. Only "Still there" is
+ *    ever red, and only when the exact error words came back without the
+ *    correction; an error that is gone ("Not in this take") is green with a tick,
+ *    so avoiding a mistake never reads as having made one (owner, 2026-11-20).
  *  - It is skippable (Next question is outside it), uses the same consent gate
  *    as every other record control, and does not touch the per-question
  *    `extraTurnBudget` that Say It Again and follow-ups share.
@@ -94,13 +95,13 @@ function Result({ result }: { result: RetakeResult }) {
             </span>
           )}
           {f.state === 'still' && (
-            <span className="text-ink">
-              Still there: <span className="exam-quote italic">« {f.quote} »</span>
+            <span className="text-correction-text">
+              Still there: <span className="exam-quote italic">« {f.quote} »</span> — you said this again. Watch out for it next time.
             </span>
           )}
           {f.state === 'absent' && (
-            <span className="text-ink-muted">
-              <span className="exam-quote italic">« {f.quote} »</span> — not in this take
+            <span className="text-progress-text">
+              <span className="exam-quote italic">« {f.quote} »</span> — not in this take ✓
             </span>
           )}
         </li>
