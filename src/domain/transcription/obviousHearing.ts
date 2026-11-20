@@ -387,6 +387,27 @@ const SPELLING_VARIANTS: readonly (readonly string[])[] = [
   // Other accepted double spellings, same sound.
   ['canette', 'cannette'], ['canettes', 'cannettes'],
   ['shampooing', 'shampoing'], ['allô', 'allo'],
+  // Family and home.
+  ['aîné', 'ainé'], ['aînée', 'ainée'], ['aînés', 'ainés'], ['aînées', 'ainées'],
+  ['papi', 'papy'], ['papis', 'papys'], ['mamie', 'mamy'], ['mamies', 'mamys'],
+  ['gîte', 'gite'], ['gîtes', 'gites'], ['poêle', 'poele'], ['poêles', 'poeles'],
+  ['asseoit', 'assoit'], ['soûl', 'saoul'], ['soûler', 'saouler'],
+  // More reform pairs (circumflex dropped), same sound.
+  ['fraîche', 'fraiche'], ['fraîches', 'fraiches'], ['fraîcheur', 'fraicheur'],
+  ['traître', 'traitre'], ['traîne', 'traine'], ['abîmé', 'abimé'],
+  ['connaîtra', 'connaitra'], ['boîtier', 'boitier'],
+  ['bûche', 'buche'], ['bûches', 'buches'], ['flûte', 'flute'], ['flûtes', 'flutes'],
+  ['piqûre', 'piqure'], ['croûton', 'crouton'], ['croûtons', 'croutons'],
+  ['coûtent', 'coutent'], ['coûté', 'couté'],
+  ['ambiguë', 'ambigüe'], ['aiguë', 'aigüe'], ['exiguë', 'exigüe'],
+  ['appelle', 'appèle'], ['appelles', 'appèles'], ['appellent', 'appèlent'],
+  // Other accepted double spellings, same sound.
+  ['gaieté', 'gaité', 'gaîté'], ['fantasme', 'phantasme'], ['fantasmes', 'phantasmes'],
+  ['eczéma', 'exéma'], ['orangoutan', 'orangoutang'], ['orangsoutans', 'orangsoutangs'],
+  // More ligature words typed as oe.
+  ['œdème', 'oedème'], ['œsophage', 'oesophage'], ['fœtus', 'foetus'],
+  ['œnologie', 'oenologie'], ['œillet', 'oeillet'], ['écœurant', 'écoeurant'],
+  ['horsdœuvre', 'horsdoeuvre'], ['chefdœuvre', 'chefdoeuvre'],
 ];
 
 const CANONICAL_SPELLING: ReadonlyMap<string, string> = new Map(

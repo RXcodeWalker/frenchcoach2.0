@@ -179,6 +179,26 @@ describe('resolveObviousHearings — spelling only, and le / l\'ai', () => {
     same('une île, un îlot', 'une île, un ilot');
   });
 
+  it('ignores yet more same-sound spelling variants', () => {
+    const same = (a: string, b: string) =>
+      expect(resolveObviousHearings(a, b).spans).toEqual([]);
+    same('mon frère aîné', 'mon frère ainé');
+    same('ma sœur aînée', 'ma sœur ainée');
+    same('mon papi et ma mamie', 'mon papy et ma mamy');
+    same('nous louons un gîte', 'nous louons un gite');
+    same('une poêle neuve', 'une poele neuve');
+    same("de l'eau fraîche", "de l'eau fraiche");
+    same('une bûche de Noël', 'une buche de Noël');
+    same('je joue de la flûte', 'je joue de la flute');
+    same('des croûtons dans la soupe', 'des croutons dans la soupe');
+    same('une idée ambiguë', 'une idée ambigüe');
+    same('elle appelle sa mère', 'elle appèle sa mère');
+    same('un vilain fantasme', 'un vilain phantasme');
+    same('les orangs-outans', 'les orangs-outangs');
+    same("un hors-d'œuvre", "un hors-d'oeuvre");
+    same('mon aîné', 'mon ainé');
+  });
+
   it('still asks about sécheresse / sècheresse (the vowel sound differs)', () => {
     expect(resolveObviousHearings('la sécheresse', 'la sècheresse').spans).toHaveLength(1);
   });
