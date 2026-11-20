@@ -87,12 +87,11 @@
 .exam-voice .border-correction-soft { border-color: var(--paper-hairline-strong) !important; }
 .exam-voice .hover\:border-correction:hover { border-color: var(--paper-ink) !important; }
 
-/* ---- serif voice ----
-   `.exam-serif` is the exam screens' one serif slot. In the core token theme
-   is Libre Baskerville — Design System v2 allows a serif only in Exam mode
-   and in quoted model answers. */
+/* ---- exam voice ----
+   `.exam-serif` is the exam screens' display slot. The name is historical:
+   the app no longer uses a serif (owner, 2026-11-20), so it is Bricolage. */
 .exam-serif {
-  font-family: 'Libre Baskerville', Georgia, serif;
+  font-family: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
   font-weight: 400;
   letter-spacing: -0.01em;
 }

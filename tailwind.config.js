@@ -6,13 +6,14 @@ export default {
     extend: {
       /* Design System v2: Bricolage Grotesque everywhere. `numeral` is
          retired as a face — it maps to Bricolage, and index.css gives
-         .font-numeral its 500 weight + tabular figures. Libre Baskerville
-         (`exam`) is for Exam mode and quoted model answers only. */
+         .font-numeral its 500 weight + tabular figures. There is no serif
+         any more (owner, 2026-11-20): `exam` is kept as a class name for the
+         exam screens and quoted phrases, but it is Bricolage too. */
       fontFamily: {
         sans: ['"Bricolage Grotesque"', 'system-ui', '-apple-system', 'sans-serif'],
         display: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
         numeral: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
-        exam: ['"Libre Baskerville"', 'Georgia', 'serif'],
+        exam: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
       },
       /* Type scale (README "Type scale"). Nothing below 12px. */
       fontSize: {

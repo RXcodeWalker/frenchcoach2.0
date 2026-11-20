@@ -45,7 +45,7 @@ const LINK = 'inline-flex h-11 items-center gap-1.5 text-[13px] font-semibold tr
 /**
  * The question (Design System v2): demand and Review chips, Listen, the
  * question at 30/600, tap-to-translate vocabulary chips, then the hint (ideas
- * and a Libre Baskerville phrase frame, on reward-soft) and "Why this
+ * and a phrase frame, on reward-soft) and "Why this
  * question" (recessed). Compact renders the same content as a centred stage.
  */
 export function QuestionCard({ question, showHint, onToggleHint, onSkip, isReview, selectionReason, compact = false }: Props) {
@@ -196,7 +196,7 @@ export function QuestionCard({ question, showHint, onToggleHint, onSkip, isRevie
                     <li key={idea}>{idea}</li>
                   ))}
                 </ul>
-                <span lang="fr" className="font-exam text-[20px] italic leading-[1.35]">« {question.coachHint.phrase.fr} »</span>
+                <span lang="fr" className="font-exam text-[20px] leading-[1.35]">« {question.coachHint.phrase.fr} »</span>
                 <span className="text-[13px] text-ink-muted">{question.coachHint.phrase.en}</span>
               </div>
             ) : (
