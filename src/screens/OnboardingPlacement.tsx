@@ -22,6 +22,7 @@ import { isSafeReturnTo } from '../utils/routeSafety';
 import type { Aim } from '../domain/learn/selection/sessionTarget';
 import type { Question } from '../types';
 import { track } from '../services/telemetry/telemetryService';
+import { MIN_PLACEMENT_PROCESSING_MS } from './placementTiming';
 
 /** One question per CognitiveDemand, all in one well-covered base topic (docs
  * §4.4) — resolved by id, not hardcoded, so a future content edit that
@@ -53,6 +54,9 @@ export function OnboardingPlacement() {
   const [retryCount, setRetryCount] = useState(0);
   const [status, setStatus] = useState<QuestionStatus>('pending');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // Shown once, the first time marking is unavailable: the check moves on instead of asking for retries
+  // that would hit the same outage.
+  const [unavailableNotice, setUnavailableNotice] = useState(false);
   // Set when all five questions are done: the check ends on its own "here's where you start" moment
   // instead of dropping the learner onto Home with no sign it worked.
   const [result, setResult] = useState<{ band: string; caption: string; answered: number } | null>(null);
@@ -75,6 +79,8 @@ export function OnboardingPlacement() {
 
   // Questions answered and marked in this run, for placement_completed.
   const answeredCountRef = useRef(0);
+  // True once any question was skipped or could not be marked: the run no longer seeds the aim (docs §4.4).
+  const incompleteRef = useRef(false);
   useEffect(() => {
     track({ name: 'placement_started', props: {} });
   }, []);
@@ -88,6 +94,10 @@ export function OnboardingPlacement() {
 
   const advanceOrFinish = useCallback(async (finalAbilitySnapshot?: Parameters<typeof deriveAbility>[0]) => {
     if (isLastQuestion) {
+      if (incompleteRef.current) {
+        finishIncomplete();
+        return;
+      }
       track({ name: 'placement_completed', props: { questions_answered: answeredCountRef.current, skipped: false } });
       if (finalAbilitySnapshot) {
         const ability = deriveAbility(finalAbilitySnapshot);
@@ -106,11 +116,12 @@ export function OnboardingPlacement() {
     setRetryCount(0);
     setStatus('pending');
     setErrorMessage(null);
-  }, [isLastQuestion, dispatch, navigate, destination]);
+  }, [isLastQuestion, dispatch, navigate, destination, finishIncomplete]);
 
   const skipQuestion = useCallback(() => {
     // Skipped question -> the diagnostic never reaches "all 5 successfully
     // answered", so no aim-seeding happens even if later questions succeed.
+    incompleteRef.current = true;
     if (isLastQuestion) {
       finishIncomplete();
       return;
@@ -128,6 +139,12 @@ export function OnboardingPlacement() {
     if (submittedIndexesRef.has(questionIndex)) return;
     submittedIndexesRef.add(questionIndex);
     setStatus('submitting');
+    const startedAt = Date.now();
+    // Keep "Transcribing / Scoring" up for a moment even when the answer comes back instantly.
+    const holdProcessing = async () => {
+      const left = MIN_PLACEMENT_PROCESSING_MS - (Date.now() - startedAt);
+      if (left > 0) await new Promise<void>(resolve => setTimeout(resolve, left));
+    };
 
     const transcript = (await recording.stop()).trim();
 
@@ -149,14 +166,10 @@ export function OnboardingPlacement() {
       const skillContext = buildSkillContext();
       fb = await getAIFeedback(transcript, currentQuestion, skillContext, undefined, 'groq', undefined, undefined, undefined, 'placement');
     } catch {
-      submittedIndexesRef.delete(questionIndex);
-      setErrorMessage("That didn't record — try again.");
-      if (retryCount + 1 >= MAX_RETRIES_PER_QUESTION) {
-        skipQuestion();
-      } else {
-        setRetryCount(r => r + 1);
-        setStatus('retry');
-      }
+      // Marking is down (or the learner is signed out): retrying would meet the same wall, so move on.
+      await holdProcessing();
+      setUnavailableNotice(true);
+      skipQuestion();
       return;
     }
 
@@ -176,19 +189,15 @@ export function OnboardingPlacement() {
     });
 
     if (unscored) {
-      // Real evidence was still appended above, but an offline-placeholder
-      // score doesn't count toward "the diagnostic is complete" — retry-then-skip.
-      submittedIndexesRef.delete(questionIndex);
-      setErrorMessage('Feedback is unavailable right now — try again.');
-      if (retryCount + 1 >= MAX_RETRIES_PER_QUESTION) {
-        skipQuestion();
-      } else {
-        setRetryCount(r => r + 1);
-        setStatus('retry');
-      }
+      // Real evidence was still appended above, but an offline-placeholder score doesn't count toward
+      // "the diagnostic is complete". Don't ask the learner to retry into the same outage: move on once.
+      await holdProcessing();
+      setUnavailableNotice(true);
+      skipQuestion();
       return;
     }
 
+    await holdProcessing();
     setStatus('done');
     answeredCountRef.current += 1;
     await advanceOrFinish(isLastQuestion ? beliefSnapshot : undefined);
@@ -291,6 +300,12 @@ export function OnboardingPlacement() {
             <p className="mt-2 text-subtitle text-ink">{currentQuestion.text}</p>
           </motion.div>
         </AnimatePresence>
+
+        {unavailableNotice && !(errorMessage && status === 'retry') && (
+          <p role="status" className="mb-3 rounded-control border border-hairline bg-surface-recessed p-3 text-body-s text-ink-muted">
+            Feedback isn't available right now, so we're moving on. Your coach will set your level as you practise.
+          </p>
+        )}
 
         {errorMessage && status === 'retry' && (
           <p role="alert" className="mb-3 rounded-control border border-reward bg-reward-soft p-3 text-body-s text-reward-text">

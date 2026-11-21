@@ -54,6 +54,8 @@ vi.mock('../../features/recording/useRecording', () => ({
   },
 }));
 
+vi.mock('../placementTiming', () => ({ MIN_PLACEMENT_PROCESSING_MS: 0 }));
+
 vi.mock('../../components/SpeakingConsentGate', () => ({
   SpeakingConsentGate: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
@@ -202,12 +204,27 @@ describe('OnboardingPlacement', () => {
     expect(dispatchMock).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'SET_AIM' }));
   });
 
-  it('an unscored feedback question still calls observeAttempt once but does not advance to the next question', async () => {
+  it('an unscored feedback question moves on once with a notice instead of asking to retry', async () => {
     feedbackImpl = async () => ({ scores: { overall: 0 }, unscored: true, wordCount: 5 });
     renderPlacement();
     recordAndStop();
-    await waitFor(() => expect(observeAttemptMock).toHaveBeenCalledTimes(1));
-    expect(screen.getByText(/question 1 of 5/i)).not.toBeNull();
+    await waitFor(() => screen.getByText(/question 2 of 5/i));
+    expect(observeAttemptMock).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText(/try again/i)).toBeNull();
+    expect(screen.getByText(/feedback isn't available right now/i)).not.toBeNull();
+  });
+
+  it('an outage on every question never asks to retry and never seeds the aim', async () => {
+    feedbackImpl = async () => ({ scores: { overall: 0 }, unscored: true, wordCount: 5 });
+    renderPlacement('?returnTo=%2Flearn');
+    for (let i = 0; i < 5; i++) {
+      recordAndStop();
+      await waitFor(() => expect(observeAttemptMock).toHaveBeenCalledTimes(i + 1));
+      expect(screen.queryByText(/try again/i)).toBeNull();
+    }
+    await waitFor(() => screen.getByTestId('location'));
+    expect(screen.getByTestId('location').textContent).toBe('/learn');
+    expect(storageSetRawMock).not.toHaveBeenCalled();
   });
 
   it('skipping the whole diagnostic writes nothing and navigates to the returnTo destination', async () => {
