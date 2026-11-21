@@ -231,6 +231,24 @@ export function TranscriptConfirmPanel({ checking, transcription, onConfirm, onR
     );
   }
 
+  // Nothing usable was heard (empty, or only punctuation such as "..."):
+  // there is no answer to confirm, so offer only a straight re-record.
+  if (!/[\p{L}\p{N}]/u.test(alignment.primaryText)) {
+    return (
+      <motion.div variants={enter} initial="hidden" animate="show" className={CARD} data-testid="no-audio-heard">
+        <div>
+          <p className="mb-1.5 text-body-base font-semibold text-ink">We didn’t hear anything</p>
+          <p className="text-body-s text-ink-muted">
+            Check your microphone, then tap the mic and answer again.
+          </p>
+        </div>
+        <Button size="lg" onClick={onRerecord}>
+          Record again
+        </Button>
+      </motion.div>
+    );
+  }
+
   const tokens = tokenize(alignment.primaryText).map((t) => t.raw);
   const underlined = alignment.spans.map((span, index) => ({ span, index })).filter(({ span }) => span.swappable);
   const spanStartingAt = new Map(underlined.map((u) => [u.span.start, u]));

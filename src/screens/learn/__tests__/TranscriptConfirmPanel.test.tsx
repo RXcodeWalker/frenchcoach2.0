@@ -251,9 +251,14 @@ describe('TranscriptConfirmPanel', () => {
     });
   });
 
-  it('says so when nothing was transcribed', () => {
-    setup(liveOnly(''));
-    expect(screen.getByText('Nothing was transcribed.')).toBeTruthy();
+  it.each(['', '...', ' … '])('shows a no-audio screen (no "Use this") for %j', (text) => {
+    const { onRerecord } = setup(liveOnly(text, 'no-audio'));
+    expect(screen.getByTestId('no-audio-heard')).toBeTruthy();
+    expect(screen.queryByText('We heard')).toBeNull();
+    expect(screen.queryByText('Use this')).toBeNull();
+    fireEvent.click(screen.getByText('Record again'));
+    expect(onRerecord).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('Are you sure you want to re-record?')).toBeNull();
   });
 
   it('does not underline a same-sound reading the sentence already settles', () => {
