@@ -13,7 +13,7 @@ import {
   sendFeedback,
   type FeedbackKind,
 } from '../../services/contact/sendFeedback';
-import { track } from '../../services/telemetry/telemetryService';
+import { reportUserFeedback, track } from '../../services/telemetry/telemetryService';
 
 const KINDS: { id: FeedbackKind; label: string; prompt: string }[] = [
   { id: 'bug', label: 'Bug', prompt: 'What happened, and what did you expect instead?' },
@@ -75,6 +75,8 @@ export function ContactDialog({ open, onClose, defaultEmail, route, defaultKind 
     const result = await sendFeedback({ kind, message, contactEmail: email, route });
     if (result.ok) {
       track({ name: 'feedback_sent', props: { kind, has_email: email.trim() !== '' } });
+      // Also to Sentry's User Feedback, linked to this session's replay.
+      reportUserFeedback({ message: trimmed, email: isPlausibleEmail(email) ? email.trim() : undefined, kind, route });
       setStatus('sent');
       return;
     }

@@ -4,6 +4,7 @@ import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/re
 
 const rpcMock = vi.fn();
 const trackMock = vi.fn();
+const reportUserFeedbackMock = vi.fn();
 
 vi.mock('../../../lib/supabase', () => ({
   supabase: { rpc: (...args: unknown[]) => rpcMock(...args) },
@@ -11,13 +12,17 @@ vi.mock('../../../lib/supabase', () => ({
 }));
 vi.mock('../../../services/telemetry/telemetryService', () => ({
   track: (...args: unknown[]) => trackMock(...args),
+  reportUserFeedback: (...args: unknown[]) => reportUserFeedbackMock(...args),
   captureError: vi.fn(),
 }));
 
 import { ContactDialog } from '../ContactDialog';
 import { safeRoute, sendFeedback } from '../../../services/contact/sendFeedback';
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  reportUserFeedbackMock.mockClear();
+});
 beforeEach(() => {
   rpcMock.mockReset();
   trackMock.mockReset();
@@ -60,6 +65,8 @@ describe('ContactDialog', () => {
     await waitFor(() => expect(screen.queryByTestId('contact-sent')).not.toBeNull());
     expect(rpcMock.mock.calls[0][1]).toMatchObject({ p_kind: 'marking', p_contact_email: 'me@example.com', p_route: '/profile' });
     expect(trackMock).toHaveBeenCalledWith({ name: 'feedback_sent', props: { kind: 'marking', has_email: true } });
+    // The same message goes to Sentry's User Feedback, tied to the session replay.
+    expect(reportUserFeedbackMock).toHaveBeenCalledWith({ message: 'Q3 was marked wrong', email: 'me@example.com', kind: 'marking', route: '/profile' });
   });
 
   it('keeps the draft and says so when sending fails', async () => {
@@ -69,5 +76,6 @@ describe('ContactDialog', () => {
     fireEvent.click(screen.getByTestId('contact-send'));
     await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('couldn’t be sent'));
     expect((screen.getByTestId('contact-message') as HTMLTextAreaElement).value).toBe('Something broke');
+    expect(reportUserFeedbackMock).not.toHaveBeenCalled();
   });
 });

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { instrumentSupabaseClient } from '@sentry/react';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY ?? '';
@@ -8,6 +9,12 @@ export const supabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 export const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseAnonKey || 'placeholder', {
   auth: { flowType: 'pkce' },
 });
+
+// Every database and auth call becomes a span (table, operation, duration) and a
+// breadcrumb in Sentry. `sendOperationData: false` keeps filters and row bodies
+// — which include answers and transcripts being synced — out of it.
+// (Same condition as telemetryService's sentryEnabled(), inlined: this module must not import it.)
+if (typeof window !== 'undefined' && import.meta.env?.PROD === true && import.meta.env?.VITE_SENTRY_DSN) instrumentSupabaseClient(supabase, { sendOperationData: false });
 
 export type Database = {
   public: {

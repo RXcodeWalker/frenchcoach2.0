@@ -7,7 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import express from 'express';
 import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { Sentry, captureServerError, serverSentryOptions } from '../sentry';
+import { Sentry, captureServerError, identifyRequestUser, initServerSentry, recordScoringOutcome, sentryRequestScope, serverSentryOptions } from '../sentry';
 
 type Envelope = [Record<string, unknown>, [Record<string, unknown>, unknown][]];
 const envelopes: Envelope[] = [];
@@ -38,6 +38,7 @@ beforeAll(async () => {
   });
 
   const app = express();
+  app.use(sentryRequestScope);
   app.use(express.json());
   app.post('/boom', () => {
     throw new Error('unexpected failure in handler');
@@ -46,6 +47,19 @@ beforeAll(async () => {
     captureServerError(new Error('judge unavailable'), { route: 'POST /score', stage: 'scoring', status: 500, code: 'judge_unavailable', sessionId: 's-1', userId: 'u-1' });
     res.status(500).json({ error: 'scoring failed' });
     void req;
+  });
+  // Two requests in flight at once: the one that identifies its learner must not
+  // lend that learner to the one that does not.
+  app.post('/who', async (req, res) => {
+    identifyRequestUser(String(req.headers['x-user']));
+    await new Promise((r) => setTimeout(r, 40));
+    Sentry.captureException(new Error('request of an identified learner'));
+    res.status(200).json({});
+  });
+  app.post('/anon', async (_req, res) => {
+    await new Promise((r) => setTimeout(r, 10));
+    Sentry.captureException(new Error('request of nobody in particular'));
+    res.status(200).json({});
   });
   app.post('/unauthorized', (_req, res) => {
     res.status(401).json({ error: 'unauthorized' });
@@ -107,5 +121,60 @@ describe('scoring service Sentry capture', () => {
     expect(await post('/unauthorized')).toBe(401);
     await Sentry.flush(2000);
     expect(sentEvents().length).toBe(before);
+  });
+
+  it('keeps a learner id and the route on their own request, never another', async () => {
+    const call = (path: string, user?: string) =>
+      fetch(`${base}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(user ? { 'x-user': user } : {}) }, body: '{}' });
+    await Promise.all([call('/who', 'u-7'), call('/anon')]);
+    await Sentry.flush(2000);
+    const who = eventFor('request of an identified learner') as { user?: { id?: string }; tags?: Record<string, string> };
+    const anon = eventFor('request of nobody in particular') as { user?: { id?: string }; tags?: Record<string, string> };
+    expect(who?.user?.id).toBe('u-7');
+    expect(who?.tags?.route).toBe('POST /who');
+    expect(anon?.user?.id).toBeUndefined();
+    expect(anon?.tags?.route).toBe('POST /anon');
+  });
+});
+
+describe('scoring service Sentry beyond errors', () => {
+  function items(type: string): unknown[] {
+    return envelopes.flatMap(([, list]) => list.filter(([h]) => h.type === type).map(([, payload]) => payload));
+  }
+
+  it('traces every request and collects logs and metrics by default, collecting nothing about the user on its own', () => {
+    const o = serverSentryOptions({ SENTRY_DSN: 'https://public@o0.ingest.sentry.io/0' });
+    expect(o.tracesSampleRate).toBe(1);
+    expect(o.enableLogs).toBe(true);
+    expect(o.enableMetrics).toBe(true);
+    expect(o.dataCollection).toMatchObject({ userInfo: false, cookies: false, httpBodies: [], stackFrameVariables: false });
+    expect(serverSentryOptions({ SENTRY_DSN: 'x', SENTRY_TRACES_SAMPLE_RATE: '0.25' }).tracesSampleRate).toBe(0.25);
+    expect(serverSentryOptions({ SENTRY_DSN: 'x', SENTRY_TRACES_SAMPLE_RATE: 'lots' }).tracesSampleRate).toBe(1);
+  });
+
+  it('records a finished scoring attempt as a log line and metrics, by judge', async () => {
+    recordScoringOutcome({ outcome: 'ok', provider: 'gemini', durationMs: 8123, sessionId: 's-42' });
+    recordScoringOutcome({ outcome: 'error', durationMs: 900, sessionId: 's-43' });
+    await Sentry.flush(2000);
+
+    const logs = items('log').flatMap((p) => (p as { items: { body: string; level: string; attributes: Record<string, { value: unknown }> }[] }).items);
+    const ok = logs.find((l) => l.body === 'scoring_attempt' && l.attributes.session_id.value === 's-42');
+    expect(ok).toMatchObject({ level: 'info' });
+    expect(ok?.attributes.provider.value).toBe('gemini');
+    const failed = logs.find((l) => l.body === 'scoring_attempt' && l.attributes.session_id.value === 's-43');
+    expect(failed?.level).toBe('error');
+
+    const metrics = items('trace_metric').flatMap((p) => (p as { items: { name: string; value: number; type: string; unit?: string; attributes: Record<string, { value: unknown }> }[] }).items);
+    const duration = metrics.find((m) => m.name === 'scoring.duration_ms' && m.attributes.provider.value === 'gemini');
+    expect(duration).toMatchObject({ type: 'distribution', value: 8123, unit: 'millisecond' });
+    expect(metrics.filter((m) => m.name === 'scoring.attempts')).toHaveLength(2);
+  });
+
+  it('is initialised once however many times it is started', () => {
+    // The SDK is already up (beforeAll): started again — as server/index.ts does after `--import` — it must not re-init.
+    const client = Sentry.getClient();
+    expect(initServerSentry({ SENTRY_DSN: 'https://public@o0.ingest.sentry.io/0' })).toBe(true);
+    expect(Sentry.getClient()).toBe(client);
+    expect(initServerSentry({})).toBe(false);
   });
 });

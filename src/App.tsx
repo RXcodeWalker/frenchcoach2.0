@@ -29,6 +29,7 @@ import { isHiddenPath } from './config/launchScope';
 import { TourHost } from './features/tour/TourHost';
 import { supabaseConfigured } from './lib/supabase';
 import { AnalyticsTracker, AnalyticsPersonSync } from './services/telemetry/AnalyticsTracker';
+import { SentryScopeSync } from './services/telemetry/SentryScopeSync';
 import { HistoryBackBridge } from './components/HistoryBackBridge';
 import {
   SavedAnswers,
@@ -307,6 +308,7 @@ function AppShell() {
           <OfflineCacheStarter />
           <MigrationGate />
           <AnalyticsPersonSync />
+          <SentryScopeSync />
           <SfxBridge />
           <Routes location={location}>
         <Route element={<MainLayout />}>
