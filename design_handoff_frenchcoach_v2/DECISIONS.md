@@ -514,3 +514,20 @@ voice" describe the earlier palette.
 - **Not done:** Léo's ▶ buttons are still plain `voice.speak` buttons, not `PlayButton` (no pause/resume);
   they could move once `leoVoice` attaches to `playbackControl`.
 
+
+## First-run arrival moments (owner, 2026-11-21)
+
+- **One deliberate exception to "no confetti": `components/motion/Burst`.** A one-shot canvas burst — soft strips,
+  flecks and dots in the role-token colours (`--action`, `--reward`, `--progress`, `--streak`, `--info-text`), launched
+  in an arc, slowed by drag so it floats, flipping and fading out in under three seconds. It never loops, is
+  `pointer-events: none`, and renders nothing under reduced motion. Two uses only: the end of first-run setup
+  ("You're all set", two fans from the lower corners) and a returning learner's welcome-back (a light shower from the
+  top). It is never used on a result, mark, session summary or anything the learner is assessed on; the old
+  celebrations that were removed (level-up modal, session summaries) stay removed.
+- **Setup ends in beats, not a jump.** Survey → "Building your plan" (≈3 s; four lines that restate the learner's own
+  answers and preload the next screens; skipped under reduced motion) → "You're all set" (the plan, "The road ahead" in
+  three numbered steps, one primary "Find my level", a quiet "Skip") → the placement check ends on a "Your starting
+  level" card. The building list uses a determinate bar and static rings — no spinner, no looping pulse.
+- **Sign-in welcome is a status card, not a modal:** raised card at the top, "Bon retour, <name>!", the real streak (or
+  the plan line when there is none), dismissable, gone after 5.5 s. It stands down for a brand-new account (its welcome
+  is "You're all set") and while the first-run tour is about to open.

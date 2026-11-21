@@ -5,6 +5,7 @@ import { storedSessionUser } from '../lib/offlineSession';
 import { captureError } from '../services/telemetry/telemetryService';
 import { isAdminUser } from '../lib/adminAccess';
 import { clearAllExamAudio } from '../services/exam/pronunciation/examAudioStore';
+import { markFreshSignIn } from '../lib/freshSignIn';
 
 // Phase 1.6 Part C. 'unknown' means "not fetched yet" (or offline/guest) —
 // distinct from '13_plus_not_required' so AgeBandCheck can tell "still
@@ -159,13 +160,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!supabaseConfigured) throw new Error('App is not configured.');
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw new Error(translateError(error));
+    markFreshSignIn();
   }
 
   async function signUp(email: string, password: string) {
     if (!supabaseConfigured) throw new Error('App is not configured.');
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) throw new Error(translateError(error));
-    return { needsConfirmation: Boolean(data.user && !data.session) };
+    const needsConfirmation = Boolean(data.user && !data.session);
+    if (!needsConfirmation) markFreshSignIn();
+    return { needsConfirmation };
   }
 
   async function signOut() {
@@ -203,6 +207,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!supabaseConfigured) throw new Error('App is not configured.');
     const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken, nonce });
     if (error) throw new Error(translateError(error));
+    markFreshSignIn();
   }
 
   const isAdmin = isAdminUser(user);

@@ -213,6 +213,11 @@ interface TourEndedProps {
   steps_seen: number;
 }
 
+interface OnboardingReadyActionProps {
+  /** What the learner chose on the "you're all set" screen: the level check, or straight to their plan. */
+  action: 'placement' | 'skip';
+}
+
 interface PlacementCompletedProps {
   questions_answered: number;
   skipped: boolean;
@@ -510,6 +515,8 @@ export type TelemetryEvent =
   | { name: 'signed_out';              props: NoProps }
   | { name: 'onboarding_step_viewed';  props: OnboardingStepViewedProps }
   | { name: 'onboarding_completed';    props: OnboardingCompletedProps }
+  | { name: 'onboarding_ready_viewed'; props: NoProps }
+  | { name: 'onboarding_ready_action'; props: OnboardingReadyActionProps }
   | { name: 'tour_started';            props: TourStartedProps }
   | { name: 'tour_ended';              props: TourEndedProps }
   | { name: 'placement_started';       props: NoProps }
@@ -602,6 +609,8 @@ const DECLARED_PROPS = {
   signed_out: [],
   onboarding_step_viewed: ['step'],
   onboarding_completed: ['skipped', 'goal_type', 'learner_track'],
+  onboarding_ready_viewed: [],
+  onboarding_ready_action: ['action'],
   tour_started: ['entry'],
   tour_ended: ['entry', 'reason', 'last_step', 'steps_seen'],
   placement_started: [],

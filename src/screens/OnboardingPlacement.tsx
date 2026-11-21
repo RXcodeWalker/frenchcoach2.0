@@ -1,8 +1,11 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { Check } from 'lucide-react';
 import { Button } from '../components/ui/Button';
-import { EASE } from '../components/motion/variants';
+import { EASE, EASE_SPRING, enter, enterReduced, stagger } from '../components/motion/variants';
+import { useSfxOnChange } from '../services/sound/useSfx';
+import { measuredLevelDisplay } from '../domain/learn/ability/levelLabel';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { useRecording } from '../features/recording/useRecording';
@@ -50,6 +53,9 @@ export function OnboardingPlacement() {
   const [retryCount, setRetryCount] = useState(0);
   const [status, setStatus] = useState<QuestionStatus>('pending');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // Set when all five questions are done: the check ends on its own "here's where you start" moment
+  // instead of dropping the learner onto Home with no sign it worked.
+  const [result, setResult] = useState<{ band: string; caption: string; answered: number } | null>(null);
   // Per-question-index "already submitted" flag — the only guard against a
   // double observeAttempt call, since appendEvidenceEvents doesn't dedupe.
   const submittedIndexesRef = useState(() => new Set<number>())[0];
@@ -84,10 +90,14 @@ export function OnboardingPlacement() {
     if (isLastQuestion) {
       track({ name: 'placement_completed', props: { questions_answered: answeredCountRef.current, skipped: false } });
       if (finalAbilitySnapshot) {
-        const result = deriveAbility(finalAbilitySnapshot);
-        const aim = bucketAim(result.abilityScore);
+        const ability = deriveAbility(finalAbilitySnapshot);
+        const aim = bucketAim(ability.abilityScore);
         storageSetRaw(STORAGE_KEYS.aim, aim);
         dispatch({ type: 'SET_AIM', aim });
+        // A starting point, worded by the same confidence-gated read-out Learn uses — never a mark or band.
+        const { band, caption } = measuredLevelDisplay(ability);
+        setResult({ band, caption, answered: answeredCountRef.current });
+        return;
       }
       navigate(destination, { replace: true });
       return;
@@ -189,6 +199,52 @@ export function OnboardingPlacement() {
 
   const reduced = useReducedMotion();
   const total = questions.length;
+  // Neutral cue, the same one that closes a Learn session: it never depends on how the answers went.
+  useSfxOnChange(result ? 'complete' : null, result !== null, 150);
+
+  if (result) {
+    const item = reduced ? enterReduced : enter;
+    return (
+      <div className="min-h-screen bg-bg px-4 pb-12 pt-6 sm:pt-10">
+        <motion.section
+          variants={stagger}
+          initial="hidden"
+          animate="show"
+          aria-labelledby="ob-place-done-h"
+          data-testid="placement-result"
+          className="mx-auto w-full max-w-[520px]"
+        >
+          <motion.div variants={item} className="mb-6">
+            <motion.span
+              aria-hidden="true"
+              initial={reduced ? false : { scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1, transition: { duration: 0.52, ease: EASE_SPRING } }}
+              className="mb-4 flex h-14 w-14 items-center justify-center rounded-pill bg-progress-soft text-progress-text"
+            >
+              <Check size={28} strokeWidth={2.5} />
+            </motion.span>
+            <p className="mb-2 text-eyebrow uppercase text-progress-text">Level check complete</p>
+            <h1 id="ob-place-done-h" className="text-title text-ink sm:text-h2">Your coach knows where to start.</h1>
+            <p className="mt-2 text-body-base text-ink-muted">
+              You answered {result.answered} of {total} questions out loud. There are no marks — this only sets your first questions.
+            </p>
+          </motion.div>
+
+          <motion.div variants={item} className="surface mb-6 rounded-card p-5">
+            <p className="text-eyebrow uppercase text-ink-subtle">Your starting level</p>
+            <p className="mt-2 text-subtitle text-ink">{result.band}</p>
+            <p className="mt-1 text-body-s text-ink-muted">{result.caption}</p>
+          </motion.div>
+
+          <motion.div variants={item}>
+            <Button size="lg" className="w-full" onClick={() => navigate(destination, { replace: true })} data-testid="placement-result-continue">
+              Go to my plan
+            </Button>
+          </motion.div>
+        </motion.section>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-bg px-4 pb-12 pt-6 sm:pt-10">

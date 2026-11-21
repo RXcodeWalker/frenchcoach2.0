@@ -44,11 +44,12 @@ async function completeWizard() {
 }
 
 describe('Onboarding returnTo handling', () => {
-  it('navigates to the valid returnTo destination via the placement route after completing', async () => {
+  it('navigates to the valid returnTo destination via the "all set" screen after completing', async () => {
     renderOnboarding('?returnTo=%2Fduel%2Fabc123');
     await completeWizard();
     const location = screen.getByTestId('location').textContent ?? '';
-    expect(location.startsWith('/onboarding/placement?returnTo=')).toBe(true);
+    // First-run setup ends on "you're all set" (OnboardingReady), which then offers the placement check.
+    expect(location.startsWith('/onboarding/ready?returnTo=')).toBe(true);
     expect(decodeURIComponent(location.split('returnTo=')[1])).toBe('/duel/abc123');
   });
 

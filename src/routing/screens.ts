@@ -39,6 +39,7 @@ export const League = lazyScreen(() => import('../screens/League'), 'League');
 export const DuelDetail = lazyScreen(() => import('../screens/DuelDetail'), 'DuelDetail');
 export const SentenceRebuilder = lazyScreen(() => import('../screens/SentenceRebuilder'), 'SentenceRebuilder');
 export const Onboarding = lazyScreen(() => import('../screens/Onboarding'), 'Onboarding');
+export const OnboardingReady = lazyScreen(() => import('../screens/OnboardingReady'), 'OnboardingReady');
 export const OnboardingPlacement = lazyScreen(() => import('../screens/OnboardingPlacement'), 'OnboardingPlacement');
 export const AgeBand = lazyScreen(() => import('../screens/AgeBand'), 'AgeBand');
 export const InviteCode = lazyScreen(() => import('../screens/InviteCode'), 'InviteCode');
@@ -142,6 +143,7 @@ export const SCREEN_PATHS: ReadonlyArray<readonly [string, readonly AnyScreen[]]
   ['/duel/:duelId', [DuelDetail]],
   ['/sentence-rebuilder', [SentenceRebuilder]],
   ['/onboarding', [Onboarding]],
+  ['/onboarding/ready', [OnboardingReady]],
   ['/onboarding/placement', [OnboardingPlacement]],
   ['/age-band', [AgeBand]],
   ['/invite-code', [InviteCode]],

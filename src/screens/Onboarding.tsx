@@ -71,7 +71,8 @@ export function Onboarding() {
   const isEditMode = searchParams.get('from') === 'profile';
   const rawReturnTo = searchParams.get('returnTo');
   const destination = isSafeReturnTo(rawReturnTo) ? rawReturnTo : '/';
-  const placementUrl = `/onboarding/placement?returnTo=${encodeURIComponent(destination)}`;
+  // First-run setup ends on "you're all set" (which offers the placement check), not on the check itself.
+  const readyUrl = `/onboarding/ready?returnTo=${encodeURIComponent(destination)}`;
 
   const [step, setStep] = useState<WizardStep>(1);
   const [examBoard, setExamBoard] = useState<ExamBoard | null>(null);
@@ -187,7 +188,7 @@ export function Onboarding() {
       invalidateDailyPlan();
     }
 
-    navigate(isEditMode ? '/profile' : placementUrl, { replace: true });
+    navigate(isEditMode ? '/profile' : readyUrl, { replace: true });
   }
 
   const canProceedStep1 = examBoard !== null;

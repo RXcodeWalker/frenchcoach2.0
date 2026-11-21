@@ -18,6 +18,7 @@ import { useSavedAnswerUploader } from './features/learn/savedAnswers/useSavedAn
 import { useGuestMode } from './hooks/useGuestMode';
 import { IdentityScopeGate } from './components/IdentityScopeGate';
 import { OnboardingCheck } from './components/OnboardingCheck';
+import { SignInWelcome } from './features/welcome/SignInWelcome';
 import { AgeBandCheck } from './components/AgeBandCheck';
 import { InviteGateCheck } from './components/InviteGateCheck';
 import { AdminRoute } from './components/auth/AdminRoute';
@@ -62,6 +63,7 @@ import {
   DuelDetail,
   SentenceRebuilder,
   Onboarding,
+  OnboardingReady,
   OnboardingPlacement,
   AgeBand,
   InviteCode,
@@ -194,6 +196,7 @@ function MainLayout() {
       <GemAnimations />
       <XPToast />
       <GlobalCelebrations />
+      <SignInWelcome />
       <TourHost />
       <KeyboardShortcuts />
       <SavedAnswerUploader />
@@ -484,6 +487,7 @@ function AppShell() {
         {/* The goal survey is Design System v2 (light, violet), as is the placement check — not inside ExamLayout,
             whose exam-voice palette is for exam mode only. */}
         <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/onboarding/ready" element={<OnboardingReady />} />
         <Route path="/onboarding/placement" element={<OnboardingPlacement />} />
 
         {/* Marketing pages, reachable for signed-in/guest users via footer

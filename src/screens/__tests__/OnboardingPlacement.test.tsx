@@ -152,6 +152,24 @@ describe('OnboardingPlacement', () => {
     expect(dispatchMock).toHaveBeenCalledWith({ type: 'SET_AIM', aim: expect.any(String) });
   });
 
+  it('after the fifth question the check ends on a "where you\'ll start" moment, not a silent jump to Home', async () => {
+    renderPlacement('?returnTo=%2Flearn');
+    for (let i = 0; i < 5; i++) {
+      recordAndStop();
+      await waitFor(() => expect(observeAttemptMock).toHaveBeenCalledTimes(i + 1));
+    }
+    const result = await screen.findByTestId('placement-result');
+    expect(result.textContent).toContain('Your coach knows where to start');
+    expect(result.textContent).toContain('5 of 5');
+    expect(result.textContent).toContain('Your starting level');
+    expect(result.textContent).toMatch(/\((A1|A2|B1|B2)\)/); // the same CEFR-in-brackets read-out Learn uses
+    expect(result.textContent).not.toMatch(/\b(score|grade|band|mark(ed)?)\b.*\d/i); // no number dressed as a mark
+    expect(screen.queryByTestId('location')).toBeNull(); // still here; not navigated yet
+
+    fireEvent.click(screen.getByTestId('placement-result-continue'));
+    expect(screen.getByTestId('location').textContent).toBe('/learn');
+  });
+
   it('a rapid double-submit on one question results in exactly one observeAttempt call', async () => {
     skipAutoSettle = true;
     renderPlacement();

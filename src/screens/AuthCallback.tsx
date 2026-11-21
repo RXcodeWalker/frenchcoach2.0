@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
 import { supabase, supabaseConfigured } from '../lib/supabase';
+import { markFreshSignIn } from '../lib/freshSignIn';
 
 type CallbackState = 'processing' | 'error';
 
@@ -57,6 +58,8 @@ export function AuthCallback() {
         return;
       }
 
+      // A reset link is not a welcome moment; an OAuth redirect or emailed sign-in link is.
+      if (!recoveryDetected) markFreshSignIn();
       navigate(recoveryDetected ? '/reset-password' : '/', { replace: true });
     })();
 

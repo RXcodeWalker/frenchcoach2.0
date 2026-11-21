@@ -67,6 +67,7 @@ export const ROUTES: RouteEntry[] = [
   { path: '/daily-challenge', kind: 'app', indexable: false },
   { path: '/league', kind: 'app', indexable: false },
   { path: '/onboarding', kind: 'app', indexable: false },
+  { path: '/onboarding/ready', kind: 'app', indexable: false },
   { path: '/onboarding/placement', kind: 'app', indexable: false },
   { path: '/accent-analyzer', kind: 'app', indexable: false },
   { path: '/listening-mode', kind: 'app', indexable: false },
