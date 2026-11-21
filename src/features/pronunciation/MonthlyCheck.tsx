@@ -20,7 +20,7 @@ import { isLabAllowanceError } from '../../lib/labAllowance';
 import { assessPronunciation } from '../../services/pronunciation/pronunciationClient';
 import { loadLabHistory, recordLabTake, saveMonthlyCheck } from './labStore';
 import { track } from '../../services/telemetry/telemetryService';
-import { useAudioBlobRecorder } from '../recording/useAudioBlobRecorder';
+import { checkableAudio, useAudioBlobRecorder } from '../recording/useAudioBlobRecorder';
 import { playClip, stopClip } from './audio/clipPlayer';
 import { ListenSpeedControl, useListenSpeed } from './ListenSpeed';
 import { playNative, stopNative } from './audio/nativeVoice';
@@ -98,7 +98,8 @@ function ProgressBar({ index, done, reduced }: { index: number; done: boolean; r
 export function MonthlyCheck({ onDone }: Props) {
   const reduced = useReducedMotion() ?? false;
   const [state, dispatch] = useReducer(monthlyCheckReducer, initialMonthlyCheckState);
-  const recorder = useAudioBlobRecorder();
+  // captureWav: a webm take sometimes can't be decoded; the WAV from the live samples always can.
+  const recorder = useAudioBlobRecorder({ captureWav: true });
   const allowance = useLabAllowance();
   /** Today's checks are gone: the sentence can still be heard and skipped, but not recorded. */
   const outOfChecks = allowance.remaining === 0;
@@ -190,11 +191,12 @@ export function MonthlyCheck({ onDone }: Props) {
       return;
     }
     dispatch({ type: 'checking' });
+    const audio = checkableAudio(captured);
     const controller = new AbortController();
     abortRef.current = controller;
     try {
       const assessment = await assessPronunciation({
-        audioBlob: captured.blob,
+        audioBlob: audio,
         targetText: sentence,
         source: 'pronunciation_lab',
         mode: 'scripted',
@@ -204,7 +206,7 @@ export function MonthlyCheck({ onDone }: Props) {
       allowance.refresh();
       const take = buildLabTake(sentence, assessment);
       if (take.refused === null) {
-        takeBlob.current = captured.blob;
+        takeBlob.current = audio;
         setSelected(null);
         recordLabTake(take);
       }

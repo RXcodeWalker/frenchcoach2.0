@@ -34,6 +34,25 @@ export const WORD_STATE_DISPLAY: Readonly<Record<LabWordState, WordStateDisplay>
   unknown: { glyph: '', label: 'Not checked', chip: 'text-ink' },
 };
 
+/**
+ * A word that wasn't clear in the take but was clear when practised on its own
+ * (the latest drill of it). Shown in a lighter green than Clear — an outline,
+ * not a fill — so the progress is visible but the take itself isn't rewritten:
+ * the sentence count stays the take's own until the whole sentence is said again.
+ */
+export const FIXED_IN_PRACTICE_DISPLAY: WordStateDisplay = {
+  glyph: '✓',
+  label: 'Fixed in practice',
+  chip: 'border border-dashed border-progress bg-surface-raised text-progress-text',
+};
+
+/** "1 more fixed in practice — say the whole sentence to lock it in."; null when none. */
+export function fixedInPracticeLine(n: number, canSayAgain: boolean): string | null {
+  if (n <= 0) return null;
+  const lead = `${n} more ${plural(n, 'word', 'words')} fixed in practice`;
+  return canSayAgain ? `${lead} — say the whole sentence again to lock ${plural(n, 'it', 'them')} in.` : `${lead}.`;
+}
+
 /** The legend's states, in this order; "Extra word" only joins when the take has one. */
 export function legendStates(hasExtra: boolean): LabWordState[] {
   const states: LabWordState[] = ['clear', 'almost', 'practise', 'missed'];

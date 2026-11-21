@@ -8,6 +8,7 @@ import {
   flowLine,
   focusLead,
   legendStates,
+  fixedInPracticeLine,
 } from '../labCopy';
 
 const allCopy = [
@@ -91,5 +92,14 @@ describe('the daily allowance wording (Stage 7)', () => {
     expect(checkAllowanceLine(2, 5, 3)).toMatch(/needs at least 3/);
     expect(checkAllowanceLine(4, 5, 3)).toMatch(/may not reach every sentence/);
     expect(checkAllowanceLine(20, 5, 3)).toMatch(/20 checks left today/);
+  });
+});
+
+describe('fixedInPracticeLine', () => {
+  it('says nothing for none, and counts words otherwise', () => {
+    expect(fixedInPracticeLine(0, true)).toBeNull();
+    expect(fixedInPracticeLine(1, true)).toBe('1 more word fixed in practice — say the whole sentence again to lock it in.');
+    expect(fixedInPracticeLine(2, true)).toBe('2 more words fixed in practice — say the whole sentence again to lock them in.');
+    expect(fixedInPracticeLine(2, false)).toBe('2 more words fixed in practice.');
   });
 });

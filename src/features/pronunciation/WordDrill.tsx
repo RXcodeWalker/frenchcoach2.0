@@ -12,7 +12,7 @@ import type { SoundFamilyId } from '../../domain/pronunciation/lab/types';
 import { buildLabTake, drillVerdict, type DrillVerdict } from '../../domain/pronunciation/lab/wordStates';
 import { trickyKey } from '../../domain/pronunciation/lab/trickyWords';
 import { assessPronunciation } from '../../services/pronunciation/pronunciationClient';
-import { useAudioBlobRecorder } from '../recording/useAudioBlobRecorder';
+import { checkableAudio, useAudioBlobRecorder } from '../recording/useAudioBlobRecorder';
 import { failureOf } from './checkFailure';
 import { ALLOWANCE_RECORD_LABEL, DRILL_VERDICT_DISPLAY, NATIVE_UNAVAILABLE, NOTICE_TEXT, allowanceLine } from './labCopy';
 import { MAX_WORD_TAKES } from './labPracticeState';
@@ -56,7 +56,8 @@ function familyOf(word: string): SoundFamilyId | null {
 
 export function WordDrill({ word, onClose }: Props) {
   const reduced = useReducedMotion() ?? false;
-  const recorder = useAudioBlobRecorder();
+  // captureWav: a webm take sometimes can't be decoded; the WAV from the live samples always can.
+  const recorder = useAudioBlobRecorder({ captureWav: true });
   const native = useNativePlayer();
   const [listenSpeed, setListenSpeed] = useListenSpeed();
   const allowance = useLabAllowance();
@@ -120,11 +121,12 @@ export function WordDrill({ word, onClose }: Props) {
       return;
     }
     setActivity('checking');
+    const audio = checkableAudio(captured);
     const controller = new AbortController();
     abort.current = controller;
     try {
       const assessment = await assessPronunciation({
-        audioBlob: captured.blob,
+        audioBlob: audio,
         targetText: word,
         source: 'pronunciation_lab',
         mode: 'scripted',
@@ -137,7 +139,7 @@ export function WordDrill({ word, onClose }: Props) {
       if (take.refused) {
         setNotice('no-word-check');
       } else {
-        blob.current = captured.blob;
+        blob.current = audio;
         setVerdicts((v) => [...v, verdict]);
         recordLabDrill(word, verdict);
         const entry = loadLabHistory().words[trickyKey(word)];

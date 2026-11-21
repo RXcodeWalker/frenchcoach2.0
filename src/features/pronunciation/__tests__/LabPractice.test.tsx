@@ -23,9 +23,10 @@ const audio = vi.hoisted(() => ({
 vi.mock('../audio/clipPlayer', () => ({ playClip: audio.playClip, stopClip: audio.stopClip }));
 vi.mock('../audio/nativeVoice', () => ({ playNative: audio.playNative, stopNative: audio.stopNative }));
 
-const rec = vi.hoisted(() => ({ recording: false, startFails: false, stopReturnsNull: false }));
+const rec = vi.hoisted(() => ({ recording: false, startFails: false, stopReturnsNull: false, wav: null as Blob | null }));
 const BLOB = new Blob(['x'], { type: 'audio/wav' });
 vi.mock('../../recording/useAudioBlobRecorder', () => ({
+  checkableAudio: (r: { blob: Blob; wav?: Blob | null }) => r.wav ?? r.blob,
   useAudioBlobRecorder: () => ({
     isRecording: rec.recording,
     waveData: [],
@@ -36,7 +37,7 @@ vi.mock('../../recording/useAudioBlobRecorder', () => ({
     }),
     stop: vi.fn(async () => {
       rec.recording = false;
-      return rec.stopReturnsNull ? null : { blob: BLOB, url: 'blob:x', waveSnapshot: [] };
+      return rec.stopReturnsNull ? null : { blob: BLOB, url: 'blob:x', waveSnapshot: [], wav: rec.wav };
     }),
   }),
 }));
@@ -63,6 +64,7 @@ beforeEach(() => {
   rec.recording = false;
   rec.startFails = false;
   rec.stopReturnsNull = false;
+  rec.wav = null;
 });
 
 afterEach(() => {
@@ -171,6 +173,49 @@ describe('LabPractice', () => {
     await click(screen.getByRole('button', { name: 'Back to the sentence' }));
     await click(screen.getByRole('button', { name: 'Back to your take' }));
     expect(screen.getByText('4 of 6 words clear')).toBeTruthy();
+  });
+
+  it('checks and plays back the WAV built from the live samples, never the webm that may not decode', async () => {
+    const wav = new Blob(['wav'], { type: 'audio/wav' });
+    rec.wav = wav;
+    assessMock.mockResolvedValue(sentenceResult([95, 95, 95, 95, 95, 95]));
+    renderLab();
+    await recordTake(/Tap and say the sentence/);
+    expect(assessMock).toHaveBeenLastCalledWith(expect.objectContaining({ audioBlob: wav }));
+    await click(screen.getByRole('button', { name: /Play both/ }));
+    expect(audio.playClip).toHaveBeenCalledWith(wav);
+  });
+
+  it('a word cleared in its drill shows as "Fixed in practice" back on the sentence; the take count is unchanged', async () => {
+    assessMock.mockResolvedValueOnce(sentenceResult([95, 70, 95, 95, 95, 95]));
+    renderLab();
+    await recordTake(/Tap and say the sentence/);
+    expect(screen.getByRole('button', { name: /« enfants »: Almost/ })).toBeTruthy();
+    await click(screen.getByRole('button', { name: /« enfants »: Almost/ }));
+    await click(screen.getByRole('button', { name: /Practise just this word/ }));
+    assessMock.mockResolvedValueOnce(scripted([azureWord('enfants', 95)]));
+    await recordTake(/Tap and say the word/);
+    await click(screen.getByRole('button', { name: 'Back to the sentence' }));
+    await click(screen.getByRole('button', { name: 'Back to your take' }));
+
+    expect(screen.getByRole('button', { name: /« enfants »: Fixed in practice/ })).toBeTruthy();
+    expect(screen.getByText('5 of 6 words clear')).toBeTruthy();
+    expect(screen.getByText(/1 more word fixed in practice — say the whole sentence again to lock it in\./)).toBeTruthy();
+    expect(screen.getByRole('list', { name: 'What the marks mean' }).textContent).toContain('Fixed in practice');
+  });
+
+  it('a word whose latest drill was not clear keeps its take state', async () => {
+    assessMock.mockResolvedValueOnce(sentenceResult([95, 70, 95, 95, 95, 95]));
+    renderLab();
+    await recordTake(/Tap and say the sentence/);
+    await click(screen.getByRole('button', { name: /« enfants »: Almost/ }));
+    await click(screen.getByRole('button', { name: /Practise just this word/ }));
+    assessMock.mockResolvedValueOnce(scripted([azureWord('enfants', 40)]));
+    await recordTake(/Tap and say the word/);
+    await click(screen.getByRole('button', { name: 'Back to the sentence' }));
+    await click(screen.getByRole('button', { name: 'Back to your take' }));
+    expect(screen.getByRole('button', { name: /« enfants »: Almost/ })).toBeTruthy();
+    expect(screen.queryByText(/fixed in practice/)).toBeNull();
   });
 
   it('Play both: your whole take, then the native sentence', async () => {

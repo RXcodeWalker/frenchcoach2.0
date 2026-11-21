@@ -38,6 +38,18 @@ export interface AudioBlobRecorderOptions {
   captureWav?: boolean;
 }
 
+/** A WAV this small is a header, not speech; fall back to the compressed take. */
+const MIN_WAV_BYTES = 1024;
+
+/**
+ * The audio to check and play back: the WAV built from the live samples when
+ * there is one (it always decodes), else MediaRecorder's compressed blob.
+ * Only meaningful with `captureWav: true`.
+ */
+export function checkableAudio(recorded: RecordedAudio): Blob {
+  return recorded.wav && recorded.wav.size > MIN_WAV_BYTES ? recorded.wav : recorded.blob;
+}
+
 export function useAudioBlobRecorder(options: AudioBlobRecorderOptions = {}): AudioBlobRecorderState {
   const captureWav = options.captureWav === true;
   const [isRecording, setIsRecording] = useState(false);

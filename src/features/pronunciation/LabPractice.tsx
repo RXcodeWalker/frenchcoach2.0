@@ -15,7 +15,7 @@ import { buildLabTake, drillVerdict, takeWords, type LabTake, type LabWordItem }
 import { isLabAllowanceError } from '../../lib/labAllowance';
 import { assessPronunciation } from '../../services/pronunciation/pronunciationClient';
 import { track, type LabEntry } from '../../services/telemetry/telemetryService';
-import { useAudioBlobRecorder } from '../recording/useAudioBlobRecorder';
+import { checkableAudio, useAudioBlobRecorder } from '../recording/useAudioBlobRecorder';
 import { failureOf } from './checkFailure';
 import { recordLabDrill, recordLabTake } from './labStore';
 import { RecordControl } from './RecordControl';
@@ -26,6 +26,7 @@ import { useLabAllowance } from './useLabAllowance';
 import {
   ALLOWANCE_RECORD_LABEL,
   DRILL_VERDICT_DISPLAY,
+  FIXED_IN_PRACTICE_DISPLAY,
   NATIVE_PREPARING,
   NATIVE_UNAVAILABLE,
   NOTICE_TEXT,
@@ -34,6 +35,7 @@ import {
   allowanceLine,
   clearHeadline,
   comparisonLine,
+  fixedInPracticeLine,
   focusLead,
   legendStates,
 } from './labCopy';
@@ -142,15 +144,17 @@ function ListenSentence({
   );
 }
 
-export function Legend({ hasExtra }: { hasExtra: boolean }) {
+export function Legend({ hasExtra, hasFixed = false }: { hasExtra: boolean; hasFixed?: boolean }) {
+  const entries = legendStates(hasExtra).map((s) => ({ key: s as string, d: WORD_STATE_DISPLAY[s] }));
+  if (hasFixed) entries.splice(1, 0, { key: 'fixed', d: FIXED_IN_PRACTICE_DISPLAY });
   return (
     <ul className="flex flex-wrap gap-x-3 gap-y-1" aria-label="What the marks mean">
-      {legendStates(hasExtra).map((s) => (
-        <li key={s} className="flex items-center gap-1 text-caption text-ink-muted">
-          <span className={`inline-flex h-5 min-w-5 items-center justify-center rounded-[6px] px-1 font-semibold ${WORD_STATE_DISPLAY[s].chip}`} aria-hidden="true">
-            {WORD_STATE_DISPLAY[s].glyph}
+      {entries.map(({ key, d }) => (
+        <li key={key} className="flex items-center gap-1 text-caption text-ink-muted">
+          <span className={`inline-flex h-5 min-w-5 items-center justify-center rounded-[6px] px-1 font-semibold ${d.chip}`} aria-hidden="true">
+            {d.glyph}
           </span>
-          {WORD_STATE_DISPLAY[s].label}
+          {d.label}
         </li>
       ))}
     </ul>
@@ -161,12 +165,15 @@ export function Legend({ hasExtra }: { hasExtra: boolean }) {
 export function CompareSentence({
   take,
   newlyClear,
+  fixedInPractice,
   selected,
   reduced,
   onWord,
 }: {
   take: LabTake;
   newlyClear: Set<number>;
+  /** Words not clear in the take whose latest one-word drill was Clear. */
+  fixedInPractice?: ReadonlySet<number>;
   selected: number | null;
   reduced: boolean;
   onWord: (item: LabWordItem) => void;
@@ -184,7 +191,8 @@ export function CompareSentence({
             </span>
           );
         }
-        const d = WORD_STATE_DISPLAY[item.state];
+        const fixed = item.state !== 'clear' && item.state !== 'unknown' && (fixedInPractice?.has(item.tokenIndex) ?? false);
+        const d = fixed ? FIXED_IN_PRACTICE_DISPLAY : WORD_STATE_DISPLAY[item.state];
         const isSelected = selected === item.tokenIndex;
         const chip = (
           <button
@@ -199,7 +207,7 @@ export function CompareSentence({
             <span>{item.text}</span>
           </button>
         );
-        return newlyClear.has(item.tokenIndex) && !reduced ? (
+        return (newlyClear.has(item.tokenIndex) || fixed) && !reduced ? (
           <motion.span key={`w${i}`} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={correct.fix(0)}>
             {chip}
           </motion.span>
@@ -214,7 +222,9 @@ export function CompareSentence({
 export function LabPractice({ targetSentence, entry, onDone }: Props) {
   const reduced = useReducedMotion() ?? false;
   const [state, dispatch] = useReducer(labPracticeReducer, initialLabPracticeState);
-  const recorder = useAudioBlobRecorder();
+  // captureWav: MediaRecorder's webm sometimes can't be decoded back ("Unable to decode audio data"),
+  // which failed every take with "I couldn't check that take"; the WAV from the live samples always decodes.
+  const recorder = useAudioBlobRecorder({ captureWav: true });
   const allowance = useLabAllowance();
   /** Today's checks are gone (the server said so, or the counter reads 0): record controls wait for tomorrow. */
   const outOfChecks = state.allowanceUsed || allowance.remaining === 0;
@@ -269,6 +279,17 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
     return out;
   }, [state.takes]);
 
+  /** Words not clear in the latest take that the learner then said clearly on their own (latest drill = Clear). */
+  const fixedInPractice = useMemo(() => {
+    const out = new Set<number>();
+    state.focus.forEach((word, i) => {
+      const drills = state.drills[i] ?? [];
+      if (drills[drills.length - 1] === 'clear') out.add(word.tokenIndex);
+    });
+    if (take) for (const w of takeWords(take)) if (w.state === 'clear' || w.state === 'unknown') out.delete(w.tokenIndex);
+    return out;
+  }, [state.focus, state.drills, take]);
+
   /** `sentence`: the whole target sentence, which may be AI-written — recorded on demand when it has no file (Stage 4b). */
   const native = async (text: string | readonly string[], speed = listenSpeed, sentence = false) => {
     const call = ++nativeCall.current;
@@ -322,12 +343,13 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
       return;
     }
     dispatch({ type: 'checking' });
+    const audio = checkableAudio(captured);
     const text = target.kind === 'sentence' ? targetSentence : focusText(target.index);
     const controller = new AbortController();
     abortRef.current = controller;
     try {
       const assessment = await assessPronunciation({
-        audioBlob: captured.blob,
+        audioBlob: audio,
         targetText: text,
         source: 'pronunciation_lab',
         mode: 'scripted',
@@ -337,7 +359,7 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
       allowance.refresh();
       if (target.kind === 'sentence') {
         const next = buildLabTake(targetSentence, assessment);
-        takeBlobs.current[state.takes.length] = captured.blob;
+        takeBlobs.current[state.takes.length] = audio;
         dispatch({ type: 'sentenceChecked', take: next });
         recordLabTake(next);
         setSelected(null);
@@ -494,6 +516,9 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
             <div className="space-y-1">
               <p className="font-numeral text-title text-ink" aria-live="polite">{clearHeadline(take.counts)}</p>
               {comparisonLine(comparison) && <p className="text-body-s text-progress-text">{comparisonLine(comparison)}</p>}
+              {fixedInPracticeLine(fixedInPractice.size, canRecordSentence(state) && !outOfChecks) && (
+                <p className="text-body-s text-progress-text">{fixedInPracticeLine(fixedInPractice.size, canRecordSentence(state) && !outOfChecks)}</p>
+              )}
             </div>
           ) : (
             <p className="text-section text-ink">Listen back</p>
@@ -501,11 +526,12 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
           <CompareSentence
             take={take}
             newlyClear={newlyClear}
+            fixedInPractice={fixedInPractice}
             selected={selected}
             reduced={reduced}
             onWord={(item) => void playWord(item)}
           />
-          {take.refused === null && <Legend hasExtra={take.counts.extra > 0} />}
+          {take.refused === null && <Legend hasExtra={take.counts.extra > 0} hasFixed={fixedInPractice.size > 0} />}
           <p className="text-caption text-ink-muted">Tap a word to hear you, then the native speaker — and to practise just that word.</p>
           {pickedWord && (
             <div className="flex flex-wrap items-center gap-2 rounded-control bg-surface-recessed p-3" data-testid="lab-word-actions">

@@ -21,6 +21,7 @@ vi.mock('../audio/nativeVoice', () => ({ playNative: audio.playNative, stopNativ
 const rec = vi.hoisted(() => ({ recording: false, startFails: false }));
 const BLOB = new Blob(['x'], { type: 'audio/wav' });
 vi.mock('../../recording/useAudioBlobRecorder', () => ({
+  checkableAudio: (r: { blob: Blob; wav?: Blob | null }) => r.wav ?? r.blob,
   useAudioBlobRecorder: () => ({
     isRecording: rec.recording,
     waveData: [],
