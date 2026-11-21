@@ -51,6 +51,7 @@ import { RecordingPanel, type ProcessingStep } from './learn/RecordingPanel';
 import { tidyAnswer } from '../domain/transcription/tidyAnswer';
 import { TranscriptConfirmPanel, type TranscriptConfirmation } from './learn/TranscriptConfirmPanel';
 import { transcribeLearnAnswer, transcribeLearnWord, type AnswerTranscription } from '../features/learn/answerTranscription';
+import { repairMisheardExpressions, type HeardAsNote } from '../domain/transcription/misheardExpressions';
 import { FeedbackExperience } from '../features/feedback';
 import type { PronunciationStatus } from '../features/feedback/FeedbackExperience';
 import { TopContextBar } from '../components/TopContextBar';
@@ -213,6 +214,8 @@ export function Learn() {
   // pronunciation-lab Stage 3: with the Lab live, the answer's own recording is
   // kept (in memory) for "How it sounded"'s listen-back and flow line instead.
   const [answerBlob, setAnswerBlob] = useState<Blob | null>(null);
+  /** Fixed expressions the recogniser misheard in this answer, for "How it sounded" (misheardExpressions.ts). */
+  const [heardAs, setHeardAs] = useState<readonly HeardAsNote[]>([]);
   const pronunciationAbortRef = useRef<AbortController | null>(null);
   // Single generation counter guarding both the feedback stream and the pronunciation
   // call — belt-and-braces alongside AbortController so a race can never write stale
@@ -954,8 +957,13 @@ export function Learn() {
     }).catch(() => { /* local, best effort */ });
   };
 
-  const evaluateTranscript = async (transcript: string) => {
+  const evaluateTranscript = async (heardTranscript: string) => {
     if (!activeSession || !currentQuestion) return;
+    // A fixed expression the recogniser split into nonsense (« la graisse
+    // matinée ») is never a vocabulary mistake: the feedback marks what the
+    // learner meant, and a sound difference becomes a note in "How it sounded".
+    const { text: transcript, notes: heardNotes } = repairMisheardExpressions(heardTranscript);
+    setHeardAs(heardNotes);
 
     // New attempt: abort any previous in-flight stream + pronunciation call
     streamAbortRef.current?.abort();
@@ -1254,7 +1262,7 @@ export function Learn() {
   const handleConfirmTranscript = ({ text, edited, source }: TranscriptConfirmation) => {
     setPendingAnswer(null);
     transcriptSourceRef.current = source === 'whisper' ? 'whisper' : 'captions';
-    if (text.trim()) confirmedAnswersRef.current.push(text);
+    if (text.trim()) confirmedAnswersRef.current.push(repairMisheardExpressions(text).text);
     if (currentQuestion) {
       track({ name: 'transcript_confirmed', props: { question_id: currentQuestion.id, edited, source } });
       incrementCounter('transcript_confirmed');
@@ -1980,6 +1988,7 @@ export function Learn() {
                     pronunciationLabLive
                       ? {
                           answerBlob,
+                          heardAs,
                           // Practising from the card is this question's practice step,
                           // so Continue doesn't offer the same sentence again.
                           onPractiseOpened: () => {
