@@ -114,6 +114,12 @@ describe('OnboardingReady', () => {
     await waitFor(() => expect(screen.getByTestId('onboarding-ready')).toBeTruthy());
   });
 
+  it('a skipped survey gets the short version: no building beat, straight to the reveal', () => {
+    view('?skipped=1');
+    expect(screen.queryByTestId('onboarding-building')).toBeNull();
+    expect(screen.getByTestId('onboarding-ready')).toBeTruthy();
+  });
+
   it('says nothing about a mark, grade or level', async () => {
     view();
     await screen.findByTestId('onboarding-ready');

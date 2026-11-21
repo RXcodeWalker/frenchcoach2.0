@@ -71,10 +71,12 @@ describe('Onboarding returnTo handling', () => {
     expect(decodeURIComponent(location.split('returnTo=')[1])).toBe('/');
   });
 
-  it('skip-for-now navigates directly to a valid returnTo (not through placement)', () => {
+  it('skip-for-now goes to the short "all set" welcome, keeping a valid returnTo', () => {
     renderOnboarding('?returnTo=%2Fduel%2Fabc123');
     fireEvent.click(screen.getByText('Skip for now'));
     const location = screen.getByTestId('location').textContent ?? '';
-    expect(location).toBe('/duel/abc123');
+    expect(location.startsWith('/onboarding/ready?returnTo=')).toBe(true);
+    expect(location).toContain('skipped=1');
+    expect(decodeURIComponent(location.split('returnTo=')[1].split('&')[0])).toBe('/duel/abc123');
   });
 });

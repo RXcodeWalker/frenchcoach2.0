@@ -59,7 +59,9 @@ export function OnboardingReady() {
     return buildSteps({ goalType: getActiveGoal(profile)?.type, examDate: profile.examDate, today: localDay() });
   }, []);
 
-  const [phase, setPhase] = useState<Phase>('building');
+  // A learner who skipped the survey gets the short version: straight to the reveal.
+  const skipped = searchParams.get('skipped') === '1';
+  const [phase, setPhase] = useState<Phase>(skipped ? 'ready' : 'building');
   const [doneCount, setDoneCount] = useState(0);
 
   // This screen is the welcome for a brand-new account: no second "welcome back" on Home.

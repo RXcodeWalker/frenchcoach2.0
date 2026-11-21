@@ -151,7 +151,8 @@ export function Onboarding() {
       updateCoachProfile({ examDate: undefined });
     }
     invalidateDailyPlan();
-    navigate(destination, { replace: true });
+    // Skippers get the short welcome too: the "all set" screen without the building beat.
+    navigate(`${readyUrl}&skipped=1`, { replace: true });
   }
 
   // Junior (Grades 4–7): the exam-goal wizard does not apply, so this takes the
