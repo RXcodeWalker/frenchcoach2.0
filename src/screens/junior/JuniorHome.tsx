@@ -8,7 +8,7 @@
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronRight, Lock, Search } from 'lucide-react';
+import { ChevronRight, Construction, Lock, Search } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
 import { enter } from '../../components/motion/variants';
 import { JuniorArt, ThemeScene } from '../../features/junior/art/JuniorArt';
@@ -46,6 +46,21 @@ export function JuniorHome() {
       <JuniorTopBar title="Junior" subtitle="Missions with Léo" />
       <main data-testid="junior-home">
         <PageShell maxWidth="md" gap={24}>
+          <motion.div
+            variants={enter}
+            role="note"
+            data-testid="junior-in-progress"
+            className="flex items-start gap-3 rounded-card border border-hairline bg-info-soft p-4"
+          >
+            <Construction size={20} className="mt-0.5 shrink-0 text-info-text" aria-hidden="true" />
+            <div className="flex min-w-0 flex-col gap-1">
+              <p className="text-subtitle text-ink">Junior is still being built</p>
+              <p className="text-body-s text-ink-muted">
+                Missions and stickers may change while we finish it, and some things might not work yet. Thanks for trying it out!
+              </p>
+            </div>
+          </motion.div>
+
           <motion.section
             variants={enter}
             aria-label="Up next"
