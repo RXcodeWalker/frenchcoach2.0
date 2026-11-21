@@ -1,7 +1,7 @@
 import { Section } from '../../components/marketing/Section';
 import { Reveal } from '../../components/marketing/Reveal';
-import { CtaButton } from '../../components/marketing/CtaButton';
 import { SectionHeading } from './SectionHeading';
+import { GuideLinks } from './GuideLinks';
 
 // Paper 3's structure and mark split (0520/03 Teacher's Notes; the same
 // numbers live in src/domain/igcse/rubric.ts).
@@ -70,7 +70,7 @@ export function ExamPrep() {
             title="Built around Cambridge IGCSE French speaking."
             intro="Paper 3 is worth 40 marks. Full mock exams follow the same format and are marked against the Cambridge 0520 speaking criteria, so you know which part to work on next."
           />
-          <ol className="space-y-3 -mt-4 mb-8">
+          <ol className="space-y-3 -mt-4">
             {PARTS.map((part, i) => (
               <li key={part.title} className="flex gap-4 py-3 border-b mk-hairline">
                 <span className="font-display text-xl w-6 shrink-0" style={{ color: 'var(--mk-accent)' }} aria-hidden="true">
@@ -83,23 +83,14 @@ export function ExamPrep() {
               </li>
             ))}
           </ol>
-          <p className="text-[15px] leading-relaxed mb-6" style={{ color: 'var(--mk-ink-muted)' }}>
-            Not ready for a mock yet? Read the{' '}
-            <a href="/igcse-french-speaking/topics" className="mk-link">
-              IGCSE French speaking topics and model answers
-            </a>{' '}
-            to see what a strong answer sounds like, or work through the{' '}
-            <a href="/igcse-french-speaking/role-play" className="mk-link">
-              role-play examples
-            </a>{' '}
-            task by task.
-          </p>
-          <CtaButton href="/igcse-french-speaking" variant="secondary">Read the full exam guide</CtaButton>
         </Reveal>
         <Reveal delayMs={100}>
           <SampleReport />
         </Reveal>
       </div>
+      <Reveal>
+        <GuideLinks />
+      </Reveal>
     </Section>
   );
 }

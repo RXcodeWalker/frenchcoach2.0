@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createElement, type ComponentType } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { AboutPublic } from '../AboutPublic';
 import { IgcseFrenchSpeaking } from '../IgcseFrenchSpeaking';
 import { FrenchRoleplayPractice } from '../FrenchRoleplayPractice';
 import { Story } from '../Story';
@@ -11,11 +10,10 @@ import { listScenarioIds } from '../../data/scenarios/registry';
 import { TOPIC_PAGES } from '../../data/seo/topics';
 import { ROLE_PLAY_EXAMPLES } from '../../data/seo/rolePlays';
 
-// The four older public pages, audited for thin copy, unsourced claims and
+// The older public pages, audited for thin copy, unsourced claims and
 // dead links (docs/systems/public-seo-pages.md §8).
 
 const PAGES: [string, ComponentType][] = [
-  ['/about', AboutPublic],
   ['/igcse-french-speaking', IgcseFrenchSpeaking],
   ['/french-roleplay-practice', FrenchRoleplayPractice],
   ['/story', Story],
@@ -69,11 +67,12 @@ describe('copy that quotes a count', () => {
     expect(PAGE_SEO['/french-roleplay-practice'].description).toContain(String(n));
   });
 
-  it('the guide and About cards say how many topics and role plays there are', () => {
+  it('the guide and Our story cards say how many topics and role plays there are', () => {
     const guide = textOf(renderToStaticMarkup(createElement(IgcseFrenchSpeaking)));
     expect(guide).toContain(`${TOPIC_PAGES.length} topics`);
-    const about = textOf(renderToStaticMarkup(createElement(AboutPublic)));
-    expect(about).toContain(`${TOPIC_PAGES.length} topics`);
+    // "Our story" carries the About facts and spells the count out as a word.
+    const story = textOf(renderToStaticMarkup(createElement(Story)));
+    expect(story).toContain(TOPIC_PAGES.length === 16 ? 'Sixteen topics' : `${TOPIC_PAGES.length} topics`);
     expect(guide.toLowerCase()).toContain(ROLE_PLAY_EXAMPLES.length === 6 ? 'six practice role plays' : 'role plays');
   });
 

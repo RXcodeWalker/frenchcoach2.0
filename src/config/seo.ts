@@ -39,20 +39,6 @@ export const PAGE_SEO: Record<string, PageSeo> = {
       buildFAQPageSchema(LANDING_FAQ),
     ],
   },
-  '/about': {
-    title: 'About French Coach | AI-Powered IGCSE French Speaking Coach',
-    description:
-      'French Coach is a speaking-practice coach for IGCSE French learners: answer out loud, see what you said, and get structured feedback on what to change, with free practice to start.',
-    canonicalPath: '/about',
-    robots: 'index, follow',
-    // Mirrors the visible breadcrumb rendered by MarketingLayout on this route.
-    jsonLd: [
-      buildBreadcrumbListSchema([
-        { name: 'Home', path: '/' },
-        { name: 'About', path: '/about' },
-      ]),
-    ],
-  },
   '/igcse-french-speaking': {
     title: 'IGCSE French Speaking Exam (Paper 3) — What It Covers & How to Practise',
     description:
@@ -82,15 +68,15 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     ],
   },
   '/story': {
-    title: 'The Story Behind French Coach | Why I Built a Speaking Coach',
+    title: 'About French Coach | Our Story, and Why I Built a Speaking Coach',
     description:
-      'Ten years of French class taught grammar, never speaking. The founder story behind French Coach — the gap between reading French and being able to speak it.',
+      'Ten years of French class taught grammar, never speaking. The story behind French Coach, an IGCSE French speaking coach: answer out loud, see what you said, get feedback.',
     canonicalPath: '/story',
     robots: 'index, follow',
     jsonLd: [
       buildBreadcrumbListSchema([
         { name: 'Home', path: '/' },
-        { name: 'Story', path: '/story' },
+        { name: 'Our story', path: '/story' },
       ]),
     ],
   },

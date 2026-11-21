@@ -8,7 +8,6 @@ import { getPageSeo } from '../../src/config/publicContentSeo';
 import { publicContentElement } from '../../src/screens/publicContent/registry';
 import { SITE_URL } from '../../src/config/site';
 import { Landing } from '../../src/screens/Landing';
-import { AboutPublic } from '../../src/screens/AboutPublic';
 import { IgcseFrenchSpeaking } from '../../src/screens/IgcseFrenchSpeaking';
 import { FrenchRoleplayPractice } from '../../src/screens/FrenchRoleplayPractice';
 import { Story } from '../../src/screens/Story';
@@ -22,7 +21,6 @@ const TEMPLATE_PATH = join(DIST_DIR, 'index.html');
 // what the client renders anyway (login gate / app chrome needs JS).
 const PUBLIC_PAGE_COMPONENTS: Record<string, () => import('react').ReactElement> = {
   '/': () => createElement(Landing),
-  '/about': () => createElement(AboutPublic),
   '/igcse-french-speaking': () => createElement(IgcseFrenchSpeaking),
   '/french-roleplay-practice': () => createElement(FrenchRoleplayPractice),
   '/story': () => createElement(Story),

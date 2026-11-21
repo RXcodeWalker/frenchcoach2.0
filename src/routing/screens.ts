@@ -93,7 +93,6 @@ export const VersionHistory = lazyScreen(() => import('../screens/admin/VersionH
 
 // ── Public (signed out) and marketing ───────────────────────────────────────
 export const Landing = lazyScreen(() => import('../screens/Landing'), 'Landing');
-export const AboutPublic = lazyScreen(() => import('../screens/AboutPublic'), 'AboutPublic');
 export const Auth = lazyScreen(() => import('../screens/Auth'), 'Auth');
 export const AuthCallback = lazyScreen(() => import('../screens/AuthCallback'), 'AuthCallback');
 export const ResetPassword = lazyScreen(() => import('../screens/ResetPassword'), 'ResetPassword');
@@ -135,7 +134,7 @@ export const SCREEN_PATHS: ReadonlyArray<readonly [string, readonly AnyScreen[]]
   ['/progress', [Progress]],
   ['/profile', [Profile]],
   ['/shop', [Shop]],
-  ['/about', [About, AboutPublic]],
+  ['/about', [About]],
   ['/study-groups', [StudyGroups]],
   ['/rankings', [Rankings]],
   ['/daily-challenge', [DailyChallenge]],

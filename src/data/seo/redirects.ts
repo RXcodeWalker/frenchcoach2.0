@@ -21,7 +21,10 @@ export interface Redirect {
   to: string;
 }
 
-export const REDIRECTS: readonly Redirect[] = [];
+export const REDIRECTS: readonly Redirect[] = [
+  // The About page and the founder story were two pages for one purpose; "Our story" is the one now.
+  { from: '/about', to: '/story' },
+];
 
 /**
  * Every published path that is neither live nor redirected. An empty result is

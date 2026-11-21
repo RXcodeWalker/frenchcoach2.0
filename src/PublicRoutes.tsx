@@ -1,8 +1,7 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import {
   Auth,
   Landing,
-  AboutPublic,
   IgcseFrenchSpeaking,
   FrenchRoleplayPractice,
   TopicsHub,
@@ -31,7 +30,8 @@ export function PublicRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
-      <Route path="/about" element={<AboutPublic />} />
+      {/* /about became "Our story" (vercel.json redirects it too); this covers dev and client-side hops. */}
+      <Route path="/about" element={<Navigate to="/story" replace />} />
       <Route path="/igcse-french-speaking" element={<IgcseFrenchSpeaking />} />
       <Route path="/french-roleplay-practice" element={<FrenchRoleplayPractice />} />
       <Route path="/igcse-french-speaking/topics" element={<TopicsHub />} />

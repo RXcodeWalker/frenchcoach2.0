@@ -189,7 +189,8 @@ html.mk-js {
   background: var(--mk-surface);
 }
 
-.marketing .mk-navlink[aria-current='true'] {
+.marketing .mk-navlink[aria-current='true'],
+.marketing .mk-navlink[aria-current='page'] {
   color: var(--mk-ink);
   background: var(--mk-accent-soft);
 }

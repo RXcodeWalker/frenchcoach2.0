@@ -1,7 +1,10 @@
 import type { ReactNode } from 'react';
 import { Seo } from '../SEO';
 import type { PageSeo } from '../../config/seo';
-import { SiteHeader, type HeaderSection } from '../marketing/SiteHeader';
+import { SiteHeader } from '../marketing/SiteHeader';
+import { SITE_ABOUT_LINKS, SITE_LINK_GROUPS } from '../marketing/siteLinks';
+
+const FOOTER_LINK = 'mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded';
 
 interface BreadcrumbItem {
   label: string;
@@ -14,82 +17,58 @@ interface Props {
   breadcrumb?: BreadcrumbItem[];
   /** Path-only route key looked up in PAGE_SEO, e.g. "/about". */
   route: string;
-  /** In-page sections for the sticky header's anchor nav (the landing page). */
-  sections?: readonly HeaderSection[];
+  /** The landing page: the header's section items scroll in place and track the reading position. */
+  landing?: boolean;
   /** A head built from the page's content (public topic / role-play pages); otherwise PAGE_SEO[route]. */
   seo?: PageSeo;
 }
 
-const NAV_LINKS = [
-  { label: 'How it works', href: '/#how-it-works' },
-  { label: 'Exam guide', href: '/igcse-french-speaking' },
-  { label: 'Model answers', href: '/igcse-french-speaking/topics' },
-  { label: 'Our story', href: '/story' },
-];
-
 // Router-free, AppProvider-free, motion-free shell for public marketing pages
-// (Landing, About, IgcseFrenchSpeaking, FrenchRoleplayPractice). Must stay
+// (Landing, Story, IgcseFrenchSpeaking, FrenchRoleplayPractice). Must stay
 // SSR-safe for the Stage C prerender: no window/localStorage during render,
 // no framer-motion. <a href> throughout, not <Link>, so each marketing page
 // stays a cheap, independently-loadable static document. The `.marketing`
 // class scopes src/styles/marketing.css's editorial tokens to this tree only
 // — app screens never see them.
-export function MarketingLayout({ children, breadcrumb, route, sections, seo }: Props) {
+export function MarketingLayout({ children, breadcrumb, route, landing = false, seo }: Props) {
   return (
     <div className="marketing min-h-screen flex flex-col">
       <Seo route={route} entry={seo} />
-      <SiteHeader sections={sections} links={NAV_LINKS} breadcrumb={breadcrumb} />
+      <SiteHeader onLanding={landing} currentPath={route} breadcrumb={breadcrumb} />
 
       <main className="flex-1">{children}</main>
 
       <footer className="border-t mk-hairline mt-12">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 py-12 grid grid-cols-1 sm:grid-cols-4 gap-8 text-sm">
-          <div>
+        <div className="max-w-6xl mx-auto px-4 md:px-6 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 text-sm">
+          <div className="lg:col-span-1">
             <p className="font-semibold mb-2 font-display text-lg">French Coach</p>
             <p className="text-xs leading-relaxed" style={{ color: 'var(--mk-ink-faint)' }}>
-              Speaking-practice coach for IGCSE French learners.
+              Speaking-practice coach for IGCSE French learners. An independent practice tool, not affiliated with or
+              endorsed by Cambridge Assessment International Education.
             </p>
           </div>
-          <div className="flex flex-col items-start">
-            <a href="/igcse-french-speaking" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
-              IGCSE French Speaking Exam guide
-            </a>
-            <a href="/igcse-french-speaking/topics" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
-              IGCSE French speaking topics and model answers
-            </a>
-            <a href="/igcse-french-speaking/role-play" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
-              IGCSE French role-play examples
-            </a>
-            <a href="/igcse-french-speaking/marking" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
-              How IGCSE French speaking is marked
-            </a>
-            <a href="/igcse-french-speaking/common-mistakes" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
-              Common mistakes in IGCSE French speaking
-            </a>
-            <a href="/french-roleplay-practice" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
-              French roleplay practice scenarios
-            </a>
-            <a href="/about" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
-              About French Coach
-            </a>
-          </div>
-          <div className="flex flex-col items-start">
-            <a href="/login" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
-              Sign in to your account
-            </a>
-            <a href="/privacy" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
-              Privacy Policy
-            </a>
-            <a href="/terms" className="mk-link mk-focus text-sm min-h-[44px] inline-flex items-center rounded" style={{ color: 'var(--mk-ink-muted)' }}>
-              Terms of Service
-            </a>
-          </div>
-          <div className="flex flex-col gap-2">
-            <p className="text-xs leading-relaxed" style={{ color: 'var(--mk-ink-faint)' }}>
-              French Coach is an independent practice tool, not affiliated with or endorsed by
-              Cambridge Assessment International Education.
+          {SITE_LINK_GROUPS.map((group) => (
+            <nav key={group.title} aria-label={group.title} className="flex flex-col items-start">
+              <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--mk-ink-faint)' }}>
+                {group.title}
+              </p>
+              {group.links.map((link) => (
+                <a key={link.href} href={link.href} className={FOOTER_LINK} style={{ color: 'var(--mk-ink-muted)' }}>
+                  {link.label}
+                </a>
+              ))}
+            </nav>
+          ))}
+          <nav aria-label="About French Coach" className="flex flex-col items-start">
+            <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--mk-ink-faint)' }}>
+              French Coach
             </p>
-          </div>
+            {SITE_ABOUT_LINKS.map((link) => (
+              <a key={link.href} href={link.href} className={FOOTER_LINK} style={{ color: 'var(--mk-ink-muted)' }}>
+                {link.label}
+              </a>
+            ))}
+          </nav>
         </div>
       </footer>
     </div>

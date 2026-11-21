@@ -1,16 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { startPractisingFree, trackSignInLink } from './startPractisingFree';
-
-export interface HeaderLink {
-  label: string;
-  href: string;
-}
-
-export interface HeaderSection {
-  id: string;
-  label: string;
-}
+import { SITE_NAV, isSectionItem, navHref } from './siteNav';
 
 interface BreadcrumbItem {
   label: string;
@@ -18,12 +9,14 @@ interface BreadcrumbItem {
 }
 
 interface Props {
-  /** In-page sections (the landing page): shown as anchor links with scroll-spy. */
-  sections?: readonly HeaderSection[];
-  /** Cross-page links, used when there are no in-page sections. */
-  links: HeaderLink[];
+  /** True on the landing page: section items become same-page anchors with scroll-spy. */
+  onLanding?: boolean;
+  /** The page's own path, so its nav item is marked as the current page ("/story"). */
+  currentPath?: string;
   breadcrumb?: BreadcrumbItem[];
 }
+
+const SECTION_IDS: string[] = SITE_NAV.filter(isSectionItem).map((item) => item.section);
 
 /**
  * Which section is under the reading line (40% down the viewport). Effect
@@ -61,19 +54,28 @@ function useActiveSection(ids: string[]): string | null {
 }
 
 /**
- * The marketing sticky header. Desktop: inline links (in-page sections with
- * the current one highlighted, or cross-page links). Phone: a menu button that
- * opens a panel with the same links. "Sign in" and the primary CTA stay
- * visible at every width.
+ * The marketing sticky header, identical on every public page (`SITE_NAV`).
+ * Desktop: inline links; on the landing page the section under the reading
+ * line is highlighted, on a page of its own (Our story) that page is. Phone: a
+ * menu button that opens a panel with the same links. "Sign in" and the
+ * primary CTA stay visible at every width.
  */
-export function SiteHeader({ sections, links, breadcrumb }: Props) {
+export function SiteHeader({ onLanding = false, currentPath, breadcrumb }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
-  const active = useActiveSection(sections?.map((s) => s.id) ?? []);
+  // Scroll-spy only has sections to watch on the landing page.
+  const active = useActiveSection(onLanding ? SECTION_IDS : []);
 
-  const navItems: HeaderLink[] = sections
-    ? sections.map((s) => ({ label: s.label, href: `#${s.id}` }))
-    : links;
+  const navItems = SITE_NAV.map((item) => {
+    const href = navHref(item, onLanding);
+    let current: 'true' | 'page' | undefined;
+    if (isSectionItem(item)) {
+      if (onLanding && active === item.section) current = 'true';
+    } else if (item.path === currentPath) {
+      current = 'page';
+    }
+    return { label: item.label, href, current };
+  });
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -94,8 +96,6 @@ export function SiteHeader({ sections, links, breadcrumb }: Props) {
     };
   }, [menuOpen]);
 
-  const isActive = (href: string) => sections !== undefined && active !== null && href === `#${active}`;
-
   return (
     <header className="mk-header sticky top-0 z-50 border-b mk-hairline">
       <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-3">
@@ -104,12 +104,12 @@ export function SiteHeader({ sections, links, breadcrumb }: Props) {
           <span className="font-display text-[17px] leading-none">French Coach</span>
         </a>
 
-        <nav aria-label={sections ? 'Page sections' : 'Primary'} className="hidden md:flex items-center gap-1">
+        <nav aria-label="Primary" className="hidden md:flex items-center gap-1">
           {navItems.map((item) => (
             <a
               key={item.href}
               href={item.href}
-              aria-current={isActive(item.href) ? 'true' : undefined}
+              aria-current={item.current}
               className="mk-navlink mk-focus text-[13px] font-medium px-3 py-2 rounded-full"
             >
               {item.label}
@@ -151,25 +151,12 @@ export function SiteHeader({ sections, links, breadcrumb }: Props) {
               key={item.href}
               href={item.href}
               onClick={() => setMenuOpen(false)}
-              aria-current={isActive(item.href) ? 'true' : undefined}
+              aria-current={item.current}
               className="mk-navlink mk-focus text-base font-medium px-3 min-h-[48px] flex items-center rounded-xl"
             >
               {item.label}
             </a>
           ))}
-          {sections && (
-            <>
-              <span aria-hidden="true" className="my-2 mx-3 border-t mk-hairline" />
-              {/* Other pages only — a "/#section" link would repeat a section above. */}
-              {links
-                .filter((item) => !item.href.startsWith('/#'))
-                .map((item) => (
-                  <a key={item.href} href={item.href} className="mk-navlink mk-focus text-base px-3 min-h-[48px] flex items-center rounded-xl" style={{ color: 'var(--mk-ink-muted)' }}>
-                    {item.label}
-                  </a>
-                ))}
-            </>
-          )}
         </nav>
       </div>
 

@@ -3,9 +3,15 @@ import { MarketingLayout } from '../components/layout/MarketingLayout';
 import { Reveal } from '../components/marketing/Reveal';
 import { CtaButton } from '../components/marketing/CtaButton';
 import { startPractisingFree } from '../components/marketing/startPractisingFree';
+import { IGCSE_PATH, MARKING_PATH, MISTAKES_PATH, ROLEPLAY_HUB_PATH, TOPICS_HUB_PATH } from '../data/seo/pathConstants';
+import { LinkCard } from './publicContent/parts';
+import { LIMITS_COPY } from './landing/landingContent';
 
-// Long-form founder narrative, linked from landing/Founder.tsx and the footer.
-// Public marketing page — MarketingLayout gives it the `.marketing` editorial
+// "Our story": the one About page. The founder narrative first (it is why the
+// product exists), then "The app, in short" for the visitor who wants the plain
+// facts. It replaced the separate /about page (which now redirects here), so
+// the header's "Our story" item, the landing teaser and the footer all land on
+// it. Public marketing page — MarketingLayout gives it the `.marketing` editorial
 // token scope, the SSR-safe shell, and its own <Seo route="/story">. The
 // CSS-only <Reveal> (immediate on the hero, scroll-triggered everywhere else)
 // is the whole animation budget here, matching the rest of the marketing tree.
@@ -14,7 +20,7 @@ import { startPractisingFree } from '../components/marketing/startPractisingFree
 
 const BREADCRUMB = [
   { label: 'Home', href: '/' },
-  { label: 'Story' },
+  { label: 'Our story' },
 ];
 
 const STATS = [
@@ -70,7 +76,7 @@ export function Story() {
           className="text-[11px] font-semibold uppercase tracking-[0.14em] mb-6"
           style={{ color: 'var(--mk-accent)' }}
         >
-          The story behind French Coach
+          About French Coach · Our story
         </p>
         <h1 className="font-display text-4xl md:text-6xl leading-[1.12] mb-7">
           I didn&rsquo;t set out to build an app.
@@ -100,6 +106,10 @@ export function Story() {
           <span>Founder, French Coach</span>
           <span aria-hidden="true">·</span>
           <span>8 min read</span>
+          <span aria-hidden="true">·</span>
+          <a href="#about-the-app" className="mk-link mk-focus rounded">
+            Just want the facts? What it is ↓
+          </a>
         </div>
       </Reveal>
 
@@ -280,6 +290,71 @@ export function Story() {
         </div>
       </article>
 
+      {/* The plain facts, for the visitor who came for "About" */}
+      <section id="about-the-app" className="border-t mk-hairline scroll-mt-20" aria-labelledby="about-the-app-title">
+        <div className="max-w-[640px] mx-auto px-4 md:px-6 py-16 md:py-20">
+          <Reveal>
+            <p
+              className="text-[11px] font-semibold uppercase tracking-[0.12em] mb-3.5"
+              style={{ color: 'var(--mk-accent)' }}
+            >
+              The app, in short
+            </p>
+            <h2 id="about-the-app-title" className="font-display text-2xl md:text-[32px] leading-snug mb-6">
+              What French Coach is
+            </h2>
+            <div className="space-y-4 text-[17px] leading-[1.75] mb-12" style={{ color: 'var(--mk-ink-muted)' }}>
+              <p>
+                A speaking-practice coach for IGCSE French learners. You answer out loud, see what you actually said,
+                and get feedback on what to change: what went well, what to fix first and a better way to say it.
+                Every correction quotes your own words.
+              </p>
+              <p>
+                When you are ready, sit a mock exam: a role play and two topic conversations in the order of Paper 3,
+                with a 10-minute preparation first. It is marked against the Cambridge 0520 speaking criteria and
+                reported out of 40.
+              </p>
+            </div>
+
+            <h3 className="font-display text-xl mb-3">What it is not</h3>
+            <p className="text-base leading-relaxed mb-10" style={{ color: 'var(--mk-ink-muted)' }}>
+              French Coach is an independent practice tool, not affiliated with or endorsed by Cambridge Assessment
+              International Education. Treat a mock mark as practice, not a Cambridge result: its job is to show you
+              where marks are being lost.
+            </p>
+
+            <h3 className="font-display text-xl mb-3">Free to start</h3>
+            <p className="text-base leading-relaxed mb-12" style={{ color: 'var(--mk-ink-muted)' }}>
+              Start as a guest with no account and no card. A free account gives you {LIMITS_COPY}, and keeps your
+              progress safe. All you need is a phone or laptop with a microphone and a modern browser; Chrome gives the
+              smoothest experience.
+            </p>
+
+            <h3 className="font-display text-xl mb-4">Where to start</h3>
+            <ul className="grid gap-3 sm:grid-cols-2">
+              <li>
+                <LinkCard href={IGCSE_PATH} title="IGCSE French speaking exam guide" sub="What Paper 3 covers and how it runs" />
+              </li>
+              <li>
+                <LinkCard href={TOPICS_HUB_PATH} title="Topics and model answers" sub="Sixteen topics, four answers each" />
+              </li>
+              <li>
+                <LinkCard href={ROLEPLAY_HUB_PATH} title="Role-play examples" sub="Six practice role plays with model replies" />
+              </li>
+              <li>
+                <LinkCard href={MARKING_PATH} title="How the exam is marked" sub="The marks and where they come from" />
+              </li>
+              <li>
+                <LinkCard href={MISTAKES_PATH} title="Common mistakes" sub="What loses marks in Paper 3" />
+              </li>
+              <li>
+                <LinkCard href="/french-roleplay-practice" title="French roleplay practice" sub="Everyday scenarios to speak your way through" />
+              </li>
+            </ul>
+          </Reveal>
+        </div>
+      </section>
+
       {/* Closing */}
       <section className="border-t mk-hairline">
         <Reveal className="block max-w-[700px] mx-auto px-4 md:px-6 py-20 md:py-24 text-center">
@@ -294,14 +369,8 @@ export function Story() {
               Back to French Coach
             </CtaButton>
           </div>
-          <p className="text-xs mb-6" style={{ color: 'var(--mk-ink-faint)' }}>
+          <p className="text-xs" style={{ color: 'var(--mk-ink-faint)' }}>
             No account, no card.
-          </p>
-          <p className="text-sm leading-relaxed" style={{ color: 'var(--mk-ink-muted)' }}>
-            Want to see what it practises? Read the{' '}
-            <a href="/igcse-french-speaking" className="mk-link">IGCSE French speaking exam guide</a>, the{' '}
-            <a href="/igcse-french-speaking/topics" className="mk-link">topics and model answers</a> or{' '}
-            <a href="/about" className="mk-link">what French Coach is</a>.
           </p>
         </Reveal>
       </section>

@@ -27,7 +27,8 @@ export interface RouteEntry {
 // are enumerated from src/data/seo (docs/systems/public-seo-pages.md).
 export const ROUTES: RouteEntry[] = [
   { path: '/', kind: 'app', indexable: true },
-  { path: '/about', kind: 'public', indexable: true },
+  // The in-app About (hidden at launch). The public /about is retired: it redirects to /story.
+  { path: '/about', kind: 'app', indexable: false },
   { path: '/igcse-french-speaking', kind: 'public', indexable: true },
   { path: '/french-roleplay-practice', kind: 'public', indexable: true },
   ...PUBLIC_CONTENT_HUB_PATHS.map((path): RouteEntry => ({ path, kind: 'public', indexable: true })),
