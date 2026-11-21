@@ -208,3 +208,19 @@ export function stripTransactionSecrets<T extends TransactionLike>(event: T): T 
   redactStringValues(event.contexts?.trace?.data);
   return event;
 }
+
+/** Longest id kept as a Sentry tag (Sentry's own limit is 200). */
+const MAX_ID_TAG = 100;
+const ID_TAG = /^[A-Za-z0-9_.:-]+$/;
+
+/**
+ * An id safe to put on a Sentry tag, or undefined. Only id-shaped strings pass
+ * (letters, digits, `_ . : -`): a value with spaces or other text is refused
+ * rather than redacted, so a sentence can never reach Sentry through a tag.
+ */
+export function sentryIdTag(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const id = value.trim();
+  if (!id || id.length > MAX_ID_TAG || !ID_TAG.test(id)) return undefined;
+  return id;
+}

@@ -7,8 +7,7 @@ import {
   resolveSentryEnvironment,
   stripEventSecrets,
   stripTransactionSecrets,
-  toReportableError,
-} from '../sentryFilters';
+  toReportableError, sentryIdTag } from '../sentryFilters';
 import { sentryBrowserOptions } from '../telemetryService';
 import { AuthRequiredError } from '../../../lib/authToken';
 import { ConsentRequiredError } from '../../../lib/consentRequired';
@@ -145,5 +144,22 @@ describe('stripTransactionSecrets (F13)', () => {
       {},
     ) as { request?: { url?: string } };
     expect(out.request?.url).toBe('/parent#[Filtered]');
+  });
+});
+
+describe('sentryIdTag', () => {
+  it('passes id-shaped values only', () => {
+    expect(sentryIdTag('1763715600000-ab12c')).toBe('1763715600000-ab12c');
+    expect(sentryIdTag('fre_12::followup')).toBe('fre_12::followup');
+    expect(sentryIdTag('exam-sim-3f2c1d0e-3b0a-4c39-9d43-6a6f3a0e2b11')).toBe('exam-sim-3f2c1d0e-3b0a-4c39-9d43-6a6f3a0e2b11');
+  });
+  it('refuses text, empty values, non-strings and over-long values', () => {
+    expect(sentryIdTag("Qu'est-ce que tu aimes faire ?")).toBeUndefined();
+    expect(sentryIdTag('je joue au foot')).toBeUndefined();
+    expect(sentryIdTag('Bearer eyJ.a.b')).toBeUndefined();
+    expect(sentryIdTag('')).toBeUndefined();
+    expect(sentryIdTag(null)).toBeUndefined();
+    expect(sentryIdTag(42)).toBeUndefined();
+    expect(sentryIdTag('a'.repeat(101))).toBeUndefined();
   });
 });

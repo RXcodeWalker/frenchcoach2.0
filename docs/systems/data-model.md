@@ -101,6 +101,19 @@ provenance and question-set match before reaching the session check.
   updated from an RPC's `SUM(delta)` return value. Don't treat a `profiles.gems` read as the source
   of truth, and don't be surprised that writing it client-side fails with a permission error — that
   failure is intentional.
+- **`sessions` has two feedback columns, and only one may ever be read by a server function.**
+  `sessions.feedback` is a short summary (`sessionSync.ts`'s `stripFeedback`: scores, CEFR level,
+  one-line next step and highlight, critical-issue count, `markingVersion`) — restore reads it back,
+  `teacher_student_sessions` returns it whole to a class's teachers and `get_parent_report` reads
+  keys out of it, so nothing may be added to it that those readers must not see.
+  `sessions.feedback_detail` (migration `20261121090000`, built by `feedbackDetail.ts`) is the full
+  feedback the learner was shown — corrections, quoted errors, improved answer, prompt version and
+  engine — kept only so the owner can check a "the app marked me wrong" complaint (service role,
+  SQL editor). It is write-only from the client, never selected on restore, refused over 32 KB by a
+  CHECK, and selected by no RPC, view or job (`backend/tests/test_sessions_feedback_detail.py`).
+  It never holds `levelCheck` (the marking level stays on the device). Only a session pushed
+  straight after the answer carries it: a row rebuilt from the stored summary (offline queue,
+  backfill) omits the key, so it neither sends nor blanks it.
 
 Everything else — specific policies, specific grants, the full RPC list — stays discoverable in
 `backend/supabase/migrations/` and `backend/supabase/tests/*.test.mjs` (the executable spec of RPC

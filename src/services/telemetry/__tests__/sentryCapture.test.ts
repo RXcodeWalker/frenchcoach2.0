@@ -5,7 +5,7 @@
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import * as Sentry from '@sentry/react';
-import { captureError, sentryBrowserOptions } from '../telemetryService';
+import { captureError, sentryBrowserOptions, tagSentryIds } from '../telemetryService';
 import { AuthRequiredError } from '../../../lib/authToken';
 import { ApiHttpError } from '../../api/apiClient';
 
@@ -64,6 +64,21 @@ describe('frontend Sentry capture', () => {
     expect(event.tags).toMatchObject({ area: 'learn_feedback', stage: 'all_engines_failed', status: '502' });
     expect(event.exception?.values?.[0]).toMatchObject({ type: 'ApiHttpError', value: 'API /api/feedback/v3 → 502' });
     expect(JSON.stringify(event)).not.toContain('eyJhbGciOi.payload.sig');
+  });
+
+  it('tags an event with the ids that match it to its sessions row, and clears them', async () => {
+    tagSentryIds({ lastSessionId: '1763715600000-ab12c', questionId: 'fre_12::followup', scoringSessionId: 'exam-sim-3f2c' });
+    captureError(new Error('ids probe 1'), { area: 'learn_feedback', stage: 'ids' });
+    tagSentryIds({ questionId: null, scoringSessionId: null });
+    captureError(new Error('ids probe 2'), { area: 'learn_feedback', stage: 'ids' });
+    await Sentry.flush(2000);
+    const [first, second] = sentEvents().filter(e => JSON.stringify(e).includes('ids probe')) as { tags?: Record<string, string> }[];
+    expect(first.tags).toMatchObject({ last_session_id: '1763715600000-ab12c', question_id: 'fre_12::followup', scoring_session_id: 'exam-sim-3f2c' });
+    expect(second.tags?.last_session_id).toBe('1763715600000-ab12c');
+    // A cleared tag is undefined, which JSON (the wire format) drops.
+    expect(JSON.parse(JSON.stringify(second.tags))).not.toHaveProperty('question_id');
+    expect(JSON.parse(JSON.stringify(second.tags))).not.toHaveProperty('scoring_session_id');
+    tagSentryIds({ lastSessionId: null });
   });
 
   it('sends nothing for expected states', async () => {

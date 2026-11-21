@@ -12,6 +12,7 @@ import {
   stripEventSecrets,
   stripTransactionSecrets,
   toReportableError,
+  sentryIdTag,
 } from './sentryFilters';
 import { captureAnalyticsEvent, initAnalytics } from './posthogClient';
 
@@ -889,4 +890,32 @@ export function captureError(err: unknown, context: ErrorContext = {}): void {
     tags,
     ...(Object.keys(extra).length > 0 ? { extra } : {}),
   });
+}
+
+/**
+ * Ids that let a Sentry event be matched to its Supabase row: `last_session_id`
+ * (the newest recorded `sessions.id` — an error may come after it, so it is the
+ * last one, not necessarily this one), `question_id` (the Learn question on
+ * screen; follow-ups end `::followup`) and `scoring_session_id` (the exam's
+ * `sessions.scoring_session_id` / `scoring_envelopes` key). A key passed as null
+ * is cleared; a key left out is kept. Ids only — `sentryIdTag` refuses anything
+ * that is not id-shaped, so no question text or transcript can ride along.
+ */
+export interface SentryIdTags {
+  lastSessionId?: string | null;
+  questionId?: string | null;
+  scoringSessionId?: string | null;
+}
+
+const SENTRY_ID_TAG_NAMES: Record<keyof SentryIdTags, string> = {
+  lastSessionId: 'last_session_id',
+  questionId: 'question_id',
+  scoringSessionId: 'scoring_session_id',
+};
+
+export function tagSentryIds(ids: SentryIdTags): void {
+  for (const key of Object.keys(SENTRY_ID_TAG_NAMES) as (keyof SentryIdTags)[]) {
+    if (!(key in ids)) continue;
+    Sentry.setTag(SENTRY_ID_TAG_NAMES[key], sentryIdTag(ids[key]));
+  }
 }

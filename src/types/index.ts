@@ -185,6 +185,8 @@ export interface Session {
   id: string;
   mode: 'practice' | 'exam' | 'challenge' | 'roleplay' | 'rapid_fire' | 'boss_battle' | 'story' | 'survival' | 'speed_speaking' | 'emoji_master' | 'word_drop' | 'daily_news';
   topicKey?: string;
+  /** Learn only: the bank question's id. Synced only inside `sessions.feedback_detail` (debugging) and tagged on Sentry events; never read back. */
+  questionId?: string;
   questionText?: string;
   transcript?: string;
   wordCount: number;

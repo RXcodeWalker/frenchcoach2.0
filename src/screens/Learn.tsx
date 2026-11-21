@@ -75,7 +75,7 @@ import { computeSessionTarget, type Aim } from '../domain/learn/selection/sessio
 import { summarisePreview, type SessionPreview } from '../features/learn/sessionSetup';
 import { getReviewItemFirstRecordedScore } from '../services/coach/reviewPool';
 import { useExtraTurnBudget } from './learn/useExtraTurnBudget';
-import { captureError, failureReason, track } from '../services/telemetry/telemetryService';
+import { captureError, failureReason, tagSentryIds, track } from '../services/telemetry/telemetryService';
 import { errorStatus } from '../services/telemetry/sentryFilters';
 import { claimFirstTime } from '../services/telemetry/analyticsState';
 import { deriveDemandLevel } from '../domain/learn/demand/deriveDemandLevel';
@@ -308,6 +308,14 @@ export function Learn() {
     ? { ...baseQuestion, id: `${baseQuestion.id}::followup`, text: followUpTurn.promptText }
     : baseQuestion;
   const isReviewQuestion = !!currentSessionQuestion?.isReview;
+
+  // Sentry ↔ Supabase: an error while this question is on screen carries its id
+  // (the same id the answer's sessions.feedback_detail records). Ids only.
+  const currentQuestionId = currentQuestion?.id ?? null;
+  useEffect(() => {
+    tagSentryIds({ questionId: currentQuestionId });
+    return () => tagSentryIds({ questionId: null });
+  }, [currentQuestionId]);
 
   // The teacher's memory line: a repeated mistake, from the existing recurring-
   // problem detection (interventionService) — no new store. The count is only
@@ -647,6 +655,7 @@ export function Learn() {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       mode: 'practice',
       topicKey: selectedTopic?.key,
+      questionId: currentQuestion.id,
       questionText: currentQuestion.text,
       transcript,
       wordCount: fb.wordCount,

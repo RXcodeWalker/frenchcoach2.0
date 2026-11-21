@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { track, captureError, type ExamPartReached, type ExamStep } from '../services/telemetry/telemetryService';
+import { track, captureError, tagSentryIds, type ExamPartReached, type ExamStep } from '../services/telemetry/telemetryService';
 import { TrackView } from '../services/telemetry/TrackView';
 import confetti from 'canvas-confetti';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -412,6 +412,7 @@ export function ExamMode() {
 
         selectedQuestionSetIdRef.current = snapshot.questionSetId;
         sessionIdRef.current = snapshot.sessionId;
+        tagSentryIds({ scoringSessionId: snapshot.sessionId, questionId: null });
         currentQuestionSetHashRef.current = resolvedHash;
         // D15: a mid-exam resume is allowed, but the notes require an
         // uninterrupted recording, so this attempt no longer counts.
@@ -631,6 +632,8 @@ export function ExamMode() {
     turnTranscriberRef.current = createExamTurnTranscriberFor({ webSpeechAvailable: recording.sttSupported });
     pronunciation.reset();
     sessionIdRef.current = sessionId;
+    // Sentry ↔ Supabase: an exam error carries the attempt's scoring id (ids only).
+    tagSentryIds({ scoringSessionId: sessionId, questionId: null });
     clock.start();
     totalClock.start();
 

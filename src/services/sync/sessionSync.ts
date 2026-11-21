@@ -4,6 +4,7 @@ import { MAX_STORED_SESSIONS, type StoredSession } from '../analytics/analyticsS
 import type { ExamAreaMarks, Session } from '../../types';
 import { captureError } from '../telemetry/telemetryService';
 import { localDayBefore, localDayOf } from '../../lib/localDay';
+import { buildFeedbackDetail } from './feedbackDetail';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -28,6 +29,11 @@ type CloudSessionRow = {
   exam_marks?: Record<string, number> | null;
   scoring_session_id?: string | null;
   assignment_id?: string | null;
+  // The full feedback the learner was shown (feedbackDetail.ts; backend migration
+  // 20261121090000). Write-only: restore never selects it, and no teacher/parent
+  // RPC reads it. Sent only by sessionToRow — a row rebuilt from the stored
+  // summary (offline queue, backfill) omits it, so an upsert never blanks it.
+  feedback_detail?: Record<string, unknown> | null;
 };
 
 type FeedbackSummaryBlob = {
@@ -63,6 +69,9 @@ const BASE_COLUMNS = 'id, user_id, mode, topic_key, question_text, transcript, w
 // assignment_id: the homework a session answered (teacher dashboard; features/homework). Write-only —
 // the teacher view counts homework server-side, so restore never needs it back.
 const EXAM_COLUMNS = ['practice_only', 'exam_marks', 'scoring_session_id', 'assignment_id'] as const;
+// Columns newer than the base table: a database without one still syncs (upsertSessionRow
+// resends the row without them). Only EXAM_COLUMNS are ever read back.
+const OPTIONAL_COLUMNS = [...EXAM_COLUMNS, 'feedback_detail'] as const;
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -156,6 +165,7 @@ function examColumns(s: ExamFields & { assignmentId?: string }): Partial<Pick<Cl
 }
 
 function sessionToRow(userId: string, session: Session): CloudSessionRow {
+  const detail = buildFeedbackDetail(session);
   return {
     id: session.id,
     user_id: userId,
@@ -170,6 +180,7 @@ function sessionToRow(userId: string, session: Session): CloudSessionRow {
     feedback: stripFeedback(session.feedback) as Record<string, unknown> | null,
     created_at: session.createdAt,
     ...examColumns(session),
+    ...(detail ? { feedback_detail: detail as Record<string, unknown> } : {}),
   };
 }
 
@@ -199,19 +210,32 @@ function mentionsExamColumn(message: string | undefined): boolean {
   return !!message && EXAM_COLUMNS.some(c => message.includes(c));
 }
 
+/** The optional columns a PostgREST error names, grouped as they were added: the exam columns go together. */
+function columnsToDrop(message: string | undefined): readonly string[] {
+  if (!message) return [];
+  const drop: string[] = [];
+  if (mentionsExamColumn(message)) drop.push(...EXAM_COLUMNS);
+  if (message.includes('feedback_detail')) drop.push('feedback_detail');
+  return drop;
+}
+
 /**
- * Upsert one row. If the database lacks the exam columns (PostgREST: "Could not
- * find the 'practice_only' column"), the row is sent again without them, so
- * sessions never stop syncing against an older schema.
+ * Upsert one row. If the database lacks the exam columns or feedback_detail
+ * (PostgREST: "Could not find the 'practice_only' column"), or refuses the
+ * detail blob (its size CHECK names the column), the row is sent again without
+ * the columns the error names, so sessions never stop syncing against an older
+ * schema — and a missing feedback_detail never costs a row its exam fields.
  */
 async function upsertSessionRow(row: CloudSessionRow): Promise<{ error: { message: string } | null }> {
-  const { error } = await supabase.from('sessions').upsert(row, { onConflict: 'id' });
-  if (!error) return { error: null };
-  if (!mentionsExamColumn(error.message)) return { error };
-  const legacy: Record<string, unknown> = { ...row };
-  for (const c of EXAM_COLUMNS) delete legacy[c];
-  const retry = await supabase.from('sessions').upsert(legacy, { onConflict: 'id' });
-  return { error: retry.error };
+  let payload: Record<string, unknown> = { ...row };
+  for (let attempt = 0; ; attempt++) {
+    const { error } = await supabase.from('sessions').upsert(payload, { onConflict: 'id' });
+    if (!error) return { error: null };
+    const drop = columnsToDrop(error.message).filter(c => c in payload);
+    if (drop.length === 0 || attempt >= OPTIONAL_COLUMNS.length) return { error };
+    payload = { ...payload };
+    for (const c of drop) delete payload[c];
+  }
 }
 
 function parseExamMarks(value: unknown): ExamAreaMarks | undefined {

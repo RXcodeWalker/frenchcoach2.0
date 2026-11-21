@@ -22,6 +22,7 @@ import { parseNotebook, upsertEntry, type NotebookDraft, type NotebookEntry } fr
 import { useAuth } from './AuthContext';
 import { pushProgressionToCloud, pullProgressionFromCloud, mergeProgressionData, cloudDiffersFromMerged, markNeedsSync } from '../services/sync/progressionSync';
 import { hydrateSessionsFromCloud, pushSessionToCloud, backfillSessionsToCloud, flushPendingQueue } from '../services/sync/sessionSync';
+import { tagSentryIds } from '../services/telemetry/telemetryService';
 import { hydrateCoachFromCloud, backfillEvidenceToCloud, pushPendingEvidence } from '../services/sync/coachSync';
 import { hydratePronunciationFromCloud, backfillPronunciationToCloud, flushPendingPronunciationQueue } from '../services/sync/pronunciationSync';
 import { syncSpeakingLog } from '../services/sync/speakingLogSync';
@@ -837,6 +838,10 @@ export function AppProvider({ identity, children }: { identity: string; children
   const newestSessionId = state.recentSessions[0]?.id;
   useEffect(() => {
     const newest = state.recentSessions[0];
+    if (newest) {
+      // Sentry ↔ Supabase: later errors carry the newest sessions row's ids (ids only).
+      tagSentryIds({ lastSessionId: newest.id, scoringSessionId: newest.scoringSessionId ?? null });
+    }
     if (!newest || !authUser || !hydrationComplete.current || sessionHydrationInProgress.current) return;
     void pushSessionToCloud(authUser.id, newest);
     void pushPendingEvidence(authUser.id);
