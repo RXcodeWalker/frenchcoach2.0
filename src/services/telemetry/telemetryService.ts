@@ -7,14 +7,22 @@ import {
   errorStatus,
   isExpectedFailure,
   isNetworkError,
+  redactRecordingEvent,
+  resolveSampleRates,
   resolveSentryEnvironment,
+  stripAttributeSecrets,
   stripBreadcrumbSecrets,
   stripEventSecrets,
+  stripReplaySummarySecrets,
   stripTransactionSecrets,
   toReportableError,
   sentryIdTag,
+  tracePropagationTargetsFor,
 } from './sentryFilters';
 import { captureAnalyticsEvent, initAnalytics } from './posthogClient';
+import { logLevelFor, planMetrics } from './sentrySignals';
+import { watchRuntime } from './sentryRuntime';
+import { normaliseRoute } from './analyticsRoute';
 
 interface SessionCompletedProps {
   mode: 'practice' | 'exam' | 'story';
@@ -774,28 +782,124 @@ function sentryEnabled(): boolean {
   return typeof window !== 'undefined' && import.meta.env?.PROD === true && !!import.meta.env?.VITE_SENTRY_DSN;
 }
 
-/** The browser SDK options, exported so a test can run them against a recording transport. */
-export function sentryBrowserOptions(dsn: string, release: string | undefined, environment: string): Sentry.BrowserOptions {
+type EnvLike = Record<string, string | undefined>;
+
+/**
+ * How the session recorder is configured. Text on screen, form input and media
+ * are masked; only VITE_SENTRY_REPLAY_MASK_TEXT=0 unmasks text (a privacy
+ * decision for the owner — inputs and media stay masked regardless). No request
+ * or response bodies, and every URL it records is scrubbed.
+ */
+export function sentryReplayOptions(env: EnvLike = import.meta.env ?? {}) {
+  return {
+    maskAllText: env.VITE_SENTRY_REPLAY_MASK_TEXT !== '0',
+    maskAllInputs: true,
+    blockAllMedia: true,
+    networkDetailAllowUrls: [] as string[],
+    beforeAddRecordingEvent: redactRecordingEvent,
+  };
+}
+
+/**
+ * Loads the recorder module. The `import()` itself lives in main.tsx, not here:
+ * a dynamic import of app code inside a module nearly everything imports would
+ * pull all of those importers out of the `app-core` chunk (vite.config.ts).
+ */
+export type ReplayLoader = () => Promise<{ createReplayIntegration: (options: ReturnType<typeof sentryReplayOptions>) => ReturnType<typeof Sentry.replayIntegration> }>;
+
+export interface TelemetryInitOptions {
+  loadReplay?: ReplayLoader;
+}
+
+/**
+ * Starts Session Replay once the page has loaded and the browser is idle, so
+ * the recorder's download never competes with the first screen. (An error in
+ * the first moments is therefore reported without a replay.)
+ */
+function startReplayWhenIdle(env: EnvLike, loadReplay: ReplayLoader): void {
+  const start = () => {
+    void loadReplay()
+      .then(({ createReplayIntegration }) => Sentry.getClient()?.addIntegration(createReplayIntegration(sentryReplayOptions(env))))
+      .catch(() => undefined); // offline or a stale chunk: no replay this visit
+  };
+  // Safari has no requestIdleCallback.
+  const whenIdle = () => (typeof window.requestIdleCallback === 'function' ? window.requestIdleCallback(start, { timeout: 4000 }) : setTimeout(start, 2000));
+  if (document.readyState === 'complete') whenIdle();
+  else window.addEventListener('load', whenIdle, { once: true });
+}
+
+/**
+ * The browser SDK options, exported so a test can run them against a recording
+ * transport. Everything Sentry can collect is on for the school trial — errors,
+ * traces, session replays, profiles, structured logs and metrics — at the
+ * rates in `resolveSampleRates` (VITE_SENTRY_* overrides them at build time).
+ *
+ * What never leaves the device, whatever the rates: auth headers, cookies, and
+ * tokens or class codes in URLs (stripEventSecrets and friends, applied to
+ * events, transactions, breadcrumbs, logs, metrics and the replay's own URLs),
+ * HTTP request/response bodies, and — in replays — the text on screen, form
+ * input and media, which stay masked unless VITE_SENTRY_REPLAY_MASK_TEXT=0.
+ */
+export function sentryBrowserOptions(dsn: string, release: string | undefined, environment: string, env: EnvLike = import.meta.env ?? {}): Sentry.BrowserOptions {
+  const rates = resolveSampleRates(env);
   return {
     dsn,
     release: release || undefined,
     environment,
-    // Free tier: every error, 10% of page-load/navigation traces, no replay, no profiling.
     sampleRate: 1.0,
-    tracesSampleRate: 0.1,
-    // Traces only for our own same-origin API calls — keeps the sentry-trace
-    // header off third-party requests (Supabase, the scoring host, etc.).
-    tracePropagationTargets: [/^\/api\//, /^\/health/],
-    integrations: [Sentry.browserTracingIntegration()],
+    tracesSampleRate: rates.traces,
+    replaysSessionSampleRate: rates.replaySession,
+    replaysOnErrorSampleRate: rates.replayOnError,
+    // Browser profiling: a sample of traced sessions, tied to the trace's lifetime.
+    // Needs the `Document-Policy: js-profiling` header (vercel.json); without it
+    // the SDK quietly does nothing.
+    profileSessionSampleRate: rates.profileSession,
+    profileLifecycle: 'trace',
+    enableLogs: true,
+    enableMetrics: true,
+    // The user's IP (so events show where from), nothing else of theirs
+    // automatically: no cookies, no request/response bodies. The user's id and
+    // email are set explicitly where identity changes (AppContext).
+    dataCollection: { userInfo: true, cookies: false, httpBodies: [] },
+    attachStacktrace: true,
+    maxBreadcrumbs: 200,
+    normalizeDepth: 6,
+    // Trace headers only on calls we own: our same-origin API (Vercel proxies it
+    // to FastAPI) and the scoring service. Never Supabase, PostHog or other third parties.
+    tracePropagationTargets: tracePropagationTargetsFor(env.VITE_SCORING_API_URL),
+    integrations: [
+      Sentry.browserTracingIntegration({
+        // /duel/9f3c… → /duel/:id: one transaction per screen, not per id (and no join codes).
+        beforeStartSpan: (options) => ({
+          ...options,
+          name: normaliseRoute(options.name),
+          attributes: { ...options.attributes, 'sentry.source': 'route' },
+        }),
+        // Analytics beacons are not the app's performance.
+        shouldCreateSpanForRequest: (url) => !/posthog\.com|\/ingest\//i.test(url),
+        linkPreviousTrace: 'session-storage',
+        enableInp: true,
+        enableLongAnimationFrame: true,
+      }),
+      Sentry.browserProfilingIntegration(),
+      // console.warn / console.error as Sentry logs — the app's own diagnostics,
+      // attached to the trace and replay they happened in.
+      Sentry.consoleLoggingIntegration({ levels: ['warn', 'error'] }),
+      // The browser's own reports: deprecations, interventions, crashes.
+      Sentry.reportingObserverIntegration({ types: ['crash', 'deprecation', 'intervention'] }),
+      Sentry.featureFlagsIntegration(),
+    ],
     ignoreErrors: IGNORE_ERRORS,
     denyUrls: DENY_URLS,
     beforeSend: (event) => stripEventSecrets(event),
     beforeSendTransaction: (event) => stripTransactionSecrets(event),
     beforeBreadcrumb: (crumb) => stripBreadcrumbSecrets(crumb),
+    beforeSendLog: (log) => stripAttributeSecrets(log),
+    beforeSendMetric: (metric) => stripAttributeSecrets(metric),
   };
 }
 
-export function initTelemetry(): void {
+export function initTelemetry({ loadReplay }: TelemetryInitOptions = {}): void {
   if (sentryEnabled()) {
     const env = import.meta.env;
     Sentry.init(
@@ -805,6 +909,10 @@ export function initTelemetry(): void {
         resolveSentryEnvironment(typeof __SENTRY_ENVIRONMENT__ === 'string' ? __SENTRY_ENVIRONMENT__ : undefined, env.MODE),
       ),
     );
+    // The replay's summary (the pages it covered) skips beforeSend.
+    Sentry.addEventProcessor((event) => stripReplaySummarySecrets(event as Parameters<typeof stripReplaySummarySecrets>[0]) as typeof event);
+    watchRuntime();
+    if (loadReplay) startReplayWhenIdle(env, loadReplay);
   }
 
   // Product analytics: a no-op unless this is a production browser build with
@@ -836,7 +944,42 @@ export function track(event: TelemetryEvent, options: TrackOptions = {}): void {
     return;
   }
   Sentry.addBreadcrumb({ category: 'product', message: event.name, data: props });
+  emitSentrySignals(event.name, props);
   if (!BREADCRUMB_ONLY.has(event.name)) captureAnalyticsEvent(event.name, props, options.beacon === true);
+}
+
+/**
+ * Every product event is also a Sentry log line and a set of metrics (a
+ * counter, plus a distribution per latency/score/count). Unlike PostHog this
+ * has no free-tier event budget to protect, so the BREADCRUMB_ONLY events go
+ * too. `props` is already the allow-listed set; see sentrySignals.ts.
+ */
+function emitSentrySignals(name: string, props: AnalyticsProps): void {
+  if (!Sentry.isInitialized()) return;
+  const level = logLevelFor(name, props);
+  Sentry.logger[level](name, { ...props, event_kind: 'product' });
+  const plan = planMetrics(name, props);
+  Sentry.metrics.count(plan.counter, 1, { attributes: plan.attributes });
+  for (const d of plan.distributions) {
+    Sentry.metrics.distribution(d.name, d.value, { ...(d.unit ? { unit: d.unit } : {}), attributes: plan.attributes });
+  }
+}
+
+/**
+ * Sends a learner's "Send feedback" message to Sentry as User Feedback, linked
+ * to their session replay and the last error they hit, so a "the marking was
+ * wrong" report arrives with the screen recording of what they did.
+ */
+export function reportUserFeedback(feedback: { message: string; email?: string; kind: string; route?: string }): void {
+  if (!Sentry.isInitialized()) return;
+  Sentry.captureFeedback(
+    {
+      message: feedback.message,
+      ...(feedback.email ? { email: feedback.email } : {}),
+      tags: { feedback_kind: feedback.kind, ...(feedback.route ? { route: feedback.route } : {}) },
+    },
+    { includeReplay: true },
+  );
 }
 
 /**

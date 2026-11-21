@@ -34,7 +34,7 @@
 
 // Must stay the first import: Sentry has to be listening before anything else runs.
 import './instrument';
-import { Sentry, captureServerError } from './sentry';
+import { Sentry, captureServerError, identifyRequestUser, recordScoringOutcome, sentryRequestScope } from './sentry';
 
 import cors from 'cors';
 import express from 'express';
@@ -123,11 +123,13 @@ async function authenticate(req: Request): Promise<string | null> {
   const token = header.slice('Bearer '.length);
   const { data, error } = await authClient.auth.getUser(token);
   if (error || !data.user) return null;
+  identifyRequestUser(data.user.id);
   return data.user.id;
 }
 
 const app = express();
 app.use(cors({ origin: CORS_ORIGINS.length > 0 ? CORS_ORIGINS : true }));
+app.use(sentryRequestScope);
 app.use(express.json({ limit: '5mb' }));
 
 app.get('/health', async (_req: Request, res: Response) => {
@@ -282,6 +284,7 @@ app.post('/score', async (req: Request, res: Response) => {
       assignmentId: homework ? attemptMeta.assignmentId : null,
     });
     logRequest(transcript.sessionId, envelope.llm.provider, Date.now() - startedAt, 'ok');
+    recordScoringOutcome({ outcome: 'ok', provider: envelope.llm.provider, durationMs: Date.now() - startedAt, sessionId: transcript.sessionId });
     res.status(200).json(buildEnvelopeView(savedEnvelope));
   } catch (err) {
     // Root cause #1 (reliability plan §A): without this, an Express 4 async
@@ -289,6 +292,7 @@ app.post('/score', async (req: Request, res: Response) => {
     // still within its abort window hangs until its own timeout, and the
     // resulting message ("may still finish in the background") is false.
     logRequest(transcript.sessionId, undefined, Date.now() - startedAt, 'error');
+    recordScoringOutcome({ outcome: 'error', durationMs: Date.now() - startedAt, sessionId: transcript.sessionId });
     // Don't echo the raw exception string to the client — it can carry
     // provider error text, stack fragments, or internal identifiers. Log the
     // detail server-side; return a generic message. (Phase 1.1 minimal

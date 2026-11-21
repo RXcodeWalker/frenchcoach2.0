@@ -186,21 +186,45 @@ migrations are applied the route cannot store evidence.
   **Deploy order:** migration `20261028090000_native_voice_tts.sql` (applied to production 2026-10-28) first (the quota row is an FK;
   without it every request 503s — harmless, the app falls back), then backend, then frontend.
 
-### Sentry error tracking (2026-10-24)
+### Sentry (errors 2026-10-24; school-trial "everything on" 2026-11-21)
 
-One Sentry project per surface; each is off until its DSN is set.
+One Sentry project per surface (`french-coach-web`, `french-coach-scoring`, `french-coach-api` in org
+`om-jhamvar`); each is off until its DSN is set. For the school trial every signal is on; rates are
+env-driven so they can be lowered, not removed, when real traffic arrives.
 
-- **Frontend (Vercel build env):** `VITE_SENTRY_DSN` (React project DSN — errors only leave
-  production builds), plus `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` so `vite.config.ts`
-  uploads source maps (then deletes them from `dist/`). Release = `VERCEL_GIT_COMMIT_SHA`,
-  environment = `VERCEL_ENV`. A bad token only warns; it never fails the build.
-  `src/services/telemetry/telemetryService.ts` (init, `captureError`) + `sentryFilters.ts`.
-- **`french-scoring` (Render):** `SENTRY_DSN` (Node project DSN). Release = `RENDER_GIT_COMMIT`.
-  Errors only, no traces (the ESM bundle isn't started with `node --import`). `server/sentry.ts`.
-- **FastAPI (Render dashboard):** `SENTRY_DSN` (Python project DSN). Release = `RENDER_GIT_COMMIT`,
-  traces 5%. `backend/lib/observability.py`. Single-worker config is unchanged.
+- **Frontend (Vercel build env):** `VITE_SENTRY_DSN` (React project DSN — only production builds send),
+  plus `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` so `vite.config.ts` uploads source maps
+  (then deletes them from `dist/`), creates the release, marks the deploy and sets commits. Release =
+  `VERCEL_GIT_COMMIT_SHA`, environment = `VERCEL_ENV`. A bad token only warns.
+  Collected: errors; traces for every page load/navigation (named by route, `/join/:id`, never an id or
+  code) and every same-origin `/api` call + the scoring service (trace headers go nowhere else);
+  **Session Replay** (100% of sessions and of errored sessions, text/inputs/media **masked**; a separate
+  `vendor-sentry-replay` chunk loaded after first paint by `main.tsx`); browser profiling (50%, needs the
+  `Document-Policy: js-profiling` header in `vercel.json`); structured **logs** (`console.warn/error` and
+  every `track()` event) and **metrics** (a counter per product event, a distribution per latency/score/count —
+  `sentrySignals.ts`); Supabase calls as spans (`src/lib/supabase.ts`, no query bodies); User Feedback (the
+  in-app "Send feedback" dialog, linked to the replay). Every event carries tags/contexts for the learner
+  (`SentryScopeSync.tsx`: age band, track, aim, goal, flags…) and the device (`sentryRuntime.ts`: speech
+  recognition, mic, display mode — Android TWA, connection, memory). Overrides (build-time, 0..1):
+  `VITE_SENTRY_TRACES_SAMPLE_RATE`, `VITE_SENTRY_REPLAY_SESSION_SAMPLE_RATE`,
+  `VITE_SENTRY_REPLAY_ERROR_SAMPLE_RATE`, `VITE_SENTRY_PROFILE_SAMPLE_RATE`; `VITE_SENTRY_REPLAY_MASK_TEXT=0`
+  records on-screen text (a privacy decision, off by default). Code: `src/services/telemetry/`.
+  Never sent, regardless of rates: auth headers, cookies, tokens, class join codes (events, transactions,
+  breadcrumbs incl. console args, logs, metrics and replay URLs are all scrubbed — `sentryFilters.ts`), HTTP bodies.
+- **`french-scoring` (Render):** `SENTRY_DSN` (Node project DSN). Release = `RENDER_GIT_COMMIT`. Started with
+  `node --import ./dist/instrument.js dist/server.js` (`build:server` bundles `server/instrument.ts` beside the
+  server) so Express/HTTP/fetch are traced; also logs, a `scoring.*` metric set, and the signed-in learner id on
+  each request's scope. `SENTRY_TRACES_SAMPLE_RATE` (default 1). No profiling here (native addon on a free
+  instance). `server/sentry.ts`.
+- **FastAPI (Render dashboard):** `SENTRY_DSN` (Python project DSN). Release = `RENDER_GIT_COMMIT`. Traces 100%
+  (`/health` never), profiles 25% (`SENTRY_PROFILES_SAMPLE_RATE`), Python logging as Sentry logs (uvicorn/httpx lines
+  excluded), metrics per route / AI provider call / quota denial, a span per Groq/Gemini/Whisper call
+  (`traced_provider`), and the verified user's id/email/role on their request's events.
+  `backend/lib/observability.py`. Single-worker config is unchanged.
 - **Wiring check for either backend:** set `SENTRY_TEST_EVENT=1` on the Render service; each boot
   then sends one "Sentry test event" issue. Remove it afterwards.
+- **Uptime monitors** (created 2026-11-21): the site (active). `/health` on the API exists but is disabled —
+  the plan allows one uptime monitor.
 
 ### PostHog product analytics (2026-10-26)
 

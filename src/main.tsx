@@ -10,7 +10,9 @@ import { preloadScreenFor } from './routing/screens';
 import App from './App.tsx';
 import './index.css';
 
-initTelemetry();
+// Session Replay is a separate download, fetched after first paint (the import() is
+// here, not in telemetryService, so app-core keeps its stable chunk — vite.config.ts).
+initTelemetry({ loadReplay: () => import('./services/telemetry/sentryReplay') });
 startBackendWarmup();
 initInstallPrompt();
 
@@ -21,7 +23,13 @@ void preloadScreenFor(window.location.pathname);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Sentry.ErrorBoundary fallback={<AppErrorFallback />}>
+    <Sentry.ErrorBoundary
+      fallback={<AppErrorFallback />}
+      beforeCapture={(scope) => {
+        scope.setTag('area', 'app_root');
+        scope.setLevel('fatal');
+      }}
+    >
       <BrowserRouter>
         <App />
       </BrowserRouter>

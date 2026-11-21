@@ -4885,3 +4885,16 @@ classes, per-class leave, the 5-class cap, owner can't leave). Frontend: Profile
 teachers; Join no longer moves a student out of a class; Home's homework names the class when it comes from
 several; the teacher area labels co-taught classes, has "Join a colleague's class" and a Teachers section; the
 Monday email goes to every teacher of the class.
+
+## 2026-11-21 — Sentry school-trial instrumentation (server/ touched, scoring untouched)
+
+Observability only. `server/sentry.ts` (options: tracing, logs, metrics, `dataCollection`; `sentryRequestScope`,
+`identifyRequestUser`, `recordScoringOutcome`), `server/instrument.ts`, `server/index.ts` (mounts the scope middleware,
+sets the user after `authenticate`, calls `recordScoringOutcome` beside the existing `logRequest` lines), and
+`package.json` (`build:server` also bundles `dist/instrument.js`; `start:server` uses `--import`). Nothing in
+`src/domain/igcse/`, `scripts/scoring/` or the `scoreAttempt` call changed; no response, mark or quota behaviour changed.
+Verified: `server/__tests__/sentry.test.ts` (new cases: per-request user/route isolation, scoring log+metrics, options,
+idempotent init), `tsc -p tsconfig.server.json`; a local run of the built bundle with `--import` and a fake ingest saw
+the `http.server` transaction, Express middleware spans, outgoing fetch spans and logs. `/score` itself was not
+exercised (no Supabase/provider keys locally).
+

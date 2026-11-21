@@ -3,7 +3,7 @@
  * hash — auth links carry tokens there), with id segments collapsed so
  * /junior/animals and /duel/9f3c… read as /junior/:id and /duel/:id.
  */
-const PARAM_PARENTS = new Set(['junior', 'duel', 'scenario', 'questions', 'scenarios']);
+const PARAM_PARENTS = new Set(['junior', 'duel', 'scenario', 'questions', 'scenarios', 'join']);
 const STATIC_CHILDREN = new Set(['new', 'edit', 'history', 'session', 'placement']);
 
 export function normaliseRoute(pathname: string): string {

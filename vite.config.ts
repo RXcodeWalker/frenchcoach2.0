@@ -86,6 +86,10 @@ const uploadSourceMaps = !!process.env.VITE_SENTRY_DSN && !!process.env.SENTRY_A
 const VENDOR_CHUNKS: ReadonlyArray<readonly [string, RegExp]> = [
   ['vendor-react', /\/node_modules\/(react|react-dom|scheduler|react-router|react-router-dom)\//],
   ['vendor-motion', /\/node_modules\/(framer-motion|motion-dom|motion-utils)\//],
+  // Session Replay (recorder + compression worker, ~50 KB gzipped) is downloaded after
+  // the first screen is up, not at startup (telemetryService.ts, sentryReplay.ts), so it
+  // gets its own file. It must come before the general Sentry rule.
+  ['vendor-sentry-replay', /\/node_modules\/@sentry\/(replay|replay-canvas)\//],
   ['vendor-sentry', /\/node_modules\/@sentry(-internal)?\//],
   ['vendor-supabase', /\/node_modules\/@supabase\//],
   // Every icon the app uses (~15 KB compressed), one file: imported through one
@@ -154,7 +158,15 @@ export default defineConfig({
             org: process.env.SENTRY_ORG,
             project: process.env.SENTRY_PROJECT,
             authToken: process.env.SENTRY_AUTH_TOKEN,
-            release: sentryRelease ? { name: sentryRelease } : undefined,
+            release: sentryRelease
+              ? {
+                  name: sentryRelease,
+                  // The deploy marker lets Sentry say "first seen in production deploy X",
+                  // and the commits (when the repo is linked in Sentry) say who changed what.
+                  deploy: { env: sentryEnvironment || 'production' },
+                  setCommits: { auto: true, ignoreMissing: true, ignoreEmpty: true },
+                }
+              : undefined,
             sourcemaps: {
               assets: './dist/**',
               filesToDeleteAfterUpload: ['./dist/**/*.map'],
