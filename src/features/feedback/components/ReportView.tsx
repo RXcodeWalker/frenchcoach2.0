@@ -93,7 +93,7 @@ export function ReportView({ feedback, transcript, majorIssues, polishIssues, on
               </button>
             )}
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-3">
             {allIssues.map(issue => (
               <IssueRow
                 key={issue.id}

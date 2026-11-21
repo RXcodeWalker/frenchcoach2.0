@@ -1,7 +1,7 @@
 import { CheckCircle, ChevronRight, RotateCcw, Lightbulb } from 'lucide-react';
 import type { CoachingIssue } from '../../../types';
 import { SeverityBadge } from '../../../components/ui/SeverityBadge';
-import { SEVERITY_BG, SEVERITY_SOFT, SEVERITY_TEXT } from '../theme/severity';
+import { SEVERITY_COLOR, SEVERITY_SOFT, SEVERITY_TEXT } from '../theme/severity';
 import { TeachMeLesson } from './TeachMeLesson';
 
 interface Props {
@@ -15,10 +15,16 @@ interface Props {
 }
 
 export function IssueRow({ issue, isSelected, lessonDefaultOpen, lessonForceOpen, lessonCommand }: Props) {
-  const bg = SEVERITY_BG[issue.severity] ?? '';
   return (
-    <div className={`rounded-lg border p-3 ${bg} ${isSelected ? 'ring-1 ring-violet-400/40' : ''}`}>
-      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+    <div
+      className={`relative overflow-hidden rounded-xl border border-hairline bg-surface p-4 pl-5 ${isSelected ? 'ring-2 ring-action' : ''}`}
+    >
+      <span
+        aria-hidden
+        className="absolute inset-y-0 left-0 w-1"
+        style={{ backgroundColor: SEVERITY_COLOR[issue.severity] }}
+      />
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
         <SeverityBadge level={issue.severity} />
         {/* themeLabel from backend — more readable than raw category */}
         {issue.themeLabel && (
@@ -46,27 +52,35 @@ export function IssueRow({ issue, isSelected, lessonDefaultOpen, lessonForceOpen
         )}
       </div>
 
-      {issue.quote && (
-        <p
-          className={`text-sm font-mono mb-1.5 px-1.5 py-0.5 rounded inline-block ${SEVERITY_TEXT[issue.severity]} ${SEVERITY_SOFT[issue.severity]}`}
-        >
-          "{issue.quote}"
-        </p>
-      )}
+      <div className="space-y-2.5">
+        {issue.quote && (
+          <div>
+            <p className="text-eyebrow text-ink-subtle uppercase mb-1">You said</p>
+            <p
+              className={`text-base rounded-lg px-2.5 py-1.5 ${SEVERITY_TEXT[issue.severity]} ${SEVERITY_SOFT[issue.severity]}`}
+            >
+              {issue.quote}
+            </p>
+          </div>
+        )}
 
-      <p className="text-sm text-ink-muted mb-1.5">{issue.diagnostic}</p>
-
-      {issue.isRecurring && issue.recurrenceNote && (
-        <p className="text-xs text-reward-text italic mb-1.5">{issue.recurrenceNote}</p>
-      )}
-
-      <div className="flex items-start gap-1.5 text-sm mb-1">
-        <CheckCircle size={14} className="text-progress-text flex-shrink-0 mt-0.5" />
-        <span className="text-progress-text font-medium">{issue.correction}</span>
+        <div>
+          <p className="text-eyebrow text-ink-subtle uppercase mb-1">Say instead</p>
+          <div className="flex items-start gap-2 rounded-lg px-2.5 py-1.5 bg-progress-soft">
+            <CheckCircle size={16} className="text-progress-text flex-shrink-0 mt-1" />
+            <span className="text-base text-progress-text font-medium">{issue.correction}</span>
+          </div>
+        </div>
       </div>
 
+      <p className="text-sm text-ink-muted mt-3">{issue.diagnostic}</p>
+
+      {issue.isRecurring && issue.recurrenceNote && (
+        <p className="text-sm text-reward-text mt-1.5">{issue.recurrenceNote}</p>
+      )}
+
       {issue.stronger && (
-        <div className="flex items-start gap-1.5 text-sm mb-1">
+        <div className="flex items-start gap-1.5 text-sm mt-2">
           <ChevronRight size={14} className="text-action-text flex-shrink-0 mt-0.5" />
           <span className="text-action-text">{issue.stronger}</span>
         </div>
@@ -74,9 +88,9 @@ export function IssueRow({ issue, isSelected, lessonDefaultOpen, lessonForceOpen
 
       {/* masterTip — single highest-leverage fix from backend */}
       {issue.masterTip && (
-        <div className="flex items-start gap-1.5 mt-1.5 p-2 rounded-md bg-reward-soft border border-hairline">
-          <Lightbulb size={9} className="text-reward-text flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-reward-text">{issue.masterTip}</p>
+        <div className="flex items-start gap-2 mt-3 px-3 py-2 rounded-lg bg-reward-soft">
+          <Lightbulb size={14} className="text-reward-text flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-reward-text">{issue.masterTip}</p>
         </div>
       )}
 
