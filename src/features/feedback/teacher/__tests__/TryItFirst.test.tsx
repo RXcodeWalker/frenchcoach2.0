@@ -113,7 +113,7 @@ describe('TryItFirst', () => {
     setItem.mockRestore();
   });
 
-  it('can be answered aloud: say it, stop, and the spoken attempt is checked', async () => {
+  it('can be answered aloud: stop fills the box, and only Check reveals the answer', async () => {
     const onMicActive = vi.fn();
     const { container, rerender } = render(<TryItFirst fix={FIX} onMicActive={onMicActive} />);
     fireEvent.click(screen.getByRole('button', { name: 'Say your fix' }));
@@ -126,6 +126,10 @@ describe('TryItFirst', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Stop and check what you said' }));
     });
     expect(onMicActive).toHaveBeenLastCalledWith(false);
+    // Nothing is revealed yet: the transcript sits in the box for the learner to check.
+    expect(container.textContent).not.toContain("Yes, that's it.");
+    expect((screen.getByRole('textbox') as HTMLInputElement).value).not.toBe('');
+    fireEvent.click(screen.getByRole('button', { name: 'Check' }));
     expect(container.textContent).toContain("Yes, that's it.");
   });
 

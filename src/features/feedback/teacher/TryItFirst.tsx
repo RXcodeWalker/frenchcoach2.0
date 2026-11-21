@@ -13,6 +13,7 @@ import { tryItHint } from './tryItHint';
  * nudge — the learner's own words and what kind of slip it is, never the
  * correction — and they type or say a fix, or tap "Just show me".
  *
+ * Saying a fix fills the box with what was heard; only Check (or Enter) reveals.
  * Whatever they do, the answer is then revealed. The check only ever says yes
  * (`fixMatch`): a clear match → "Yes, that's it."; anything else →
  * "Here's how I'd say it:". There is no "wrong" or "close", because the
@@ -78,6 +79,8 @@ function FixMicButton({
 export function TryItFirst({ fix, highlightedQuote, micLocked = false, onMicActive, onResolved }: Props) {
   const [revealed, setRevealed] = useState<Revealed | null>(null);
   const [attempt, setAttempt] = useState('');
+  // Whether the text in the box was spoken (and not yet edited) or typed.
+  const [attemptMode, setAttemptMode] = useState<'speech' | 'text'>('text');
 
   const reveal = (how: Revealed) => {
     setRevealed(how);
@@ -110,9 +113,12 @@ export function TryItFirst({ fix, highlightedQuote, micLocked = false, onMicActi
         type="text"
         lang="fr"
         value={attempt}
-        onChange={(e) => setAttempt(e.target.value)}
+        onChange={(e) => {
+          setAttempt(e.target.value);
+          setAttemptMode('text');
+        }}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') check(attempt, 'text');
+          if (e.key === 'Enter') check(attempt, attemptMode);
         }}
         aria-label={`Your fix for « ${fix.quote} »`}
         placeholder="Type your fix…"
@@ -121,14 +127,19 @@ export function TryItFirst({ fix, highlightedQuote, micLocked = false, onMicActi
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          onClick={() => check(attempt, 'text')}
+          onClick={() => check(attempt, attemptMode)}
           disabled={!attempt.trim()}
           className="rounded-lg bg-action px-3 py-1.5 text-sm font-bold text-action-ink disabled:opacity-40"
         >
           Check
         </button>
         <SpeakingConsentGate>
-          <FixMicButton locked={micLocked} onActive={(active) => onMicActive?.(active)} onHeard={(text) => check(text, 'speech')} />
+          <FixMicButton locked={micLocked} onActive={(active) => onMicActive?.(active)} onHeard={(text) => {
+            // Show what was heard; the learner presses Check (nothing is revealed yet).
+            if (!text.trim()) return;
+            setAttempt(text.trim());
+            setAttemptMode('speech');
+          }} />
         </SpeakingConsentGate>
         <button
           type="button"
