@@ -204,6 +204,20 @@ describe('LabPractice', () => {
     expect(screen.getByRole('list', { name: 'What the marks mean' }).textContent).toContain('Fixed in practice');
   });
 
+  it('after Try again, says which sound in the word scored lowest; nothing once it is clear', async () => {
+    assessMock.mockResolvedValueOnce(sentenceResult([95, 95, 95, 95, 95, 40]));
+    renderLab();
+    await recordTake(/Tap and say the sentence/);
+    await click(screen.getByRole('button', { name: /« jardin.? »: Practise this/ }));
+    await click(screen.getByRole('button', { name: /Practise just this word/ }));
+    assessMock.mockResolvedValueOnce(scripted([azureWord('jardin', 45, { phonemeScores: [90, 90, 30, 90, 90] })]));
+    await recordTake(/Tap and say the word/);
+    expect(screen.getByTestId('lab-weak-sound').textContent).toContain('Listen closely to the « r » in « jardin »');
+    assessMock.mockResolvedValueOnce(scripted([azureWord('jardin', 92, { phonemeScores: [90, 90, 90, 90, 90] })]));
+    await recordTake(/Tap and say the word/);
+    expect(screen.queryByTestId('lab-weak-sound')).toBeNull();
+  });
+
   it('a word whose latest drill was not clear keeps its take state', async () => {
     assessMock.mockResolvedValueOnce(sentenceResult([95, 70, 95, 95, 95, 95]));
     renderLab();

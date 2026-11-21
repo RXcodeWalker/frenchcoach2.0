@@ -126,6 +126,13 @@ describe('WordDrill', () => {
     expect(loadLabHistory().words.tout.practiseCount).toBe(3);
   });
 
+  it('after Try again, points at the sound in the word that scored lowest', async () => {
+    assessMock.mockResolvedValue(scripted([azureWord('tout', 40, { phonemeScores: [90, 30] })]));
+    render(<WordDrill word="tout" onClose={vi.fn()} />);
+    await tryOnce();
+    expect(screen.getByTestId('lab-weak-sound').textContent).toBe('Listen closely to the « ou » in « tout » — that sound needs the most work.');
+  });
+
   it('allows only MAX_WORD_TAKES tries a sitting', async () => {
     seedTricky('tout');
     assessMock.mockResolvedValue(result(95));

@@ -9,6 +9,7 @@ import {
   focusLead,
   legendStates,
   fixedInPracticeLine,
+  weakSoundLine,
 } from '../labCopy';
 
 const allCopy = [
@@ -101,5 +102,14 @@ describe('fixedInPracticeLine', () => {
     expect(fixedInPracticeLine(1, true)).toBe('1 more word fixed in practice — say the whole sentence again to lock it in.');
     expect(fixedInPracticeLine(2, true)).toBe('2 more words fixed in practice — say the whole sentence again to lock them in.');
     expect(fixedInPracticeLine(2, false)).toBe('2 more words fixed in practice.');
+  });
+});
+
+describe('weakSoundLine', () => {
+  it('points at the letters when it can, else names the sound; never says wrong', () => {
+    expect(weakSoundLine({ word: 'retrouve', letters: 'r', family: 'frenchR', accuracy: 30 })).toBe(
+      'Listen closely to the « r » in « retrouve » — that sound needs the most work.',
+    );
+    expect(weakSoundLine({ word: 'bon', letters: null, family: 'nasalOn', accuracy: 30 })).toBe('Nasal ON in « bon » needs the most work.');
   });
 });

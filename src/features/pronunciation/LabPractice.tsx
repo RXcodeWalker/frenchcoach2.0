@@ -12,6 +12,7 @@ import { pickedFocusWord } from '../../domain/pronunciation/lab/focusWords';
 import { tokenizeSentence, watchOutFor, wordPlayTexts, type SentenceToken } from '../../domain/pronunciation/lab/textFeatures';
 import { SOUND_TIPS, tipFor } from '../../domain/pronunciation/lab/tips';
 import { buildLabTake, drillVerdict, takeWords, type LabTake, type LabWordItem } from '../../domain/pronunciation/lab/wordStates';
+import { weakestSound, type WeakSound } from '../../domain/pronunciation/lab/weakSound';
 import { isLabAllowanceError } from '../../lib/labAllowance';
 import { assessPronunciation } from '../../services/pronunciation/pronunciationClient';
 import { track, type LabEntry } from '../../services/telemetry/telemetryService';
@@ -38,6 +39,7 @@ import {
   fixedInPracticeLine,
   focusLead,
   legendStates,
+  weakSoundLine,
 } from './labCopy';
 import {
   canRecordSentence,
@@ -250,6 +252,8 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
   /** Only the latest Native play may clear the "preparing" line (an older one resolves 'stopped' later). */
   const nativeCall = useRef(0);
   const [listenSpeed, setListenSpeed] = useListenSpeed();
+  /** The weakest sound of a focus word's latest drill, for the drill it came from (focus index + take number). */
+  const [drillWeak, setDrillWeak] = useState<{ index: number; take: number; weak: WeakSound } | null>(null);
 
   useEffect(() => {
     track({ name: 'lab_opened', props: { entry } });
@@ -370,7 +374,10 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
           });
         }
       } else {
-        const verdict = drillVerdict(buildLabTake(text, assessment));
+        const drillTake = buildLabTake(text, assessment);
+        const verdict = drillVerdict(drillTake);
+        const weak = verdict === 'almost' || verdict === 'tryAgain' ? weakestSound(drillTake) : null;
+        setDrillWeak(weak ? { index: target.index, take: (state.drills[target.index]?.length ?? 0) + 1, weak } : null);
         dispatch({ type: 'wordChecked', verdict });
         recordLabDrill(state.focus[target.index]?.text ?? text, verdict);
         if (!focusTracked.current.has(target.index)) {
@@ -459,6 +466,7 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
   const focusDone = state.step === 'focus' && state.focusIndex >= state.focus.length;
   const drillsHere = focusWord ? state.drills[state.focusIndex] ?? [] : [];
   const lastVerdict = drillsHere[drillsHere.length - 1] ?? null;
+  const weakHere = drillWeak && drillWeak.index === state.focusIndex && drillWeak.take === drillsHere.length ? drillWeak.weak : null;
   const lead = focusLead(state.focusEmphasis, state.focus.map((_, i) => focusText(i)));
   const latestBlob = takeBlobs.current[state.takes.length - 1];
   const focusItem = focusWord && take ? takeWords(take).find((w) => w.tokenIndex === focusWord.tokenIndex) : undefined;
@@ -608,14 +616,22 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
               initial={reduced ? { opacity: 0 } : { opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={reduced ? { duration: 0.2 } : correct.fix(0)}
-              className="flex items-center gap-2"
+              className="flex flex-col gap-2"
               role="status"
             >
-              <span className={`inline-flex items-center gap-1 rounded-control px-2 py-0.5 text-label ${DRILL_VERDICT_DISPLAY[lastVerdict].chip}`}>
-                {DRILL_VERDICT_DISPLAY[lastVerdict].glyph && <span aria-hidden="true">{DRILL_VERDICT_DISPLAY[lastVerdict].glyph}</span>}
-                {DRILL_VERDICT_DISPLAY[lastVerdict].label}
+              <span className="flex items-center gap-2">
+                <span className={`inline-flex items-center gap-1 rounded-control px-2 py-0.5 text-label ${DRILL_VERDICT_DISPLAY[lastVerdict].chip}`}>
+                  {DRILL_VERDICT_DISPLAY[lastVerdict].glyph && <span aria-hidden="true">{DRILL_VERDICT_DISPLAY[lastVerdict].glyph}</span>}
+                  {DRILL_VERDICT_DISPLAY[lastVerdict].label}
+                </span>
+                <span className="text-body-s text-ink-muted">{DRILL_VERDICT_DISPLAY[lastVerdict].line}</span>
               </span>
-              <span className="text-body-s text-ink-muted">{DRILL_VERDICT_DISPLAY[lastVerdict].line}</span>
+              {weakHere && (
+                <p className="text-body-s text-ink" data-testid="lab-weak-sound">
+                  {weakSoundLine(weakHere)}
+                  {weakHere.family && weakHere.family !== focusWord.family ? ` ${tipFor(weakHere.family, weakHere.word)}` : ''}
+                </p>
+              )}
             </motion.div>
           )}
           <Button variant={lastVerdict ? 'primary' : 'quiet'} size="sm" disabled={busy} onClick={() => dispatch({ type: 'nextFocus' })}>

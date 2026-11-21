@@ -15,6 +15,8 @@ import type { LabNotice } from './labPracticeState';
 import type { LabWordState } from '../../domain/pronunciation/lab/types';
 import type { DrillVerdict, LabTakeCounts } from '../../domain/pronunciation/lab/wordStates';
 import type { TakeComparison } from '../../domain/pronunciation/lab/takeCompare';
+import type { WeakSound } from '../../domain/pronunciation/lab/weakSound';
+import { SOUND_TIPS } from '../../domain/pronunciation/lab/tips';
 import { TRIM_CONFIG, type PauseStats } from '../../domain/examPronunciation/trim';
 
 export interface WordStateDisplay {
@@ -98,6 +100,16 @@ export const DRILL_VERDICT_DISPLAY: Readonly<Record<DrillVerdict, VerdictDisplay
   tryAgain: { glyph: '●', label: 'Try again', line: 'Worth another go: listen slowly, then say it again.', chip: 'bg-correction-soft text-correction-text' },
   unknown: { glyph: '', label: 'Not checked', line: "I couldn't check that one.", chip: 'bg-track text-ink-muted' },
 };
+
+/**
+ * Where to listen after an Almost / Try again: the sound that scored lowest.
+ * Names the sound, never what the learner said instead (Azure doesn't say).
+ */
+export function weakSoundLine(weak: WeakSound): string {
+  if (weak.letters) return `Listen closely to the « ${weak.letters} » in « ${weak.word} » — that sound needs the most work.`;
+  const name = weak.family ? SOUND_TIPS[weak.family].name : 'One sound';
+  return `${name} in « ${weak.word} » needs the most work.`;
+}
 
 /** What Compare says about the focus words of a take. */
 export function focusLead(emphasis: 'none' | 'offer' | 'suggest', words: readonly string[]): string | null {

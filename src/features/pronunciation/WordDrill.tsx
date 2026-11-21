@@ -11,10 +11,11 @@ import { SOUND_TIPS, tipFor } from '../../domain/pronunciation/lab/tips';
 import type { SoundFamilyId } from '../../domain/pronunciation/lab/types';
 import { buildLabTake, drillVerdict, type DrillVerdict } from '../../domain/pronunciation/lab/wordStates';
 import { trickyKey } from '../../domain/pronunciation/lab/trickyWords';
+import { weakestSound, type WeakSound } from '../../domain/pronunciation/lab/weakSound';
 import { assessPronunciation } from '../../services/pronunciation/pronunciationClient';
 import { checkableAudio, useAudioBlobRecorder } from '../recording/useAudioBlobRecorder';
 import { failureOf } from './checkFailure';
-import { ALLOWANCE_RECORD_LABEL, DRILL_VERDICT_DISPLAY, NATIVE_UNAVAILABLE, NOTICE_TEXT, allowanceLine } from './labCopy';
+import { ALLOWANCE_RECORD_LABEL, DRILL_VERDICT_DISPLAY, NATIVE_UNAVAILABLE, NOTICE_TEXT, allowanceLine, weakSoundLine } from './labCopy';
 import { MAX_WORD_TAKES } from './labPracticeState';
 import { loadLabHistory, recordLabDrill } from './labStore';
 import { RecordControl } from './RecordControl';
@@ -68,6 +69,8 @@ export function WordDrill({ word, onClose }: Props) {
   const [notice, setNotice] = useState<keyof typeof NOTICE_TEXT | null>(null);
   const [stopped, setStopped] = useState<'consent' | 'sign-in' | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
+  /** The weakest sound of the latest Almost / Try again; null otherwise. */
+  const [weak, setWeak] = useState<WeakSound | null>(null);
   const blob = useRef<Blob | null>(null);
   const alive = useRef(true);
   const starting = useRef(false);
@@ -140,6 +143,7 @@ export function WordDrill({ word, onClose }: Props) {
         setNotice('no-word-check');
       } else {
         blob.current = audio;
+        setWeak(verdict === 'almost' || verdict === 'tryAgain' ? weakestSound(take) : null);
         setVerdicts((v) => [...v, verdict]);
         recordLabDrill(word, verdict);
         const entry = loadLabHistory().words[trickyKey(word)];
@@ -228,6 +232,12 @@ export function WordDrill({ word, onClose }: Props) {
             </span>
             <span className="text-body-s text-ink-muted">{DRILL_VERDICT_DISPLAY[last].line}</span>
           </span>
+          {weak && (
+            <p className="text-body-s text-ink" data-testid="lab-weak-sound">
+              {weakSoundLine(weak)}
+              {weak.family && weak.family !== family ? ` ${tipFor(weak.family, weak.word)}` : ''}
+            </p>
+          )}
           {progress && <p className="text-body-s text-progress-text">{progress}</p>}
         </motion.div>
       )}
