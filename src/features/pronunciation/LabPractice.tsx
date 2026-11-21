@@ -634,9 +634,16 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
               )}
             </motion.div>
           )}
-          <Button variant={lastVerdict ? 'primary' : 'quiet'} size="sm" disabled={busy} onClick={() => dispatch({ type: 'nextFocus' })}>
-            {state.focusIndex + 1 < state.focus.length ? (lastVerdict ? 'Next word' : 'Skip this word') : lastVerdict ? 'Back to the sentence' : 'Skip'}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant={lastVerdict ? 'primary' : 'quiet'} size="sm" disabled={busy} onClick={() => dispatch({ type: 'nextFocus' })}>
+              {state.focusIndex + 1 < state.focus.length ? (lastVerdict ? 'Next word' : 'Skip this word') : lastVerdict ? 'Done with these words' : 'Skip'}
+            </Button>
+            {take && (
+              <Button variant="secondary" size="sm" disabled={busy} onClick={() => { setSelected(null); dispatch({ type: 'backToCompare' }); }}>
+                Back to your sentence
+              </Button>
+            )}
+          </div>
         </div>
       )}
 

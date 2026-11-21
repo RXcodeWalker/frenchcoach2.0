@@ -170,8 +170,7 @@ describe('LabPractice', () => {
     expect(assessMock).toHaveBeenLastCalledWith(expect.objectContaining({ targetText: 'jouent', mode: 'scripted' }));
     expect(assessMock).toHaveBeenCalledTimes(2);
 
-    await click(screen.getByRole('button', { name: 'Back to the sentence' }));
-    await click(screen.getByRole('button', { name: 'Back to your take' }));
+    await click(screen.getByRole('button', { name: 'Back to your sentence' }));
     expect(screen.getByText('4 of 6 words clear')).toBeTruthy();
   });
 
@@ -195,8 +194,7 @@ describe('LabPractice', () => {
     await click(screen.getByRole('button', { name: /Practise just this word/ }));
     assessMock.mockResolvedValueOnce(scripted([azureWord('enfants', 95)]));
     await recordTake(/Tap and say the word/);
-    await click(screen.getByRole('button', { name: 'Back to the sentence' }));
-    await click(screen.getByRole('button', { name: 'Back to your take' }));
+    await click(screen.getByRole('button', { name: 'Back to your sentence' }));
 
     expect(screen.getByRole('button', { name: /« enfants »: Fixed in practice/ })).toBeTruthy();
     expect(screen.getByText('5 of 6 words clear')).toBeTruthy();
@@ -226,10 +224,19 @@ describe('LabPractice', () => {
     await click(screen.getByRole('button', { name: /Practise just this word/ }));
     assessMock.mockResolvedValueOnce(scripted([azureWord('enfants', 40)]));
     await recordTake(/Tap and say the word/);
-    await click(screen.getByRole('button', { name: 'Back to the sentence' }));
-    await click(screen.getByRole('button', { name: 'Back to your take' }));
+    await click(screen.getByRole('button', { name: 'Back to your sentence' }));
     expect(screen.getByRole('button', { name: /« enfants »: Almost/ })).toBeTruthy();
     expect(screen.queryByText(/fixed in practice/)).toBeNull();
+  });
+
+  it('every focus word offers a way back to the sentence, even before the last one', async () => {
+    assessMock.mockResolvedValueOnce(sentenceResult([95, 40, 95, 95, 95, 70]));
+    renderLab();
+    await recordTake(/Tap and say the sentence/);
+    await click(screen.getByRole('button', { name: 'Practise these words' }));
+    expect(screen.getByText('Word 1 of 2', { exact: false })).toBeTruthy();
+    await click(screen.getByRole('button', { name: 'Back to your sentence' }));
+    expect(screen.getByText('4 of 6 words clear')).toBeTruthy();
   });
 
   it('Play both: your whole take, then the native sentence', async () => {
