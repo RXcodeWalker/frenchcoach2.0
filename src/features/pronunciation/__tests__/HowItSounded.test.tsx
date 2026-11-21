@@ -175,4 +175,30 @@ describe('How it sounded', () => {
     const { container } = await renderCard({ answerBlob: null, sentence: '  ' });
     expect(container.textContent).toBe('');
   });
+
+  describe('What I heard (misheard fixed expressions, owner 2026-11-21)', () => {
+    const NOTE = {
+      expressionId: 'grasse_matinee',
+      heard: 'graisse matinée',
+      meant: 'grasse matinée',
+      tip: 'The « a » in « grasse » is an open French [a].',
+    };
+
+    it('says what was heard, what was marked and the sound tip, and plays the meant expression', async () => {
+      await renderCard({ heardAs: [NOTE] });
+      const block = screen.getByTestId('heard-as');
+      expect(block.textContent).toContain('« graisse matinée »');
+      expect(block.textContent).toContain('« grasse matinée »');
+      expect(block.textContent).toContain('open French [a]');
+      fireEvent.click(screen.getByRole('button', { name: 'Hear « grasse matinée »' }));
+      await act(async () => {});
+      expect(audio.playNative).toHaveBeenCalledWith('grasse matinée', expect.objectContaining({ synthesize: false }));
+    });
+
+    it('shows nothing when no expression was misheard', async () => {
+      await renderCard();
+      expect(screen.queryByTestId('heard-as')).toBeNull();
+    });
+  });
 });
+

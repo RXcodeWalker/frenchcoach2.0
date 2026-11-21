@@ -17,6 +17,7 @@ import { FIX_FIRST_HEADING, coachPointGroups, hasGoFurther } from './coachPoints
 import { PronunciationCard } from './components/PronunciationCard';
 import { AzurePronunciationCard } from './components/AzurePronunciationCard';
 import { HowItSounded } from '../pronunciation/HowItSounded';
+import type { HeardAsNote } from '../../domain/transcription/misheardExpressions';
 import { FeedbackFooter } from './components/FeedbackFooter';
 import { MinimalResponseCard } from './components/MinimalResponseCard';
 import { OfflineLimitationsBanner } from '../../screens/learn/OfflineLimitationsBanner';
@@ -126,6 +127,8 @@ interface Props {
    */
   howItSounded?: {
     answerBlob: Blob | null;
+    /** Fixed expressions the recogniser misheard; the feedback was given on what the learner meant. */
+    heardAs?: readonly HeardAsNote[];
     onPractiseOpened?: () => void;
   };
   /** What "Get new feedback" costs, for its confirm dialog (Learn says how many answers are left). */
@@ -274,6 +277,7 @@ function FeedbackContent({
       {howItSounded ? (
         <HowItSounded
           answerBlob={howItSounded.answerBlob}
+          heardAs={howItSounded.heardAs}
           sentence={feedback.improved_answer || feedback.rephrase || ''}
           onPractiseOpened={howItSounded.onPractiseOpened}
         />

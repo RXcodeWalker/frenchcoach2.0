@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { PlayButton } from '../../components/ui/PlayButton';
 import { enter, enterReduced } from '../../components/motion/variants';
 import type { PauseStats } from '../../domain/examPronunciation/trim';
+import type { HeardAsNote } from '../../domain/transcription/misheardExpressions';
 import { watchOutFor } from '../../domain/pronunciation/lab/textFeatures';
 import { SOUND_TIPS } from '../../domain/pronunciation/lab/tips';
 import { measureAnswerPauses } from './audio/answerPauses';
@@ -29,6 +30,9 @@ import { ListenSpeedControl, useListenSpeed } from './ListenSpeed';
  *  2. Flow — one descriptive line from pauses measured in the browser.
  *  3. Watch out for — up to 3 sound features of the corrected sentence, found
  *     by rules on its spelling (never a verdict on the learner); each plays.
+ *  3b. What I heard — a fixed expression the recogniser misheard (« graisse
+ *     matinée »). The feedback was given on what the learner meant; the sound
+ *     difference is said here, and only here (owner, 2026-11-21).
  *  4. Practise it — opens the Lab on the corrected sentence, in place, where
  *     the target is known and word feedback is honest.
  *
@@ -42,11 +46,13 @@ interface Props {
   answerBlob: Blob | null;
   /** The corrected answer (`improved_answer`, else `rephrase`). */
   sentence: string;
+  /** Misheard fixed expressions in this answer (Learn repaired them before marking). */
+  heardAs?: readonly HeardAsNote[];
   /** Called once when the learner opens the Lab from the card (Learn: it is this question's practice step). */
   onPractiseOpened?: () => void;
 }
 
-export function HowItSounded({ answerBlob, sentence, onPractiseOpened }: Props) {
+export function HowItSounded({ answerBlob, sentence, heardAs = [], onPractiseOpened }: Props) {
   const reduced = useReducedMotion() ?? false;
   const [speed, changeSpeed] = useListenSpeed();
   const [pauses, setPauses] = useState<PauseStats | null>(null);
@@ -83,7 +89,7 @@ export function HowItSounded({ answerBlob, sentence, onPractiseOpened }: Props) 
   if (practising) {
     return <LabPractice targetSentence={target} entry="how_it_sounded" onDone={() => setPractising(false)} />;
   }
-  if (!answerBlob && !target) return null;
+  if (!answerBlob && !target && heardAs.length === 0) return null;
 
   /** `sentence`: the corrected answer is AI-written, so it is recorded on demand when it has no file (Stage 4b). */
   const native = async (text: string, rate: number, sentence = false) => {
@@ -145,6 +151,33 @@ export function HowItSounded({ answerBlob, sentence, onPractiseOpened }: Props) 
         <div className="space-y-1">
           <p className="text-label text-ink">Flow</p>
           <p className="text-body-s text-ink-muted">{flow}</p>
+        </div>
+      )}
+
+      {heardAs.length > 0 && (
+        <div className="space-y-2" data-testid="heard-as">
+          <p className="text-label text-ink">What I heard</p>
+          <ul className="space-y-3">
+            {heardAs.map((note) => (
+              <li key={note.expressionId} className="space-y-1">
+                <p className="text-body-s text-ink">
+                  I heard <span lang="fr">« {note.heard} »</span> and marked it as{' '}
+                  <span lang="fr" className="font-semibold">« {note.meant} »</span>.
+                </p>
+                <p className="text-body-s text-ink-muted">{note.tip}</p>
+                <button
+                  type="button"
+                  onClick={() => void native(note.meant, speed)}
+                  aria-label={`Hear « ${note.meant} »`}
+                  className="inline-flex items-center gap-1.5 rounded-control border border-hairline bg-surface-recessed px-2.5 py-1
+                    transition-colors duration-state ease-smooth hover:bg-track"
+                >
+                  <Volume2 size={14} className="text-action-text" aria-hidden="true" />
+                  <span className="text-body-s text-ink" lang="fr">{note.meant}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
