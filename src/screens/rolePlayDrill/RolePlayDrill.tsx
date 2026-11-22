@@ -54,7 +54,7 @@ function toDrillQuestion(card: StoryCard, task: StoryCard['tasks'][number]): Que
     id: `story:${card.id}:${task.taskId}`,
     topicKey: `story:${card.id}`,
     text: task.promptFr,
-    hint: task.promptEn ?? '',
+    hint: task.promptEn,
     difficulty: 2,
     followUps: [],
     modelAnswer: '',

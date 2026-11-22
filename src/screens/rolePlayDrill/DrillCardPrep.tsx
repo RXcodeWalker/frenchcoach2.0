@@ -6,7 +6,7 @@ import { Button } from '../../components/ui/Button';
 import { Toggle } from '../../components/ui/SettingToggle';
 import { SpeakingConsentGate } from '../../components/SpeakingConsentGate';
 import { enter, enterReduced } from '../../components/motion/variants';
-import { hasEnglishInstructions, type StoryCard } from '../../data/storyCards';
+import type { StoryCard } from '../../data/storyCards';
 import type { CardProgress } from '../../features/rolePlayDrill/drillProgress';
 
 interface Props {
@@ -24,7 +24,7 @@ interface Props {
 export function DrillCardPrep({ card, progress, showText, onShowTextChange, canHear, onStart, onBack }: Props) {
   const reduced = useReducedMotion();
   const item = reduced ? enterReduced : enter;
-  const guided = hasEnglishInstructions(card);
+  const guided = card.guided;
   const listenOnly = canHear && !showText;
 
   return (
@@ -36,7 +36,7 @@ export function DrillCardPrep({ card, progress, showText, onShowTextChange, canH
             <span className="text-eyebrow uppercase text-ink-subtle">Role-play card</span>
             <h1 id="drill-card-title" lang="fr" className="exam-serif text-title text-ink">{card.title}</h1>
           </div>
-          <p lang={card.paperId ? 'fr' : 'en'} className="exam-serif text-body-l text-ink">{card.scenario}</p>
+          <p lang={card.scenarioLang} className="exam-serif text-body-l text-ink">{card.scenario}</p>
           <p className="text-body-s text-ink-muted">
             The examiner plays <span lang="fr" className="font-semibold text-ink">{card.npc.nameFr}</span>.
             {progress && progress.answered > 0 && (
@@ -61,7 +61,8 @@ export function DrillCardPrep({ card, progress, showText, onShowTextChange, canH
           ) : (
             <p className="border-t border-hairline pt-5 text-body-s text-ink-muted">
               There are <span className="font-numeral">{card.tasks.length}</span> exchanges. Like the real card,
-              you only find out each question when the examiner asks it, so listen carefully and answer it.
+              you only find out each question when the examiner asks it, so listen carefully and answer it. If you
+              get stuck, you can show each task in English.
             </p>
           )}
         </motion.article>

@@ -69,6 +69,8 @@ export function DrillConversation({
   const desktop = useIsDesktop();
   const endRef = useRef<HTMLDivElement>(null);
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
+  /** Exam-style cards hide the English task until asked; this is the step it was shown for. */
+  const [taskShownForStep, setTaskShownForStep] = useState<number | null>(null);
 
   const total = card.tasks.length;
   const answered = Math.min(currentStep, total);
@@ -167,11 +169,18 @@ export function DrillConversation({
               )}
             </ol>
 
-            {awaitingAnswer && task?.promptEn && !recording.isRecording && (
+            {awaitingAnswer && !recording.isRecording && (card.guided || taskShownForStep === currentStep) && (
               <motion.div variants={item} initial="hidden" animate="show" className="flex flex-col gap-1 rounded-card surface-recessed p-4">
                 <span className="text-eyebrow uppercase text-ink-subtle">Your task</span>
-                <p className="text-body-base text-ink">{task.promptEn}</p>
+                <p className="text-body-base text-ink">{task?.promptEn}</p>
               </motion.div>
+            )}
+            {awaitingAnswer && !recording.isRecording && !card.guided && taskShownForStep !== currentStep && (
+              <div>
+                <Button variant="quiet" size="sm" onClick={() => setTaskShownForStep(currentStep)}>
+                  <Eye size={14} aria-hidden="true" /> Show the task in English
+                </Button>
+              </div>
             )}
 
             {showRecorder && (

@@ -4,7 +4,7 @@ import { PageShell } from '../../components/layout/PageShell';
 import { TopContextBar } from '../../components/TopContextBar';
 import { Button } from '../../components/ui/Button';
 import { enter, enterReduced, fill } from '../../components/motion/variants';
-import { hasEnglishInstructions, type StoryCard } from '../../data/storyCards';
+import { isGuidedCard, type StoryCard } from '../../data/storyCards';
 import type { CardProgress } from '../../features/rolePlayDrill/drillProgress';
 
 interface Props {
@@ -18,13 +18,13 @@ interface Props {
 /**
  * The drill's card list (Design System v2): what this is and how it differs
  * from a full exam, then the cards in two groups — with English instructions
- * first (a way in), then French-only exam-style cards.
+ * first (a way in), then exam-style cards (each question heard only when asked).
  */
 export function DrillPicker({ cards, progress, onOpen, onSurprise, onBack }: Props) {
   const reduced = useReducedMotion();
   const item = reduced ? enterReduced : enter;
-  const guided = cards.filter(hasEnglishInstructions);
-  const frenchOnly = cards.filter((c) => !hasEnglishInstructions(c));
+  const guided = cards.filter(isGuidedCard);
+  const examStyle = cards.filter((c) => !isGuidedCard(c));
   const done = cards.filter((c) => progress.get(c.id)?.done).length;
 
   return (
@@ -62,8 +62,8 @@ export function DrillPicker({ cards, progress, onOpen, onSurprise, onBack }: Pro
         <CardGroup
           id="drill-french"
           title="Exam style"
-          note="French only, like the real card. Listen to each question and answer it."
-          cards={frenchOnly}
+          note="Like the real card: you hear each question only when it is asked. The English task is there if you need it."
+          cards={examStyle}
           progress={progress}
           onOpen={onOpen}
         />

@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { STORY_CARDS, hasEnglishInstructions } from '../../../data/storyCards';
+import { STORY_CARDS, isGuidedCard } from '../../../data/storyCards';
 import { drillSessionId } from '../../../features/rolePlayDrill/drillProgress';
 
 const history = vi.hoisted(() => ({ ids: [] as string[] }));
@@ -40,7 +40,8 @@ vi.mock('../../../services/exam/examinerVoice', () => ({
 
 import { RolePlayDrill } from '../RolePlayDrill';
 
-const guidedCard = STORY_CARDS.find(hasEnglishInstructions)!;
+const guidedCard = STORY_CARDS.find(isGuidedCard)!;
+const examCard = STORY_CARDS.find((c) => !isGuidedCard(c))!;
 
 beforeEach(() => {
   history.ids = [];
@@ -78,7 +79,7 @@ describe('RolePlayDrill', () => {
     renderDrill();
     fireEvent.click(screen.getByTestId(`drill-card-${guidedCard.id}`));
     expect(screen.getByRole('heading', { name: 'Your tasks' })).toBeTruthy();
-    expect(screen.getByText(guidedCard.tasks[0].promptEn!)).toBeTruthy();
+    expect(screen.getByText(guidedCard.tasks[0].promptEn)).toBeTruthy();
 
     fireEvent.click(screen.getByTestId('drill-start'));
     expect(await screen.findByText(guidedCard.tasks[0].promptFr)).toBeTruthy();
@@ -96,6 +97,19 @@ describe('RolePlayDrill', () => {
     expect(screen.queryByText(guidedCard.tasks[0].promptFr)).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: /Show words/ }));
     expect(screen.getByText(guidedCard.tasks[0].promptFr)).toBeTruthy();
+  });
+
+  it('an exam-style card lists no tasks, and shows the English task only when asked', async () => {
+    renderDrill();
+    fireEvent.click(screen.getByTestId(`drill-card-${examCard.id}`));
+    expect(screen.queryByRole('heading', { name: 'Your tasks' })).toBeNull();
+    expect(screen.queryByText(examCard.tasks[0].promptEn)).toBeNull();
+
+    fireEvent.click(screen.getByTestId('drill-start'));
+    expect(await screen.findByText(examCard.tasks[0].promptFr)).toBeTruthy();
+    expect(screen.queryByText('Your task')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /Show the task in English/ }));
+    expect(screen.getByText(examCard.tasks[0].promptEn)).toBeTruthy();
   });
 
   it('cannot hide the examiner line on a device with no French voice', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { STORY_CARDS, hasEnglishInstructions } from '../../../data/storyCards';
+import { STORY_CARDS, isGuidedCard } from '../../../data/storyCards';
 import { cardProgress, drillSessionId, parseDrillSessionId, pickNextCard } from '../drillProgress';
 
 const [first, second] = STORY_CARDS;
@@ -59,7 +59,7 @@ describe('the drill card bank', () => {
       expect(card.title).not.toBe(card.scenario);
       expect(card.tasks.length).toBe(5);
     }
-    expect(STORY_CARDS.some(hasEnglishInstructions)).toBe(true);
-    expect(STORY_CARDS.some((c) => !hasEnglishInstructions(c))).toBe(true);
+    expect(STORY_CARDS.some(isGuidedCard)).toBe(true);
+    expect(STORY_CARDS.some((c) => !isGuidedCard(c))).toBe(true);
   });
 });
