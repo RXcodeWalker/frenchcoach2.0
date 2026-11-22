@@ -160,7 +160,7 @@ export const PRACTICE_CARD_KEYS: Record<string, readonly TaskKey[]> = {
         ),
       ],
       modelShort: 'Non, aucune.',
-      modelFull: 'Oui, je suis allergique aux noix.',
+      modelFull: "Non, je n'ai pas d'allergies.",
     },
     {
       parts: [
