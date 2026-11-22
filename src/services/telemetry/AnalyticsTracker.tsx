@@ -21,8 +21,8 @@ import { track } from './telemetryService';
 import { isAdminUser } from '../../lib/adminAccess';
 import { analyticsEnabled, applyCaptureLevel, captureAnalyticsPageview, noteAnalyticsRoute, registerAnalyticsContext, setAnalyticsPersonProperties } from './posthogClient';
 import { captureLevelFor, featureOf } from './analyticsPolicy';
-import { startEngagementTracking, type EngagementHandle } from './engagementMeter';
-import { syncClassGroup, type ClassFacts } from './classGroups';
+import type { EngagementHandle } from './engagementMeter';
+import type { ClassFacts } from './classGroups';
 import { claimDailyOpen, claimPersonPropsChange } from './analyticsState';
 import { syncAnalyticsIdentity } from './analyticsIdentity';
 import { normaliseRoute } from './analyticsRoute';
@@ -70,7 +70,12 @@ export function AnalyticsTracker() {
     const nudge = notificationOpenFromSearch(window.location.search);
     if (nudge) track({ name: 'notification_opened', props: nudge });
     startWebVitals();
-    if (analyticsEnabled()) engagementRef.current = startEngagementTracking();
+    // Loaded on demand (and only when analytics is on): it is not needed to show the first screen.
+    if (analyticsEnabled()) {
+      void import('./engagementMeter').then((m) => {
+        engagementRef.current = m.startEngagementTracking();
+      });
+    }
     const onVisible = () => {
       if (document.visibilityState === 'visible') open();
     };
@@ -124,9 +129,13 @@ export function AnalyticsPersonSync() {
       return;
     }
     let cancelled = false;
-    void syncClassGroup(userId).then((facts) => {
-      if (!cancelled) setClassFacts(facts);
-    });
+    // On demand: the class lookup (and the teacher API behind it) is not part of the startup download.
+    void import('./classGroups')
+      .then((m) => m.syncClassGroup(userId))
+      .then((facts) => {
+        if (!cancelled) setClassFacts(facts);
+      })
+      .catch(() => undefined);
     return () => {
       cancelled = true;
     };

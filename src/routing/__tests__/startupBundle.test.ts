@@ -83,6 +83,10 @@ describe('startup download (code splitting)', () => {
     const graph = staticGraph('src/main.tsx');
     const bytes = [...graph.keys()].filter((k) => k.startsWith('src/')).reduce((n, k) => n + (meta.inputs[k]?.bytes ?? 0), 0);
     // Unminified src/ bytes reachable from main.tsx: ~0.67 MB on 2026-11-04 (~6.4 MB — the whole app — before splitting).
-    expect(bytes).toBeLessThan(900_000);
+    // 0.85 MB on 2026-11-22; the school-trial Sentry work (+39 KB) and PostHog behaviour capture (+16 KB, with the
+    // class lookup and engagement meter already loaded on demand) each fit under 900 KB alone but not together, so
+    // the guard moved to 925 KB. Raise it again only after checking what grew — this is the guard against the shell
+    // pulling in a screen or the question bank, not a size target.
+    expect(bytes).toBeLessThan(925_000);
   });
 });
