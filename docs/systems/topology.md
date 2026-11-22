@@ -202,16 +202,32 @@ One Sentry project per surface; each is off until its DSN is set.
 - **Wiring check for either backend:** set `SENTRY_TEST_EVENT=1` on the Render service; each boot
   then sends one "Sentry test event" issue. Remove it afterwards.
 
-### PostHog product analytics (2026-10-26)
+### PostHog product analytics (2026-10-26; school-trial setup 2026-11-22)
 
 Frontend only, off until the key is set. **Vercel build env:** `VITE_POSTHOG_KEY` (the project API
-key, `phc_…`) and optionally `VITE_POSTHOG_HOST` (default `https://us.i.posthog.com`; set
-`https://eu.i.posthog.com` for an EU project). Build-time, so a redeploy is needed after setting it.
-Only production browser builds send anything; dev, tests and the prerender never load the SDK.
-`app_version` = `VERCEL_GIT_COMMIT_SHA` (the Sentry release). Code: `src/services/telemetry/`
-(`telemetryService.ts`'s `track()` and the event union, `posthogClient.ts` the transport,
-`AnalyticsTracker.tsx` identity/page views). No backend involvement. Ad blockers block the
-default host for some visitors; a Vercel rewrite proxy (`/ingest/*` → PostHog) would recover them.
+key, `phc_…`). Build-time, so a redeploy is needed after setting it. `VITE_POSTHOG_HOST` should be
+**unset**: ingestion goes through our own origin — `vercel.json` rewrites `/ingest/static/*` and
+`/ingest/array/*` to `us-assets.i.posthog.com` and `/ingest/*` to `us.i.posthog.com` — so school web filters
+and ad blockers that drop posthog.com still let it through, and the session-replay recorder and remote
+config (which load from those two paths) work. A posthog.com value left in the variable is ignored;
+a self-hosted or other proxy path is honoured. Only production browser builds send anything; dev, tests and
+the prerender never load the SDK. `app_version` = `VERCEL_GIT_COMMIT_SHA` (the Sentry release).
+
+Code: `src/services/telemetry/` — `telemetryService.ts` (`track()`, the event union), `posthogClient.ts`
+(transport, SDK options, the click-family gate), `analyticsPolicy.ts` (who and where may be watched),
+`AnalyticsTracker.tsx` (identity, page views, capture level, class group, person properties),
+`classGroups.ts`, `engagementMeter.ts` (`visit_summary`). No backend involvement.
+
+What is collected: every named event; page views with time on page; **session replay with all text and
+inputs masked**, click autocapture without element text, heatmaps, rage and dead clicks — for 13+ accounts
+and guests on ordinary screens only (never under-13 / consent-pending / Junior, never on sign-in, teacher,
+parent, admin or Junior screens). `VITE_POSTHOG_REPLAY_SHOW_TEXT=1` un-masks UI text; leave it unset unless
+the school has agreed to recordings that can show students' words. Project settings (replay, heatmaps,
+autocapture, dead clicks on; console and network capture off; recordings under 3 s dropped; timezone
+Asia/Kolkata) live in PostHog, not in code; the "Internal / Test users" cohort reads the
+`$internal_or_test_user` person property, which the admin account sets. Quotas on the free tier: 1M events
+and 5k recordings a month. If Sentry Session Replay is also on (`VITE_SENTRY_REPLAY_SESSION_SAMPLE_RATE`), two
+recorders run on each student's device — keep Sentry to replays-on-error.
 
 ### `VITE_SCORING_API_URL` — no fallback
 

@@ -490,6 +490,19 @@ interface PremiumPlanProps {
   provider: 'stripe' | 'razorpay';
 }
 
+/**
+ * One visit's real use of the app, sent each time the page is hidden or closed
+ * (engagementMeter.ts). Seconds and counts only.
+ */
+interface VisitSummaryProps {
+  /** Seconds the learner was actually using it (tab in front and touched within the idle window). */
+  active_s: number;
+  /** Seconds the tab was in front, touched or not. */
+  visible_s: number;
+  /** Screens opened since the last summary. */
+  screens: number;
+}
+
 export type TelemetryEvent =
   | { name: 'session_completed';       props: SessionCompletedProps }
   | { name: 'feedback_received';       props: FeedbackReceivedProps }
@@ -562,6 +575,7 @@ export type TelemetryEvent =
   | { name: 'progress_viewed';         props: NoProps }
   | { name: 'profile_viewed';          props: NoProps }
   | { name: 'web_vitals';              props: WebVitalsProps }
+  | { name: 'visit_summary';           props: VisitSummaryProps }
   | { name: 'backend_cold_start';      props: BackendColdStartProps }
   | { name: 'teacher_class_created';   props: NoProps }
   | { name: 'class_joined';            props: ClassJoinedProps }
@@ -656,6 +670,7 @@ const DECLARED_PROPS = {
   progress_viewed: [],
   profile_viewed: [],
   web_vitals: ['lcp_ms', 'inp_ms', 'cls'],
+  visit_summary: ['active_s', 'visible_s', 'screens'],
   backend_cold_start: ['latency_ms', 'attempts', 'reached'],
   teacher_class_created: [],
   class_joined: ['via', 'other_classes'],
@@ -680,24 +695,17 @@ const _allPropsDeclared: [UndeclaredProps] extends [never] ? true : never = true
 void _allPropsDeclared;
 
 /**
- * Events kept out of PostHog (they stay Sentry breadcrumbs) to fit the free
- * tier — ~33 events per heavy learner per day, under 1M/month at 1,000 daily
- * learners. question_shown and onboarding_step_viewed go first (owner's rule);
- * the rest repeat what a PostHog event already says: session_completed and
- * feedback_received (feedback_shown, learn_session_completed, exam_completed),
- * pronunciation_assessed (failures still go via pronunciation_assessment_failed),
- * exam_pronunciation_audio_measured (one per exam turn, admin-only feature),
- * lab_take (one per Pronunciation Lab take — up to four a sitting).
- * Remove a name here to send it again.
+ * Events kept out of PostHog (they stay Sentry breadcrumbs). Everything else
+ * is sent. For the school trial (2026-11-22) the volume trims made for the
+ * free tier were lifted — question_shown, onboarding_step_viewed,
+ * session_completed, feedback_received, pronunciation_assessed and lab_take
+ * all flow now (a class of 30 is a few thousand events a day, far under 1M a
+ * month). Re-add a name here if volume ever needs it.
+ * exam_pronunciation_audio_measured stays out: one per exam turn, behind an
+ * admin-only feature.
  */
 const BREADCRUMB_ONLY: ReadonlySet<TelemetryEventName> = new Set<TelemetryEventName>([
-  'question_shown',
-  'onboarding_step_viewed',
-  'session_completed',
-  'feedback_received',
-  'pronunciation_assessed',
   'exam_pronunciation_audio_measured',
-  'lab_take',
 ]);
 
 /** A string property longer than this is dropped (a transcript or answer must never ride along). */

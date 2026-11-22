@@ -14,6 +14,9 @@
       "source": "/api/(.*)",
       "destination": "https://french-coach-backend.onrender.com/api/$1"
     },
+    { "source": "/ingest/static/(.*)", "destination": "https://us-assets.i.posthog.com/static/$1" },
+    { "source": "/ingest/array/(.*)", "destination": "https://us-assets.i.posthog.com/array/$1" },
+    { "source": "/ingest/(.*)", "destination": "https://us.i.posthog.com/$1" },
     { "source": "/admin/questions/:id/edit", "destination": "/admin" },
     { "source": "/admin/questions/:id/history", "destination": "/admin" },
     { "source": "/admin/scenarios/:id/edit", "destination": "/admin" },

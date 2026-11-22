@@ -16,6 +16,10 @@ describe('classifyRequest — what the service worker may cache', () => {
     expect(get('https://abc.supabase.co/storage/v1/object/sign/private/x.mp3')).toBe('bypass');
     expect(get('https://french-scoring.onrender.com/score')).toBe('bypass');
     expect(get('https://eu.i.posthog.com/e/')).toBe('bypass');
+    // The first-party PostHog proxy: its recorder / config scripts end in .js but are never cached.
+    expect(get(`${ORIGIN}/ingest/static/lazy-recorder.js`)).toBe('bypass');
+    expect(get(`${ORIGIN}/ingest/array/phc_key/config.js`)).toBe('bypass');
+    expect(get(`${ORIGIN}/ingest/array/phc_key/config`)).toBe('bypass');
     expect(get('https://o1.ingest.sentry.io/api/1/envelope/')).toBe('bypass');
   });
 

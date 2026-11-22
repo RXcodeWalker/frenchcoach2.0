@@ -19,6 +19,26 @@ interface AnalyticsState {
   identifiedUserId: string | null;
   /** The last person properties sent (with the user id), so an unchanged person is not re-sent. */
   personKey?: string;
+  /** The class group last sent for this identity (the SDK keeps it across loads), so it is not re-sent. */
+  groupKey?: string;
+  /** This account's classes and teacher status, read from Supabase at most once per local day. */
+  classCache?: ClassCache;
+}
+
+/** One class as analytics sees it: an opaque id, the teacher-chosen name, the exam year. */
+export interface ClassInfo {
+  id: string;
+  name: string;
+  examYear: string | null;
+  joinedAt: string;
+}
+
+export interface ClassCache {
+  userId: string;
+  /** Local calendar day the lookup was made. */
+  day: string;
+  classes: ClassInfo[];
+  isTeacher: boolean;
 }
 
 function emptyState(): AnalyticsState {
@@ -79,7 +99,25 @@ export function getIdentifiedUserId(): string | null {
 
 /** A new identity (sign-in, or the fresh anonymous id after sign-out) gets its person properties sent again. */
 export function setIdentifiedUserId(userId: string | null): void {
-  writeState({ ...readState(), identifiedUserId: userId, personKey: undefined });
+  writeState({ ...readState(), identifiedUserId: userId, personKey: undefined, groupKey: undefined });
+}
+
+/** Today's cached class lookup for this account, else null (look it up again). */
+export function getClassCache(userId: string, now: Date = new Date()): ClassCache | null {
+  const cache = readState().classCache;
+  return cache && cache.userId === userId && cache.day === localDay(now) ? cache : null;
+}
+
+export function setClassCache(cache: ClassCache): void {
+  writeState({ ...readState(), classCache: cache });
+}
+
+/** True when `key` differs from the last class group sent (and records it). */
+export function claimGroupChange(key: string): boolean {
+  const state = readState();
+  if (state.groupKey === key) return false;
+  writeState({ ...state, groupKey: key });
+  return true;
 }
 
 /** True when `key` differs from the last person properties sent (and records it). */

@@ -33,8 +33,12 @@ export interface SwRequestInfo {
   mode: string;
 }
 
-/** Same-origin paths that reach a server and must never be cached. */
-const BYPASS_PREFIXES = ['/api/', '/health', '/sw.js', '/auth/'];
+/**
+ * Same-origin paths that reach a server and must never be cached. `/ingest/`
+ * is the PostHog proxy (vercel.json): its recorder and config scripts end in
+ * `.js`, which would otherwise be cached as ordinary public files.
+ */
+const BYPASS_PREFIXES = ['/api/', '/health', '/sw.js', '/auth/', '/ingest/'];
 
 /** The public bucket the "Record voices" workflow fills (`voiceKey.ts`'s `TTS_BUCKET`). */
 const RECORDED_VOICE_PATH = '/storage/v1/object/public/tts-audio/';

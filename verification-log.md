@@ -4885,3 +4885,22 @@ classes, per-class leave, the 5-class cap, owner can't leave). Frontend: Profile
 teachers; Join no longer moves a student out of a class; Home's homework names the class when it comes from
 several; the teacher area labels co-taught classes, has "Join a colleague's class" and a Teachers section; the
 Monday email goes to every teacher of the class.
+
+## 2026-11-22 — PostHog school-trial setup (behaviour capture, proxy, class group)
+
+Scope: `posthogClient.ts`, new `analyticsPolicy.ts`, `engagementMeter.ts`, `classGroups.ts`, `AnalyticsTracker.tsx`,
+`telemetryService.ts` (`visit_summary`, volume trims lifted), `swRouting.ts` (`/ingest/` bypass), `vercel.json` (proxy
+rewrites). No Assessment-Engine file touched.
+
+Verified: unit tests for the capture-level table, sensitive-route list, engagement meter, class-group sync, the
+privacy-floor contract and the service-worker bypass. Verified against the **real posthog-js 1.438.2 in headless
+Chromium** with a mock PostHog server (21/21 checks): remote config loads through `/ingest/array`, the recorder through
+`/ingest/static`, snapshots post to `/ingest/s/`; a secret transcript, a button's text/aria-label/title and an input's
+value appear nowhere in 6.7k characters of snapshot data or in the autocapture event; clicks and replay stop on `/teach`,
+resume on `/learn`, and stop for `events_only`; `$pageview` carries the previous screen's duration and `$pageleave` is sent
+on close; the class group rides on later events. Found while testing: `advanced_disable_flags: true` makes the SDK skip
+remote config, so replay can never start with the old setting.
+
+Not verified: the production `/ingest` rewrite (no deploy from this session), PostHog's real remote-config response for
+this project, Sentry + PostHog replay running together on a low-end device, and real class data for the `class` group.
+

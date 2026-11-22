@@ -4,7 +4,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { User } from '@supabase/supabase-js';
 import { MAX_STRING_PROP_LENGTH, filterEventProps, track, type TelemetryEvent } from '../telemetryService';
-import { posthogOptions, sanitizeCapture, sanitizeUrl, setAnalyticsClientForTests, type AnalyticsClient } from '../posthogClient';
+import {
+  applyCaptureLevel,
+  gateBehaviour,
+  noteAnalyticsRoute,
+  posthogOptions,
+  resolveIngestHost,
+  sanitizeCapture,
+  sanitizeUrl,
+  setAnalyticsClientForTests,
+  type AnalyticsClient,
+} from '../posthogClient';
 import { syncAnalyticsIdentity } from '../analyticsIdentity';
 import { claimDailyOpen, claimFirstTime, getIdentifiedUserId, setIdentifiedUserId } from '../analyticsState';
 import { normaliseRoute } from '../analyticsRoute';
@@ -20,6 +30,8 @@ function fakeClient() {
     register: vi.fn(),
     setPersonProperties: vi.fn(),
     get_distinct_id: vi.fn(() => 'anon-123'),
+    group: vi.fn(),
+    set_config: vi.fn(),
   };
 }
 
@@ -94,9 +106,17 @@ describe('track → PostHog', () => {
     expect(client.capture).toHaveBeenCalledWith('answer_recorded', { input: 'speech', duration_ms: 4000, first_time: true });
   });
 
-  it('keeps the budget-trimmed events out of PostHog', () => {
+  it('sends the per-answer events that were trimmed for the free tier before the school trial', () => {
     track({ name: 'question_shown', props: { topic_key: 'school', level: 'A2', slot: 'target', position: 1 } });
     track({ name: 'feedback_received', props: { engine: 'groq', fallback_used: false, score: 6, latency_ms: 10, response_tier: 2 } });
+    expect(client.capture.mock.calls.map((c) => c[0])).toEqual(['question_shown', 'feedback_received']);
+  });
+
+  it('keeps the admin-only per-turn pronunciation measurement out of PostHog', () => {
+    track({
+      name: 'exam_pronunciation_audio_measured',
+      props: { session_id: 's', part: 'topic1', turn_key: 1, status: 'measured', raw_s: 4, trimmed_s: 3 },
+    });
     expect(client.capture).not.toHaveBeenCalled();
   });
 
@@ -118,17 +138,45 @@ describe('track → PostHog', () => {
 });
 
 describe('the PostHog privacy floor', () => {
-  it('never autocaptures, records sessions or loads extra scripts', () => {
-    const o = posthogOptions('https://us.i.posthog.com');
+  it('what is on for the school trial, and what is still never on', () => {
+    const o = posthogOptions('/ingest', 'https://us.posthog.com');
     expect(o).toMatchObject({
-      autocapture: false,
+      api_host: '/ingest',
+      ui_host: 'https://us.posthog.com',
+      capture_pageview: false, // AnalyticsTracker owns page views
+      capture_pageleave: true,
+      capture_heatmaps: true,
+      capture_dead_clicks: true,
+      rageclick: true,
+      // Never: Sentry owns errors; no network timing/payloads; no surveys or flags; no console in replays.
+      capture_exceptions: false,
+      capture_performance: false,
+      enable_recording_console_log: false,
+      disable_surveys: true,
+      // Flag *evaluation* is off; the config request stays so replay can load (see posthogOptions).
+      advanced_disable_feature_flags: true,
+      // Replay never starts by itself — only applyCaptureLevel() starts it.
       disable_session_recording: true,
-      capture_pageview: false,
-      capture_heatmaps: false,
-      capture_dead_clicks: false,
-      disable_external_dependency_loading: true,
+      // The recorder and remote config load from our own /ingest path.
+      disable_external_dependency_loading: false,
       mask_all_text: true,
     });
+  });
+
+  it('autocapture is clicks only, with no element text and none of the attributes that can hold words', () => {
+    const { autocapture } = posthogOptions('/ingest');
+    expect(autocapture).toMatchObject({ dom_event_allowlist: ['click'], capture_copied_text: false });
+    expect((autocapture as { element_attribute_ignorelist: string[] }).element_attribute_ignorelist).toEqual(
+      expect.arrayContaining(['aria-label', 'title', 'alt', 'placeholder', 'value']),
+    );
+    expect((autocapture as { url_ignorelist: string[] }).url_ignorelist.length).toBeGreaterThan(5);
+  });
+
+  it('replay masks every piece of text and every input unless the owner opts in', () => {
+    expect(posthogOptions('/ingest').session_recording).toMatchObject({ maskAllInputs: true, maskTextSelector: '*' });
+    const open = posthogOptions('/ingest', undefined, true).session_recording!;
+    expect(open.maskAllInputs).toBe(true); // inputs stay masked even when text is shown
+    expect(open.maskTextSelector).toBeUndefined();
   });
 
   it('strips the hash and every non-UTM query parameter from URLs', () => {
@@ -144,6 +192,81 @@ describe('the PostHog privacy floor', () => {
     });
     expect(result?.properties.$current_url).toBe('https://app.example/reset-password');
     expect(result?.$set_once?.$initial_current_url).toBe('https://app.example/?utm_medium=ads');
+  });
+
+  it('a class join code in the path never leaves the page', () => {
+    expect(sanitizeUrl('https://app.example/join/ABC123?x=1')).toBe('https://app.example/join/:code');
+  });
+});
+
+describe('the ingestion host', () => {
+  it('defaults to our own /ingest proxy', () => {
+    expect(resolveIngestHost(undefined)).toEqual({ apiHost: '/ingest', uiHost: 'https://us.posthog.com' });
+    expect(resolveIngestHost('')).toEqual({ apiHost: '/ingest', uiHost: 'https://us.posthog.com' });
+  });
+
+  it('a stale posthog.com value cannot switch the proxy off', () => {
+    expect(resolveIngestHost('https://us.i.posthog.com').apiHost).toBe('/ingest');
+    expect(resolveIngestHost('https://eu.i.posthog.com/').apiHost).toBe('/ingest');
+    expect(resolveIngestHost('not a url').apiHost).toBe('/ingest');
+  });
+
+  it('a self-hosted server or another proxy path is honoured', () => {
+    expect(resolveIngestHost('https://ph.school.example/')).toEqual({ apiHost: 'https://ph.school.example' });
+    expect(resolveIngestHost('/collect').apiHost).toBe('/collect');
+  });
+});
+
+describe('behaviour capture follows the account and the screen', () => {
+  let client: ReturnType<typeof fakeClient>;
+
+  beforeEach(() => {
+    client = fakeClient();
+    setAnalyticsClientForTests(client as unknown as AnalyticsClient);
+    window.history.pushState({}, '', '/learn');
+  });
+
+  afterEach(() => setAnalyticsClientForTests(null));
+
+  const result = (event: string) => ({ uuid: 'u', event, properties: {} });
+
+  it('clicks, rage/dead clicks and heatmaps are dropped until the account is cleared for full capture', () => {
+    expect(gateBehaviour(result('$autocapture'))).toBeNull();
+    expect(gateBehaviour(result('$rageclick'))).toBeNull();
+    expect(gateBehaviour(result('$$heatmap'))).toBeNull();
+    expect(gateBehaviour(result('$pageview'))).not.toBeNull(); // page views always flow
+    expect(gateBehaviour(result('answer_recorded'))).not.toBeNull();
+
+    applyCaptureLevel('full');
+    expect(gateBehaviour(result('$autocapture'))).not.toBeNull();
+    expect(gateBehaviour(result('$dead_click'))).not.toBeNull();
+
+    window.history.pushState({}, '', '/teach/class/abc');
+    expect(gateBehaviour(result('$autocapture'))).toBeNull(); // the teacher area is never watched
+  });
+
+  it('replay starts at full capture, pauses on a sensitive screen, resumes after, and stops for under-13', () => {
+    applyCaptureLevel('full');
+    expect(client.set_config).toHaveBeenLastCalledWith({ disable_session_recording: false });
+
+    window.history.pushState({}, '', '/login');
+    noteAnalyticsRoute();
+    expect(client.set_config).toHaveBeenLastCalledWith({ disable_session_recording: true });
+
+    window.history.pushState({}, '', '/learn');
+    noteAnalyticsRoute();
+    expect(client.set_config).toHaveBeenLastCalledWith({ disable_session_recording: false });
+
+    applyCaptureLevel('events_only');
+    expect(client.set_config).toHaveBeenLastCalledWith({ disable_session_recording: true });
+    expect(client.set_config).toHaveBeenCalledTimes(4);
+  });
+
+  it('does not re-send an unchanged decision', () => {
+    applyCaptureLevel('full');
+    applyCaptureLevel('full');
+    noteAnalyticsRoute();
+    expect(client.set_config).toHaveBeenCalledTimes(1);
   });
 });
 
