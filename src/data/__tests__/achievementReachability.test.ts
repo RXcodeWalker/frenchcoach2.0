@@ -74,7 +74,8 @@ const PRODUCERS: Partial<Record<Field, () => string | null>> = {
   // Distinct role plays: the routed Role-play drill must record 'story' sessions.
   roleplayCount: all(
     fromHistory('rolePlayKeys'),
-    inFile('screens/rolePlayDrill/RolePlayDrill.tsx', /orchestrateAttempt\(\{[\s\S]*?mode: 'story'/),
+    inFile('screens/rolePlayDrill/RolePlayDrill.tsx', /recordDrillAnswer\(\{/),
+    inFile('services/coach/drillAnswerRecorder.ts', /mode: 'story'/),
     inFile('App.tsx', /path="\/exam\/role-play"/),
   ),
   examCompleted: inFile('screens/ExamMode.tsx', /examCompleted: true/),

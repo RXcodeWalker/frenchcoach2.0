@@ -3,21 +3,15 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { useShowNavRail } from '../../components/layout/shellChrome';
-import { STORY_CARDS, type StoryCard } from '../../data/storyCards';
+import { STORY_CARDS, type StoryCard, type StoryTask } from '../../data/storyCards';
 import { ROLE_PLAY_CARD_PARAM, homeworkIdFromSearch } from '../../features/homework/homework';
 import { useMyHomework } from '../../features/homework/useMyHomework';
 import { useRecording } from '../../features/recording/useRecording';
-import { getAIFeedback } from '../../services/api/apiClient';
 import { getSessionHistory } from '../../services/analytics/analyticsService';
-import type { PanelEntry } from '../../components/ui/LiveFeedbackPanel';
-import type { FeedbackV2, Question, Session } from '../../types';
-import { orchestrateAttempt } from '../../services/coach/sessionOrchestrator';
-import { getSkillProfile } from '../../services/coaching/diagnosticEngine';
-import { isUnscored } from '../../domain/scoring';
-import { buildTier0Result } from '../../services/coaching/responseTier';
-import { computeXPGain, computeParticipationXPGain } from '../../domain/xp';
-import { TurnAttemptTracker, MAX_REDOS } from '../../domain/turnAttempts';
-import { cardProgress, drillSessionId, pickNextCard } from '../../features/rolePlayDrill/drillProgress';
+import { recordDrillAnswer } from '../../services/coach/drillAnswerRecorder';
+import { checkAnswer, repeatLine, MAX_SILENT_TRIES, type AnswerCheck } from '../../domain/rolePlayDrill/checkAnswer';
+import { TurnAttemptTracker } from '../../domain/turnAttempts';
+import { cardProgress, pickNextCard } from '../../features/rolePlayDrill/drillProgress';
 import {
   primeExaminerVoice,
   speakExaminerText,
@@ -29,6 +23,7 @@ import {
 import { DrillPicker } from './DrillPicker';
 import { DrillCardPrep } from './DrillCardPrep';
 import { DrillConversation, type DrillMessage } from './DrillConversation';
+import type { DrillExchange } from './DrillAnswerCard';
 
 /** Pacing fallback when muted or no fr-* voice is installed, so silence doesn't collapse the beat a spoken line would otherwise hold. */
 const SILENT_TYPING_MS = 900;
@@ -38,28 +33,10 @@ export const CLOSING_LINE = "Merci, c'est la fin du jeu de rôle.";
 
 type Phase = 'pick' | 'card' | 'talk';
 
-/** Scored / unscored / pending, keyed to a bare FeedbackV2 (the drill has no graph-runtime TurnOutcome). */
-type DrillLanguageResult =
-  | { kind: 'scored'; feedback: FeedbackV2 }
-  | { kind: 'unscored'; feedback: FeedbackV2 }
-  | { kind: 'pending' };
-
-/**
- * A card task as the minimal Question getAIFeedback reads. `topicKey` only
- * feeds evidence topic attribution; `Session.topicKey` stays unset below, so
- * a synthetic `story:*` id can never enter the review pool.
- */
-function toDrillQuestion(card: StoryCard, task: StoryCard['tasks'][number]): Question {
-  return {
-    id: `story:${card.id}:${task.taskId}`,
-    topicKey: `story:${card.id}`,
-    text: task.promptFr,
-    hint: task.promptEn,
-    difficulty: 2,
-    followUps: [],
-    modelAnswer: '',
-    keyVocab: [],
-  };
+/** What the attempt tracker holds for one exchange: the task and how long the take ran. */
+interface DrillAttempt {
+  task: StoryTask;
+  durationSec: number;
 }
 
 /** Whether the examiner can actually be heard on this device right now. */
@@ -69,10 +46,13 @@ function canHearExaminer(): boolean {
 
 /**
  * Role-play drill (formerly Story Mode): Part 1 of the 0520 speaking test on
- * its own. Pick a card, read it, then answer the examiner's five exchanges
- * with coaching on each answer. It lives under Exam (`/exam/role-play`) but
- * is practice: no /40, no exam allowance, and each answer is an ordinary
- * `story` Session with participation-or-score XP, exactly as Story Mode was.
+ * its own. Pick a card, read it, then answer the examiner's five exchanges.
+ * Each answer is checked on the device (domain/rolePlayDrill/checkAnswer.ts) —
+ * which parts of the task it communicated, never a mark — so the drill calls no
+ * AI and spends no quota. It lives under Exam (`/exam/role-play`) but is
+ * practice: no /40, no exam allowance, and each answer is an ordinary `story`
+ * Session (score null) with full-credit XP when every part was covered and
+ * participation XP otherwise.
  */
 export function RolePlayDrill() {
   const navigate = useNavigate();
@@ -86,9 +66,12 @@ export function RolePlayDrill() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [finished, setFinished] = useState(false);
-  const [panelEntries, setPanelEntries] = useState<PanelEntry[]>([]);
+  const [exchanges, setExchanges] = useState<DrillExchange[]>([]);
+  const [notice, setNotice] = useState<string | null>(null);
   /** Listen-only practice: the examiner's lines are heard, not shown, until revealed. */
   const [showText, setShowText] = useState(true);
+  /** Exam conditions: no Try again, and the per-answer cards wait for the last exchange. */
+  const [examConditions, setExamConditions] = useState(false);
   /** Bumped whenever a session may have been recorded, so card progress re-reads the history. */
   const [historyVersion, setHistoryVersion] = useState(0);
 
@@ -101,16 +84,17 @@ export function RolePlayDrill() {
     [historyVersion],
   );
 
-  const trackerRef = useRef(new TurnAttemptTracker<Question | undefined, DrillLanguageResult>());
+  const trackerRef = useRef(new TurnAttemptTracker<DrillAttempt, AnswerCheck>());
   const tracker = trackerRef.current;
-  /** Non-null while re-recording an earlier exchange (tapping "Redo"). */
+  /** Non-null while re-recording an earlier exchange (tapping "Try again"). */
   const redoTargetRef = useRef<number | null>(null);
-  /** The last answered step, locked the instant the next fresh recording starts. */
-  const lastLockedStepRef = useRef<number | null>(null);
+  /** Nothing-heard takes per exchange; the examiner asks again until MAX_SILENT_TRIES. */
+  const silentTriesRef = useRef(new Map<number, number>());
   /** Guards async NPC lines against a card change or exit mid-line. */
   const runRef = useRef(0);
-
-  useEffect(() => () => stopExaminerVoice(), []);
+  /** The latest app state, for commits that fire from an unmount or pagehide. */
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   // Homework (features/homework): `?card=<id>&assignment=<id>` opens the card a teacher
   // set. The id counts only once my_assignments() confirms it is this learner's
@@ -123,6 +107,63 @@ export function RolePlayDrill() {
   const homework = requestedHomeworkId
     ? myHomework?.find((a) => a.id === requestedHomeworkId && a.kind === 'role_play') ?? null
     : null;
+  const homeworkRef = useRef(homework);
+  homeworkRef.current = homework;
+
+  /**
+   * Records every checked answer once — XP, Session, achievements — and locks it
+   * so it can no longer be retried. Answers are held until the learner moves on
+   * (next card, leave, restart, or the page closing) so "Try again" stays
+   * available on any exchange of the card just played; a missed exchange writes
+   * nothing, so it never ticks the card's "done" progress.
+   */
+  const commitAll = (forCard: StoryCard | null) => {
+    if (!forCard) return;
+    let committed = 0;
+    forCard.tasks.forEach((_, step) => {
+      const record = tracker.lock(step);
+      if (record === null || record.language === null) return;
+      const { task, durationSec } = record.question;
+      const live = stateRef.current;
+      const hw = homeworkRef.current;
+      const result = recordDrillAnswer({
+        cardId: forCard.id,
+        step,
+        questionText: task.promptFr,
+        transcript: record.transcript,
+        durationSec,
+        complete: record.language.complete,
+        streakDays: live.profile.streak_days,
+        totalSessionsBefore: live.profile.sessions_count + committed,
+        ...(hw && hw.rolePlayCardId === forCard.id ? { assignmentId: hw.id } : {}),
+      });
+      committed += 1;
+      dispatch({
+        type: 'ADD_SESSION',
+        session: result.session,
+        xpResult: result.xpResult,
+        newUnlockedAchievementIds: result.newUnlockedAchievementIds,
+        newLevelName: result.newLevelName,
+      });
+    });
+    if (committed > 0) setHistoryVersion((v) => v + 1);
+  };
+  const commitAllRef = useRef(commitAll);
+  commitAllRef.current = commitAll;
+  const cardRef = useRef(card);
+  cardRef.current = card;
+
+  // Never lose the answers just given: leaving the screen or closing the page records them.
+  useEffect(() => {
+    const onPageHide = () => commitAllRef.current(cardRef.current);
+    window.addEventListener('pagehide', onPageHide);
+    return () => {
+      window.removeEventListener('pagehide', onPageHide);
+      commitAllRef.current(cardRef.current);
+      stopExaminerVoice();
+    };
+  }, []);
+
   const linkedCardOpenedRef = useRef(false);
   useEffect(() => {
     if (linkedCardOpenedRef.current || !linkedCardId) return;
@@ -139,16 +180,8 @@ export function RolePlayDrill() {
     window.scrollTo?.({ top: 0 });
   };
 
-  /** The last answer still waiting for the next mic-start to lock it is locked now, so leaving never loses it. */
-  const lockPending = () => {
-    if (card && lastLockedStepRef.current !== null) {
-      lockStep(card, lastLockedStepRef.current);
-      lastLockedStepRef.current = null;
-    }
-  };
-
   const backToList = () => {
-    lockPending();
+    commitAll(card);
     stopExaminerVoice();
     runRef.current += 1;
     if (recording.isRecording) void recording.stop();
@@ -182,16 +215,17 @@ export function RolePlayDrill() {
 
   const startCard = () => {
     if (!card) return;
-    lockPending();
+    commitAll(card);
     // Must run inside this click's user gesture — Chrome/Edge boot TTS lazily on the first speak().
     primeExaminerVoice();
     runRef.current += 1;
     const run = runRef.current;
-    trackerRef.current = new TurnAttemptTracker<Question | undefined, DrillLanguageResult>();
+    trackerRef.current = new TurnAttemptTracker<DrillAttempt, AnswerCheck>();
+    silentTriesRef.current = new Map();
     redoTargetRef.current = null;
-    lastLockedStepRef.current = null;
     setMessages([]);
-    setPanelEntries([]);
+    setExchanges([]);
+    setNotice(null);
     setCurrentStep(0);
     setFinished(false);
     setPhase('talk');
@@ -200,105 +234,37 @@ export function RolePlayDrill() {
     if (first) void speakNpcLine(first.promptFr, run);
   };
 
-  const upsertPanelEntry = (entry: PanelEntry) => {
-    setPanelEntries((prev) => {
-      const idx = prev.findIndex((e) => e.turnKey === entry.turnKey);
-      if (idx === -1) return [...prev, entry];
-      const next = [...prev];
-      next[idx] = entry;
-      return next;
+  const upsertExchange = (exchange: DrillExchange) => {
+    setExchanges((prev) => {
+      const next = prev.filter((e) => e.step !== exchange.step);
+      next.push(exchange);
+      return next.sort((a, b) => a.step - b.step);
     });
   };
 
-  /** Progression side effects (XP, Session, evidence, achievements) — once a step is locked and resolved. */
-  const runOrchestration = (
-    forCard: StoryCard,
-    stepIndex: number,
-    transcript: string,
-    question: Question | undefined,
-    language: DrillLanguageResult,
-  ) => {
-    if (language.kind === 'pending') return;
-    const fb = language.feedback;
-    const unscored = isUnscored(fb);
-    const finalScore = fb.scores.overall;
-    const xpGain = unscored
-      ? computeParticipationXPGain(state.profile.streak_days)
-      : computeXPGain(finalScore, state.profile.streak_days);
-
-    const session: Session = {
-      id: drillSessionId(forCard.id, stepIndex),
-      mode: 'story',
-      questionText: question?.text,
-      transcript,
-      wordCount: fb.wordCount,
-      score: unscored ? null : finalScore,
-      xpEarned: xpGain.gain,
-      durationSec: recording.elapsedTime,
-      feedback: fb,
-      createdAt: new Date().toISOString(),
-      ...(homework && homework.rolePlayCardId === forCard.id ? { assignmentId: homework.id } : {}),
-    };
-
-    const orchestration = orchestrateAttempt({
-      session,
-      question: question ?? null,
-      feedback: fb,
-      avoidanceSignals: [],
-      transcript,
-      durationSec: recording.elapsedTime,
-      mode: 'story',
-      finalScore,
-      streakDays: state.profile.streak_days,
-      totalSessionsBefore: state.profile.sessions_count,
-    });
-
-    dispatch({
-      type: 'ADD_SESSION',
-      session,
-      xpResult: orchestration.xpResult,
-      newUnlockedAchievementIds: orchestration.newUnlockedAchievementIds,
-      newLevelName: orchestration.newLevelName,
-    });
-    dispatch({ type: 'UPDATE_SKILL_PROFILE', skillProfile: getSkillProfile() });
-    setHistoryVersion((v) => v + 1);
+  /** Holds a checked answer for the step (committed later by commitAll). */
+  const holdAnswer = (step: number, task: StoryTask, transcript: string, durationSec: number, check: AnswerCheck, isRedo: boolean) => {
+    const seq = trackerRef.current.begin(step, transcript, { task, durationSec }, isRedo);
+    trackerRef.current.resolve(step, seq, check);
+    upsertExchange({ step, status: 'answered', transcript, check });
   };
 
-  const lockStep = (forCard: StoryCard, stepIndex: number) => {
-    const record = trackerRef.current.lock(stepIndex);
-    if (record === null || record.language === null || record.language.kind === 'pending') return;
-    runOrchestration(forCard, stepIndex, record.transcript, record.question, record.language);
-  };
-
-  const submitAnswer = (forCard: StoryCard, stepIndex: number, transcript: string, question: Question | undefined, isRedo: boolean) => {
-    const attemptTracker = trackerRef.current;
-    const run = runRef.current;
-    const attemptSeq = attemptTracker.begin(stepIndex, transcript, question, isRedo);
-    upsertPanelEntry({ turnKey: stepIndex, transcript, status: 'pending', feedback: null });
-
-    void (async () => {
-      const wordCount = transcript.split(/\s+/).filter(Boolean).length;
-      let fb: FeedbackV2;
-      if (!question) {
-        fb = { ...buildTier0Result(), unscored: 'evaluation_failed', wordCount };
-      } else {
-        try {
-          fb = await getAIFeedback(transcript, question, undefined, undefined, undefined, undefined, undefined, undefined, 'role_play');
-        } catch {
-          fb = { ...buildTier0Result(), unscored: 'no_llm_offline', wordCount };
-        }
-      }
-      const language: DrillLanguageResult = isUnscored(fb) ? { kind: 'unscored', feedback: fb } : { kind: 'scored', feedback: fb };
-      if (!attemptTracker.isCurrent(stepIndex, attemptSeq)) return; // a redo has superseded this attempt
-      // A card restarted or left since: the answer still counts, but its panel is gone.
-      if (runRef.current === run) upsertPanelEntry({ turnKey: stepIndex, transcript, status: 'resolved', feedback: fb });
-      const record = attemptTracker.resolve(stepIndex, attemptSeq, language);
-      if (record !== null) runOrchestration(forCard, stepIndex, record.transcript, record.question, record.language as DrillLanguageResult);
-    })();
+  /** The examiner moves to the next question, or closes the role play after the last one. */
+  const advanceFrom = async (step: number, forCard: StoryCard, run: number) => {
+    const nextStep = step + 1;
+    setCurrentStep(nextStep);
+    const nextTask = forCard.tasks[nextStep];
+    if (nextTask) {
+      await speakNpcLine(nextTask.promptFr, run);
+    } else {
+      await speakNpcLine(CLOSING_LINE, run);
+      if (runRef.current !== run) return;
+      setFinished(true);
+    }
   };
 
   const startRecording = () => {
-    lockPending();
+    setNotice(null);
     // The examiner's own voice would otherwise be transcribed by the live mic.
     stopExaminerVoice();
     void recording.start();
@@ -308,43 +274,63 @@ export function RolePlayDrill() {
     if (!card) return;
     const run = runRef.current;
     const redoTarget = redoTargetRef.current;
+    const durationSec = recording.elapsedTime;
+    const transcript = await recording.stop();
+    if (runRef.current !== run) return;
 
     if (redoTarget !== null) {
       redoTargetRef.current = null;
-      const transcript = await recording.stop();
       const task = card.tasks[redoTarget];
-      setMessages((prev) => prev.map((m) => (m.stepIndex === redoTarget && m.sender === 'user' ? { ...m, text: transcript } : m)));
-      submitAnswer(card, redoTarget, transcript, task ? toDrillQuestion(card, task) : undefined, true);
+      if (!task) return;
+      const check = checkAnswer(transcript, task);
+      if (!check.heard) {
+        setNotice('Nothing was heard, so your earlier answer stands.');
+        return;
+      }
+      holdAnswer(redoTarget, task, transcript, durationSec, check, true);
+      setMessages((prev) => {
+        const has = prev.some((m) => m.stepIndex === redoTarget && m.sender === 'user');
+        return has
+          ? prev.map((m) => (m.stepIndex === redoTarget && m.sender === 'user' ? { ...m, text: transcript } : m))
+          : prev;
+      });
       return;
     }
 
-    const transcript = await recording.stop();
-    if (runRef.current !== run) return;
-    const task = card.tasks[currentStep];
-    addMessage({ text: transcript, sender: 'user', stepIndex: currentStep });
-    submitAnswer(card, currentStep, transcript, task ? toDrillQuestion(card, task) : undefined, false);
-    lastLockedStepRef.current = currentStep;
+    const step = currentStep;
+    const task = card.tasks[step];
+    if (!task) return;
+    const check = checkAnswer(transcript, task);
 
-    const nextStep = currentStep + 1;
-    setCurrentStep(nextStep);
-    const nextTask = card.tasks[nextStep];
-    if (nextTask) {
-      await speakNpcLine(nextTask.promptFr, run);
-    } else {
-      await speakNpcLine(CLOSING_LINE, run);
-      if (runRef.current !== run) return;
-      setFinished(true);
-      // No later mic-start will come to lock the last step, so lock it here.
-      if (lastLockedStepRef.current !== null) {
-        lockStep(card, lastLockedStepRef.current);
-        lastLockedStepRef.current = null;
+    if (!check.heard) {
+      // Nothing usable: not recorded. Ask again, then move on and count it missed.
+      const tries = (silentTriesRef.current.get(step) ?? 0) + 1;
+      silentTriesRef.current.set(step, tries);
+      if (tries < MAX_SILENT_TRIES) {
+        await speakNpcLine(repeatLine(task.promptFr), run);
+        return;
       }
+      addMessage({ text: '', sender: 'user', stepIndex: step });
+      upsertExchange({ step, status: 'missed', transcript: '', check });
+      await advanceFrom(step, card, run);
+      return;
     }
+
+    addMessage({ text: transcript, sender: 'user', stepIndex: step });
+    holdAnswer(step, task, transcript, durationSec, check, false);
+    await advanceFrom(step, card, run);
   };
 
-  const handleRedo = (stepIndex: number) => {
-    if (!tracker.canRedo(stepIndex) || recording.isRecording) return;
-    redoTargetRef.current = stepIndex;
+  const canTryAgain = (step: number) => {
+    if (examConditions || recording.isRecording || isTyping) return false;
+    if (!exchanges.some((e) => e.step === step)) return false;
+    return tracker.get(step)?.locked !== true;
+  };
+
+  const handleTryAgain = (step: number) => {
+    if (!canTryAgain(step)) return;
+    redoTargetRef.current = step;
+    setNotice(null);
     stopExaminerVoice();
     void recording.start();
   };
@@ -372,6 +358,8 @@ export function RolePlayDrill() {
         showText={showText}
         onShowTextChange={setShowText}
         canHear={canHearExaminer()}
+        examConditions={examConditions}
+        onExamConditionsChange={setExamConditions}
         onStart={startCard}
         onBack={backToList}
       />
@@ -388,14 +376,16 @@ export function RolePlayDrill() {
       showText={showText || !canHearExaminer()}
       recording={{ ...recording, start: startRecording }}
       onStopRecording={handleStopRecording}
-      panelEntries={panelEntries}
-      canRedo={(step) => tracker.canRedo(step) && !recording.isRecording}
-      redosLeft={(step) => MAX_REDOS - (tracker.get(step)?.retryCount ?? 0)}
-      onRedo={handleRedo}
+      exchanges={exchanges}
+      examConditions={examConditions}
+      canTryAgain={canTryAgain}
+      onTryAgain={handleTryAgain}
+      notice={notice}
       onReplay={replayLine}
       onExit={backToList}
       onAgain={startCard}
       onNext={() => {
+        commitAll(card);
         const next = pickNextCard(STORY_CARDS, progress, card.id);
         if (next) openCard(next);
       }}

@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion';
-import { Ear, Play } from 'lucide-react';
+import { Ear, Play, Timer } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
 import { TopContextBar } from '../../components/TopContextBar';
 import { Button } from '../../components/ui/Button';
@@ -16,12 +16,15 @@ interface Props {
   onShowTextChange: (on: boolean) => void;
   /** A French voice is available and the examiner isn't muted, so listen-only practice is possible. */
   canHear: boolean;
+  /** Exam conditions: no Try again, and each answer is checked only after the last exchange. */
+  examConditions: boolean;
+  onExamConditionsChange: (on: boolean) => void;
   onStart: () => void;
   onBack: () => void;
 }
 
 /** The card itself, read before starting — the "preparation" moment of the real role play. */
-export function DrillCardPrep({ card, progress, showText, onShowTextChange, canHear, onStart, onBack }: Props) {
+export function DrillCardPrep({ card, progress, showText, onShowTextChange, canHear, examConditions, onExamConditionsChange, onStart, onBack }: Props) {
   const reduced = useReducedMotion();
   const item = reduced ? enterReduced : enter;
   const guided = card.guided;
@@ -70,8 +73,9 @@ export function DrillCardPrep({ card, progress, showText, onShowTextChange, canH
         <motion.section variants={item} aria-label="How to answer" className="flex flex-col gap-1 rounded-card surface-recessed p-4">
           <p className="text-label text-ink">How to do well</p>
           <p className="text-body-s text-ink-muted">
-            Answer every part of each question in one or two full sentences, using the verb from the question.
-            Short and complete beats long and off-topic.
+            Answer every part of each question. A short answer is fine if it says everything the question asks
+            for — « Au musée. » is a complete answer to « Qu'est-ce que vous avez visité ? ». Two-part questions
+            need both parts.
           </p>
         </motion.section>
 
@@ -96,6 +100,27 @@ export function DrillCardPrep({ card, progress, showText, onShowTextChange, canH
               </span>
             </span>
             <Toggle on={listenOnly} />
+          </button>
+        </motion.div>
+
+        <motion.div variants={item}>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={examConditions}
+            onClick={() => onExamConditionsChange(!examConditions)}
+            className="flex w-full items-center gap-4 rounded-card surface p-4 text-left"
+          >
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-surface-recessed text-ink-muted" aria-hidden="true">
+              <Timer size={16} />
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="text-label text-ink">Exam conditions</span>
+              <span className="text-body-s text-ink-muted">
+                One go at each answer, and you see how you did only after the last exchange.
+              </span>
+            </span>
+            <Toggle on={examConditions} />
           </button>
         </motion.div>
 

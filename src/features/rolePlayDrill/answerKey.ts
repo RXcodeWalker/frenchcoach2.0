@@ -20,8 +20,8 @@
  *  - a RegExp tested against the normalised answer (write it unaccented, with
  *    spaces where the answer had an apostrophe or hyphen; no `g` flag).
  *
- * This module only reads text. It is not wired into the drill's feedback yet
- * and nothing here writes a mark, XP or evidence.
+ * This module only reads text and nothing here writes a mark, XP or evidence.
+ * The drill's coaching builds on it: domain/rolePlayDrill/checkAnswer.ts.
  */
 
 export type AcceptPattern = string | RegExp;

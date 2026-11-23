@@ -5,18 +5,21 @@ import { PageShell } from '../../components/layout/PageShell';
 import { TopContextBar } from '../../components/TopContextBar';
 import { Button } from '../../components/ui/Button';
 import { SpeakingConsentGate } from '../../components/SpeakingConsentGate';
-import { LiveFeedbackPanel, type PanelEntry } from '../../components/ui/LiveFeedbackPanel';
 import { enter, enterReduced, fill } from '../../components/motion/variants';
 import { useIsDesktop } from '../../components/layout/useIsDesktop';
 import { RecordingPanel } from '../learn/RecordingPanel';
 import type { RecordingState } from '../../features/recording/useRecording';
 import type { StoryCard } from '../../data/storyCards';
+import { DrillAnswerCard, type DrillExchange } from './DrillAnswerCard';
+
+/** The recorder's idle hint: a 0520 role-play answer can be a few words, as long as it covers every part. */
+export const DRILL_RECORDER_HINT = 'Short is fine — answer every part.';
 
 export interface DrillMessage {
   id: string;
   text: string;
   sender: 'ai' | 'user';
-  /** On a user message: the exchange it answers, so a redo replaces it in place. */
+  /** On a user message: the exchange it answers, so a retry replaces it in place. */
   stepIndex?: number;
 }
 
@@ -30,10 +33,14 @@ interface Props {
   showText: boolean;
   recording: RecordingState;
   onStopRecording: () => void;
-  panelEntries: PanelEntry[];
-  canRedo: (step: number) => boolean;
-  redosLeft: (step: number) => number;
-  onRedo: (step: number) => void;
+  /** Every exchange answered (or missed) so far, by step. */
+  exchanges: DrillExchange[];
+  /** Exam conditions: no Try again, and the per-answer cards wait for the last exchange. */
+  examConditions: boolean;
+  canTryAgain: (step: number) => boolean;
+  onTryAgain: (step: number) => void;
+  /** A short status line (e.g. a retry where nothing was heard). */
+  notice: string | null;
   onReplay: (text: string) => void;
   onExit: () => void;
   onAgain: () => void;
@@ -44,7 +51,8 @@ interface Props {
  * The role play itself (Design System v2): progress through the exchanges,
  * the conversation (examiner lines in the exam serif, with replay and — in
  * listen-only practice — reveal), the current English task when the card has
- * one, the shared recorder, and coaching per answer beside it (below on mobile).
+ * one, the shared recorder, and a compact check per answer beside it (below on
+ * mobile) — under exam conditions only once the last exchange is answered.
  */
 export function DrillConversation({
   card,
@@ -55,10 +63,11 @@ export function DrillConversation({
   showText,
   recording,
   onStopRecording,
-  panelEntries,
-  canRedo,
-  redosLeft,
-  onRedo,
+  exchanges,
+  examConditions,
+  canTryAgain,
+  onTryAgain,
+  notice,
   onReplay,
   onExit,
   onAgain,
@@ -84,10 +93,31 @@ export function DrillConversation({
     endRef.current?.scrollIntoView?.({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest' });
   }, [messages.length, isTyping, finished, reduced]);
 
+  const hideCards = examConditions && !finished;
   const feedback = (
-    <aside aria-label="Coaching on your answers" className="flex flex-col gap-3">
-      <h2 className="text-section text-ink">Coaching</h2>
-      <LiveFeedbackPanel entries={panelEntries} canRedo={canRedo} redosLeft={redosLeft} onRedo={onRedo} />
+    <aside aria-label="Your answers" className="flex flex-col gap-3">
+      <h2 className="text-section text-ink">Your answers</h2>
+      {hideCards ? (
+        <div className="rounded-card surface-recessed p-5">
+          <p className="text-body-s text-ink-subtle">Exam conditions: your answers are checked once the last exchange is done.</p>
+        </div>
+      ) : exchanges.length === 0 ? (
+        <div className="rounded-card surface-recessed p-5">
+          <p className="text-body-s text-ink-subtle">A quick check of each answer will appear here.</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {exchanges.map((exchange) => (
+            <DrillAnswerCard
+              key={exchange.step}
+              exchange={exchange}
+              number={exchange.step + 1}
+              canTryAgain={canTryAgain(exchange.step)}
+              onTryAgain={() => onTryAgain(exchange.step)}
+            />
+          ))}
+        </div>
+      )}
     </aside>
   );
 
@@ -111,7 +141,7 @@ export function DrillConversation({
             />
           </span>
           <span className="text-caption text-ink-subtle">
-            <span className="font-numeral">{answered}</span> of <span className="font-numeral">{total}</span> answered
+            <span className="font-numeral">{answered}</span> of <span className="font-numeral">{total}</span> exchanges done
           </span>
         </div>
 
@@ -156,7 +186,7 @@ export function DrillConversation({
                       </div>
                     ) : (
                       <p lang="fr" className="max-w-[85%] rounded-card bg-action-soft px-4 py-3 text-body-base text-ink">
-                        {msg.text || <span className="text-ink-subtle">(nothing heard)</span>}
+                        {msg.text || <span className="text-ink-subtle">(no answer)</span>}
                       </p>
                     )}
                   </motion.li>
@@ -190,10 +220,18 @@ export function DrillConversation({
                   recording={recording}
                   onStop={onStopRecording}
                   compact={!desktop}
-                  hint="Answer in one or two full sentences"
+                  hint={DRILL_RECORDER_HINT}
                   lengthMeter={false}
                 />
               </SpeakingConsentGate>
+            )}
+            {/* The compact (mobile) recorder has no hint line of its own. */}
+            {showRecorder && !desktop && !recording.isRecording && (
+              <p className="text-caption text-ink-subtle">{DRILL_RECORDER_HINT}</p>
+            )}
+
+            {notice && (
+              <p role="status" className="text-body-s text-ink-muted">{notice}</p>
             )}
 
             {finished && !recording.isRecording && (
@@ -211,8 +249,9 @@ export function DrillConversation({
                   <div className="flex flex-col gap-1">
                     <h2 id="drill-finished" className="text-section text-ink">Role play finished</h2>
                     <p className="text-body-s text-ink-muted">
-                      You answered all <span className="font-numeral">{total}</span> exchanges. Read the coaching on each
-                      answer, redo the ones you'd say differently, then try another card.
+                      {examConditions
+                        ? 'Your answers are checked below.'
+                        : 'Check each answer below, try again on any you would say differently, then move on.'}
                     </p>
                   </div>
                 </div>

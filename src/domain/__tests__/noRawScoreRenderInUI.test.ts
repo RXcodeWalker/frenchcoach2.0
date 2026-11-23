@@ -27,10 +27,8 @@ const ALLOWED: Record<string, string> = {
     'data computation only (XP branch, Session.score write, streak logic) — all gated on the `unscored` flag',
   'src/screens/ScenarioArchitectSession.tsx':
     'fire-and-forget coach-evidence side effect only (finalScore passthrough to observeAttempt) — never rendered',
-  'src/screens/rolePlayDrill/RolePlayDrill.tsx':
-    'data computation only (Session.score write and XP calc, both inside the isUnscored branch) — the drill renders no score',
   'src/screens/RoleplaySession.tsx':
-    'data computation only (Session.score write, XP calc, and mood/expression selection) — all read inside the `unscored ? ... : finalScore` branch, same shape as rolePlayDrill/RolePlayDrill.tsx',
+    'data computation only (Session.score write, XP calc, and mood/expression selection) — all read inside the `unscored ? ... : finalScore` branch',
   'src/features/learn/markingLevel.ts':
     'data computation only (scoreLearnAttempt: the Exam-standard bookkeeping score, read after the isUnscored early return) — never rendered',
   'src/screens/OnboardingPlacement.tsx':
