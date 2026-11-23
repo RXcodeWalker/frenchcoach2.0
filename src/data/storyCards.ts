@@ -4,15 +4,16 @@
  *
  * Two kinds of card, both original practice content written for this app
  * (none is a Cambridge paper):
- *  - 6 "guided" task cards from roleplayCards.ts: the English task tells the
- *    candidate what to say, and the prep screen lists all five. Their French
- *    lines and English tasks stay in roleplayCards.ts, because the public
- *    role-play pages read them there (src/data/seo/); their answer keys are in
+ *  - 27 "exam style" cards (rolePlayDrill/examStyleCards.ts and
+ *    moreExamStyleCards.ts) in the current 0520 format: the examiner asks five
+ *    simple, open questions, 2–3 of them two-part, and the candidate hears
+ *    each one only when it is asked. They have English tasks too, shown only
+ *    when the learner asks for them. These are the drill's main group, and
+ *    six of them are the public role-play example pages (src/data/seo/).
+ *  - 6 "guided" task cards from roleplayCards.ts — the older style, where the
+ *    English task tells the candidate what to say (sometimes to ask a
+ *    question). Kept as "Extra practice"; answer keys in
  *    rolePlayDrill/practiceCardKeys.ts.
- *  - 15 "exam style" cards (rolePlayDrill/examStyleCards.ts) in the current
- *    0520 format: the examiner asks five questions, 2–3 of them two-part, and
- *    the candidate hears each one only when it is asked. They have English
- *    tasks too, shown only when the learner asks for them.
  *
  * Card ids are permanent: every learner's drill progress is derived from
  * session ids `story-<cardId>-<ts>-<step>` (features/rolePlayDrill/drillProgress.ts),
@@ -26,6 +27,7 @@
  */
 import { ROLEPLAY_CARDS } from './roleplayCards';
 import { EXAM_STYLE_CARDS } from './rolePlayDrill/examStyleCards';
+import { MORE_EXAM_STYLE_CARDS } from './rolePlayDrill/moreExamStyleCards';
 import { PRACTICE_CARD_KEYS } from './rolePlayDrill/practiceCardKeys';
 import type { AnswerPart } from '../features/rolePlayDrill/answerKey';
 import type { CharacterNpc } from '../components/ui/CharacterAvatar';
@@ -101,9 +103,10 @@ function fromRoleplayCards(): StoryCard[] {
   });
 }
 
-export const STORY_CARDS: StoryCard[] = [...fromRoleplayCards(), ...EXAM_STYLE_CARDS];
+/** Exam-style cards first (the drill's main "Exam practice" group), then the six guided cards ("Extra practice"). */
+export const STORY_CARDS: StoryCard[] = [...EXAM_STYLE_CARDS, ...MORE_EXAM_STYLE_CARDS, ...fromRoleplayCards()];
 
-/** A guided task card — the drill's "With English instructions" group. */
+/** A guided task card — the drill's "Extra practice" group (the older task-card style, not the exam format). */
 export function isGuidedCard(card: StoryCard): boolean {
   return card.guided;
 }

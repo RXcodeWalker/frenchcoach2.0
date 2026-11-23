@@ -68,8 +68,8 @@ describe('RolePlayDrill', () => {
   it('lists every card in the two groups and reads progress back from the session history', () => {
     history.ids = guidedCard.tasks.map((_, i) => drillSessionId(guidedCard.id, i, i));
     renderDrill();
-    expect(screen.getByRole('heading', { name: 'With English instructions' })).toBeTruthy();
-    expect(screen.getByRole('heading', { name: 'Exam style' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Exam practice' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Extra practice' })).toBeTruthy();
     expect(screen.getAllByTestId(/^drill-card-/)).toHaveLength(STORY_CARDS.length);
     expect(within(screen.getByTestId(`drill-card-${guidedCard.id}`)).getByText('Done')).toBeTruthy();
     expect(screen.getByText(/cards done/).textContent).toContain(`1 of ${STORY_CARDS.length}`);

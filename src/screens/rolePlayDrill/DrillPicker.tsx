@@ -17,8 +17,8 @@ interface Props {
 
 /**
  * The drill's card list (Design System v2): what this is and how it differs
- * from a full exam, then the cards in two groups — with English instructions
- * first (a way in), then exam-style cards (each question heard only when asked).
+ * from a full exam, then the cards in two groups — exam practice first (each
+ * question heard only when asked), then the older guided cards as extra practice.
  */
 export function DrillPicker({ cards, progress, onOpen, onSurprise, onBack }: Props) {
   const reduced = useReducedMotion();
@@ -52,18 +52,18 @@ export function DrillPicker({ cards, progress, onOpen, onSurprise, onBack }: Pro
         </motion.section>
 
         <CardGroup
-          id="drill-guided"
-          title="With English instructions"
-          note="Each card tells you what to say. A good place to start."
-          cards={guided}
+          id="drill-exam"
+          title="Exam practice"
+          note="Like the real role play: simple questions you hear only when they are asked. The English task is there if you need it."
+          cards={examStyle}
           progress={progress}
           onOpen={onOpen}
         />
         <CardGroup
-          id="drill-french"
-          title="Exam style"
-          note="Like the real card: you hear each question only when it is asked. The English task is there if you need it."
-          cards={examStyle}
+          id="drill-extra"
+          title="Extra practice"
+          note="Everyday situations where the card tells you what to say, sometimes asking a question yourself. Not the exam format, but good warm-ups."
+          cards={guided}
           progress={progress}
           onOpen={onOpen}
         />

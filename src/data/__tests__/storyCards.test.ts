@@ -5,9 +5,11 @@ import { checkAnswerParts, normalizeAnswer } from '../../features/rolePlayDrill/
 
 /** Ids are permanent: drill progress and homework are keyed on them. */
 const CARD_IDS = [
-  'rp_tourism_01', 'rp_hotel_01', 'rp_restaurant_01', 'rp_train_01', 'rp_camping_01', 'rp_lost_property_01',
   'rpc_24_01', 'rpc_24_02', 'rpc_24_03', 'rpc_24_04', 'rpc_24_05', 'rpc_24_06', 'rpc_24_07', 'rpc_24_08', 'rpc_24_09',
   'rpc_23_01', 'rpc_23_02', 'rpc_23_03', 'rpc_23_04', 'rpc_23_05', 'rpc_23_06',
+  'rpe_hotel_01', 'rpe_restaurant_01', 'rpe_campsite_01', 'rpe_exchange_01', 'rpe_school_01', 'rpe_pharmacy_01',
+  'rpe_clothes_01', 'rpe_cinema_01', 'rpe_party_01', 'rpe_beach_clean_01', 'rpe_careers_01', 'rpe_neighbour_01',
+  'rp_tourism_01', 'rp_hotel_01', 'rp_restaurant_01', 'rp_train_01', 'rp_camping_01', 'rp_lost_property_01',
 ];
 
 /**
@@ -121,6 +123,66 @@ const OTHER_GOOD_ANSWERS: Record<string, string> = {
   'rpc_23_06#3': "L'après-midi, parce que je me lève tard.",
   'rpc_23_06#4': 'Pour un match de foot. Trois jours.',
   'rpc_23_06#5': "J'ai mangé dans un bon restaurant.",
+  'rpe_hotel_01#1': 'Deux nuits.',
+  'rpe_hotel_01#2': 'On est trois.',
+  'rpe_hotel_01#3': "En train. C'était fatigant.",
+  'rpe_hotel_01#4': 'Le musée, car il est célèbre.',
+  'rpe_hotel_01#5': 'Vers sept heures et demie.',
+  'rpe_restaurant_01#1': 'Nous sommes cinq.',
+  'rpe_restaurant_01#2': 'Un jus de pomme.',
+  'rpe_restaurant_01#3': 'Le poisson, car je ne mange pas de viande.',
+  'rpe_restaurant_01#4': "Du riz avec des légumes. C'était bon.",
+  'rpe_restaurant_01#5': 'On va aller au cinéma.',
+  'rpe_campsite_01#1': 'Une semaine.',
+  'rpe_campsite_01#2': 'Nous sommes six.',
+  'rpe_campsite_01#3': 'Faire du vélo, parce que la région est belle.',
+  'rpe_campsite_01#4': "Nous étions à la montagne. C'était magnifique.",
+  'rpe_campsite_01#5': 'Des pâtes.',
+  'rpe_exchange_01#1': 'Une journée entière.',
+  'rpe_exchange_01#2': 'Le poulet et les frites.',
+  'rpe_exchange_01#3': "Dans un petit village. C'est calme.",
+  'rpe_exchange_01#4': "Nous sommes allés au cinéma. C'était bien.",
+  'rpe_exchange_01#5': 'Je voudrais voir la tour Eiffel.',
+  'rpe_school_01#1': 'Je suis en Year 10.',
+  'rpe_school_01#2': "J'adore l'histoire.",
+  'rpe_school_01#3': "Je suis contre, car c'est moche.",
+  'rpe_school_01#4': "J'ai joué au basket en EPS. C'était amusant.",
+  'rpe_school_01#5': "Travailler, parce que je veux gagner de l'argent.",
+  'rpe_pharmacy_01#1': "J'ai mal au ventre.",
+  'rpe_pharmacy_01#2': 'Depuis deux jours.',
+  'rpe_pharmacy_01#3': 'Je suis allé à la plage.',
+  'rpe_pharmacy_01#4': 'Dix jours, au camping.',
+  'rpe_pharmacy_01#5': 'Rester dans ma chambre.',
+  'rpe_clothes_01#1': 'Une veste.',
+  'rpe_clothes_01#2': 'En noir.',
+  'rpe_clothes_01#3': 'Du L. Moins de cinquante euros.',
+  'rpe_clothes_01#4': 'Au centre commercial, car il y a beaucoup de choix.',
+  'rpe_clothes_01#5': 'Un jean et une chemise blanche.',
+  'rpe_cinema_01#1': "Un film d'horreur.",
+  'rpe_cinema_01#2': 'Vers dix-neuf heures.',
+  'rpe_cinema_01#3': "À la maison, car c'est moins cher.",
+  'rpe_cinema_01#4': "Un match de foot. C'était nul.",
+  'rpe_cinema_01#5': "Chez moi, parce que c'est tout près.",
+  'rpe_party_01#1': 'Vendredi prochain.',
+  'rpe_party_01#2': 'Toute la classe.',
+  'rpe_party_01#3': 'Un gâteau au chocolat et de la limonade.',
+  'rpe_party_01#4': "Je suis allée au restaurant avec ma famille. C'était super.",
+  'rpe_party_01#5': "De la pop, parce que tout le monde aime ça.",
+  'rpe_beach_clean_01#1': 'Samedi prochain.',
+  'rpe_beach_clean_01#2': 'Toute la journée.',
+  'rpe_beach_clean_01#3': "Parce que j'aime la nature. Je vais au collège à pied.",
+  'rpe_beach_clean_01#4': 'Les bouteilles, car on ne les met pas à la poubelle.',
+  'rpe_beach_clean_01#5': "J'ai recyclé des bouteilles.",
+  'rpe_careers_01#1': "L'histoire, l'espagnol et les sciences.",
+  'rpe_careers_01#2': 'Je voudrais devenir professeur.',
+  'rpe_careers_01#3': 'Parce que je veux aider les gens. Il faut un diplôme.',
+  'rpe_careers_01#4': "Dans mon pays, car ma famille est là-bas.",
+  'rpe_careers_01#5': 'Je vais faire un stage.',
+  'rpe_neighbour_01#1': 'Depuis une semaine.',
+  'rpe_neighbour_01#2': 'Avec ma mère et mes deux sœurs.',
+  'rpe_neighbour_01#3': "Les magasins. Je déteste la pluie.",
+  'rpe_neighbour_01#4': 'Je suis allé au parc avec mon père.',
+  'rpe_neighbour_01#5': 'Je vais jouer au foot dans un club.',
 };
 
 /**
@@ -131,7 +193,7 @@ const EMPTY_ANSWERS = ['Je ne sais pas.', 'Bonjour.', 'Oui.', 'Euh…', 'Pardon 
 
 // Sanity markers for `modelFull` against its task's time frame, on the normalised text.
 const PAST =
-  /\b(?:ai|as|a|avons|avez|ont|suis|es|est|sommes|etes|sont)(?: \w+){0,2} (?:visite|nage|perdu|fait|joue|regarde|mange|travaille|achete|offert|ecoute|vu|commence|laisse|allee?s?|reserve|pris|eu|garde|lu)\b|\b(?:c etait|partait|avais|avait)\b/;
+  /\b(?:ai|as|a|avons|avez|ont|suis|es|est|sommes|etes|sont)(?: \w+){0,2} (?:visite|nage|perdu|fait|joue|regarde|mange|travaille|achete|offert|ecoute|vu|commence|laisse|allee?s?|venue?s?|reserve|pris|eu|garde|lu|dure|invite|porte|recycle)\b|\b(?:c etait|partait|avais|avait)\b/;
 const FUTURE = /\b(?:vais|vas|va|allons|allez|vont)(?: \w+)? \w+(?:er|ir|re|oir)\b|\b(?:voudrais|aimerais|serons|serai|sera)\b/;
 
 const TU_FORMS = /\b(?:tu|ton|ta|tes|toi|t)\b/;
@@ -219,8 +281,8 @@ describe('role-play drill cards', () => {
 });
 
 describe('exam-style cards (current 0520 format)', () => {
-  it('are the fifteen rewritten cards, each scenario in French', () => {
-    expect(examStyle).toHaveLength(15);
+  it('are the 27 exam-style cards, each scenario in French', () => {
+    expect(examStyle).toHaveLength(27);
     for (const card of examStyle) expect(card.scenarioLang, card.id).toBe('fr');
   });
 

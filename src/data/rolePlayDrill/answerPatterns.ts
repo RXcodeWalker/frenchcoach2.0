@@ -267,3 +267,43 @@ export const LANGUAGE = words(
   'hindi', 'ourdou', 'urdu', 'russe', 'japonais', 'neerlandais', 'polonais', 'turc', 'gujarati', 'tamoul', 'bengali',
   'punjabi', 'pendjabi', 'coreen', 'grec', 'swahili', 'malais', 'gallois', 'langues?', 'un peu',
 );
+
+export const SUBJECT = words(
+  'maths', 'mathematiques', 'francais', 'anglais', 'histoire', 'geographie', 'histoire geo', 'sciences?', 'physique',
+  'chimie', 'biologie', 'svt', 'eps', 'sport', 'dessin', 'arts?(?: plastiques)?', 'musique', 'informatique', 'espagnol',
+  'allemand', 'italien', 'chinois', 'technologie', 'theatre', 'langues?', 'economie', 'religion', 'latin', 'philosophie',
+  'cuisine', 'commerce', 'psychologie', 'sociologie',
+);
+
+export const JOB = words(
+  'medecin', 'docteur', 'infirmier\\w*', 'professeur\\w*', 'prof', 'avocat\\w*', 'ingenieur\\w*', 'veterinaire', 'architecte',
+  'journaliste', 'acteur', 'actrice', 'chanteur\\w*', 'footballeur\\w*', 'policier\\w*', 'pompier', 'pilote',
+  'informaticien\\w*', 'developpeur\\w*', 'cuisinier\\w*', 'chef', 'coiffeur\\w*', 'dentiste', 'pharmacien\\w*',
+  'vendeur\\w*', 'comptable', 'programmeur\\w*', 'scientifique', 'musicien\\w*', 'artiste', 'photographe', 'designer',
+  'mecanicien\\w*', 'electricien\\w*', 'banquier\\w*', 'homme d affaires', 'femme d affaires', 'chercheur\\w*',
+  'ne sais pas encore', 'pas encore', 'aucune idee', 'travailler (?:dans|avec|comme|a) \\w+', 'etre \\w+', 'devenir \\w+',
+);
+
+export const SYMPTOM = words(
+  'mal (?:a la|au|aux|a l) \\w+', 'mal', 'tete', 'gorge', 'ventre', 'dos', 'dents', 'oreilles?', 'fievre', 'rhume', 'grippe',
+  'tousse', 'toux', 'malade', 'fatigue\\w*', 'vomi\\w*', 'nausee', 'allergi\\w*', 'piqure', 'coup de soleil', 'brule\\w*',
+  'blesse\\w*', 'enrhume\\w*', 'chaud', 'froid', 'jambe', 'bras', 'pied', 'main', 'genou', 'yeux', 'oeil',
+);
+
+export const FILM_GENRE = words(
+  'comedies?', 'action', 'horreur', 'aventure', 'science fiction', 'dessins? animes?', 'animation', 'romantique',
+  'policiers?', 'thriller', 'drames?', 'documentaires?', 'fantastique', 'super heros', 'film d \\w+', 'film de \\w+',
+  'n importe', 'films? \\w+',
+);
+
+export const MUSIC = words(
+  'pop', 'rock', 'rap', 'hip hop', 'jazz', 'classique', 'electro', 'reggae', 'k pop', 'r b', 'country', 'musique \\w+',
+  'chansons?', 'de tout', 'variete', 'disco', 'metal', 'techno', 'house', 'bollywood', 'afro\\w*', 'latino',
+);
+
+/** What someone does for the environment. */
+export const GREEN_ACTION = words(
+  'recycl\\w*', 'trie', 'trier', 'velo', 'a pied', 'transports?(?: en commun)?', 'eteins', 'eteindre', 'economis\\w*',
+  'eau', 'electricite', 'douches?', 'plastique', 'gourde', 'sacs?', 'compost', 'legumes', 'bio', 'rien', 'pas grand chose',
+  'evit\\w*', 'marche', 'bus', 'train', 'ramass\\w*', 'nettoy\\w*', 'plante\\w*', 'arbres?', 'lumiere',
+);
