@@ -8,6 +8,7 @@ import { deriveDemandLevel } from '../../domain/learn/demand/deriveDemandLevel';
 import { levelLabel } from '../../domain/learn/ability/levelLabel';
 import type { SelectionReason } from '../../domain/learn/selection/types';
 import { enter, slide } from '../../components/motion/variants';
+import { vocabCue, vocabSpoken } from '../../domain/pronunciation/lab/vocabSpeech';
 
 interface Props {
   question: Question;
@@ -20,6 +21,8 @@ interface Props {
   selectionReason?: SelectionReason | null;
   /** Mobile: a centred stage instead of a card; Listen moves in with the other links. */
   compact?: boolean;
+  /** The microphone is open: a vocabulary chip then stays silent, so no sound lands in the answer. */
+  micOpen?: boolean;
 }
 
 const COGNITIVE_DEMAND_LABEL: Record<string, string> = {
@@ -48,7 +51,7 @@ const LINK = 'inline-flex h-11 items-center gap-1.5 text-[13px] font-semibold tr
  * and a phrase frame, on reward-soft) and "Why this
  * question" (recessed). Compact renders the same content as a centred stage.
  */
-export function QuestionCard({ question, showHint, onToggleHint, onSkip, isReview, selectionReason, compact = false }: Props) {
+export function QuestionCard({ question, showHint, onToggleHint, onSkip, isReview, selectionReason, compact = false, micOpen = false }: Props) {
   const [revealedVocab, setRevealedVocab] = useState<string | null>(null);
   const [showWhy, setShowWhy] = useState(false);
 
@@ -83,7 +86,12 @@ export function QuestionCard({ question, showHint, onToggleHint, onSkip, isRevie
           <button
             key={word.fr}
             type="button"
-            onClick={() => setRevealedVocab(open ? null : word.fr)}
+            onClick={() => {
+              setRevealedVocab(open ? null : word.fr);
+              // Opening a chip also says the word (never while the mic is open).
+              const spoken = open || micOpen ? null : vocabSpoken(word.fr);
+              if (spoken) void TTS.speak(spoken, { recorded: true });
+            }}
             aria-label={`${word.fr}: ${word.en}`}
             aria-expanded={open}
             className="flex h-11 items-center"
@@ -100,6 +108,7 @@ export function QuestionCard({ question, showHint, onToggleHint, onSkip, isRevie
                   className="absolute bottom-[calc(100%+6px)] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-control bg-ink px-2 py-1 text-caption font-medium text-surface"
                 >
                   {word.en}
+                  {vocabCue(word.fr) && <span className="ml-1.5 font-normal opacity-80" data-testid="vocab-cue">· {vocabCue(word.fr)}</span>}
                 </span>
               )}
             </span>

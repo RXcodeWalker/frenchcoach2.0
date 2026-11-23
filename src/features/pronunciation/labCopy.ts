@@ -218,3 +218,30 @@ export function checkAllowanceLine(remaining: number | null, sentences: number, 
   }
   return `${remaining} checks left today (the check uses one for each sentence you say).`;
 }
+
+// ── The end-of-practice summary (what you did, then what's waiting) ─────────────────────────────────────
+
+/** "Nice work — 2 sentences practised". Never a grade. */
+export function summaryHeadline(sentences: number): string {
+  return `Nice work — ${sentences} ${plural(sentences, 'sentence', 'sentences')} practised`;
+}
+
+/** One sentence's result: "7 → 10 of 11 words clear" when it improved, else "10 of 11 words clear". */
+export function summarySentenceLine(r: { total: number; firstClear: number; bestClear: number }): string {
+  const words = plural(r.total, 'word', 'words');
+  return r.bestClear > r.firstClear
+    ? `${r.firstClear} → ${r.bestClear} of ${r.total} ${words} clear`
+    : `${r.bestClear} of ${r.total} ${words} clear`;
+}
+
+/** Words fixed on their own across the sitting; null when none. */
+export function summaryFixedLine(n: number): string | null {
+  if (n <= 0) return null;
+  return `${n} ${plural(n, 'word', 'words')} fixed in practice.`;
+}
+
+/** What is waiting in the tricky deck; null when it is empty. */
+export function summaryTrickyLine(n: number): string | null {
+  if (n <= 0) return null;
+  return `${n} ${plural(n, 'word is', 'words are')} on your tricky list — they come back for review in the Pronunciation Lab.`;
+}

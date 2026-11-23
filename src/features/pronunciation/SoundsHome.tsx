@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Ear, ChevronRight, ListChecks, PenLine } from 'lucide-react';
+import { Ear, ChevronRight, ListChecks, PenLine, Sparkles } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { fadeUp, stagger } from '../../components/motion/variants';
 import { SCORED_FAMILIES, SOUND_FAMILIES, type ScoredFamilyId } from '../../domain/pronunciation/lab/soundFamilies';
@@ -7,7 +7,8 @@ import { historyStatuses, type LabHistory } from '../../domain/pronunciation/lab
 import { SOUND_TIPS } from '../../domain/pronunciation/lab/tips';
 import type { SoundFamilyId } from '../../domain/pronunciation/lab/types';
 import { localDay, trickyDeck } from '../../domain/pronunciation/lab/trickyWords';
-import { FAMILY_STATUS_DISPLAY, HOME_INTRO, HOME_TITLE, TEXT_ONLY_NOTE, YOUR_SOUNDS_HELP, trickyCardNote } from './soundsCopy';
+import { buildTodayPlan, TODAY_TITLE } from '../../domain/pronunciation/lab/todayPlan';
+import { FAMILY_STATUS_DISPLAY, HOME_INTRO, HOME_TITLE, TEXT_ONLY_NOTE, YOUR_SOUNDS_EMPTY, YOUR_SOUNDS_HELP, trickyCardNote } from './soundsCopy';
 
 /**
  * The Lab home (pronunciation-lab plan §3.3): Your sounds, and the ways in to
@@ -21,6 +22,7 @@ import { FAMILY_STATUS_DISPLAY, HOME_INTRO, HOME_TITLE, TEXT_ONLY_NOTE, YOUR_SOU
 
 interface Props {
   history: LabHistory;
+  onOpenToday: () => void;
   onOpenGuide: (family: SoundFamilyId) => void;
   onOpenEar: () => void;
   onOpenTricky: () => void;
@@ -51,9 +53,13 @@ function ActionCard({ icon, title, note, onClick, testId }: { icon: ReactNode; t
   );
 }
 
-export function SoundsHome({ history, onOpenGuide, onOpenEar, onOpenTricky, onOpenPractise }: Props) {
+export function SoundsHome({ history, onOpenToday, onOpenGuide, onOpenEar, onOpenTricky, onOpenPractise }: Props) {
   const statuses = historyStatuses(history);
-  const deck = trickyDeck(history.words, localDay(new Date()));
+  const today = localDay(new Date());
+  const deck = trickyDeck(history.words, today);
+  const plan = buildTodayPlan(history, today);
+  // Until at least one sound has enough practice behind it, ten grey "Not enough data" chips say nothing.
+  const anyStatus = SCORED_FAMILIES.some((f) => statuses[f] !== 'notEnoughData');
 
   return (
     <motion.div className="flex flex-col gap-8" variants={stagger} initial="hidden" animate="show" data-testid="sounds-home">
@@ -61,6 +67,24 @@ export function SoundsHome({ history, onOpenGuide, onOpenEar, onOpenTricky, onOp
         <h1 className="text-h1 text-ink">{HOME_TITLE}</h1>
         <p className="text-body-l text-ink-muted">{HOME_INTRO}</p>
       </motion.div>
+
+      <motion.button
+        type="button"
+        variants={fadeUp}
+        onClick={onOpenToday}
+        data-testid="sounds-today"
+        className="flex items-center gap-4 rounded-card border border-action bg-action-soft p-5 text-left text-ink
+          transition-colors duration-state ease-smooth hover:bg-action-soft active:bg-surface-recessed"
+      >
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-control bg-action text-action-ink" aria-hidden="true">
+          <Sparkles size={22} />
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="text-[16px] font-semibold">{TODAY_TITLE}</span>
+          <span className="text-[13px] text-ink-muted">{plan.length} short steps: {plan.map((s) => s.title.toLowerCase()).join(', ')}</span>
+        </span>
+        <ChevronRight size={18} className="shrink-0 text-ink-subtle" aria-hidden="true" />
+      </motion.button>
 
       <motion.div variants={fadeUp} className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))]">
         <ActionCard icon={<PenLine size={20} />} title="Practise a sentence" note="Listen, say it, compare" onClick={onOpenPractise} testId="sounds-practise" />
@@ -71,7 +95,7 @@ export function SoundsHome({ history, onOpenGuide, onOpenEar, onOpenTricky, onOp
       <section aria-labelledby="your-sounds" className="flex flex-col gap-3">
         <motion.div variants={fadeUp} className="flex flex-col gap-1">
           <h2 id="your-sounds" className="text-section text-ink">Your sounds</h2>
-          <p className="text-body-s text-ink-muted">{YOUR_SOUNDS_HELP}</p>
+          <p className="text-body-s text-ink-muted">{anyStatus ? YOUR_SOUNDS_HELP : YOUR_SOUNDS_EMPTY}</p>
         </motion.div>
         <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,170px),1fr))]">
           {SCORED_FAMILIES.map((family: ScoredFamilyId) => {
@@ -82,16 +106,18 @@ export function SoundsHome({ history, onOpenGuide, onOpenEar, onOpenTricky, onOp
                 type="button"
                 variants={fadeUp}
                 onClick={() => onOpenGuide(family)}
-                aria-label={`${SOUND_TIPS[family].name}: ${status.label}. Open the guide`}
+                aria-label={anyStatus || statuses[family] !== 'notEnoughData' ? `${SOUND_TIPS[family].name}: ${status.label}. Open the guide` : `${SOUND_TIPS[family].name}. Open the guide`}
                 data-testid={`family-${family}`}
                 className="flex flex-col items-start gap-2 rounded-card border border-hairline bg-surface p-4 text-left text-ink
                   transition-colors duration-state ease-smooth hover:border-hairline-strong active:bg-surface-recessed"
               >
                 <span className="text-[15px] font-semibold leading-[1.3]">{SOUND_TIPS[family].name}</span>
-                <span className={`inline-flex items-center gap-1 rounded-control px-2 py-0.5 text-caption font-semibold ${status.chip}`}>
-                  {status.glyph && <span aria-hidden="true">{status.glyph}</span>}
-                  {status.label}
-                </span>
+                {(anyStatus || statuses[family] !== 'notEnoughData') && (
+                  <span className={`inline-flex items-center gap-1 rounded-control px-2 py-0.5 text-caption font-semibold ${status.chip}`}>
+                    {status.glyph && <span aria-hidden="true">{status.glyph}</span>}
+                    {status.label}
+                  </span>
+                )}
               </motion.button>
             );
           })}

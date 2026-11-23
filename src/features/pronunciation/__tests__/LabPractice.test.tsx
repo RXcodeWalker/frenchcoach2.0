@@ -436,3 +436,71 @@ describe('LabPractice → Lab history (Stage 5)', () => {
     expect(loadLabHistory().words.enfants.status).toBe('tricky');
   });
 });
+
+describe('LabPractice — slower listening, sound cues and longer answers', () => {
+  it('offers the slow-down control on Compare and on a focus word, not only on Listen', async () => {
+    assessMock.mockResolvedValueOnce(sentenceResult([95, 40, 95, 95, 95, 70]));
+    renderLab();
+    await recordTake(/Tap and say the sentence/);
+    // Compare
+    const compareSpeed = screen.getByLabelText('Speed');
+    fireEvent.change(compareSpeed, { target: { value: '0.75' } });
+    await click(screen.getByRole('button', { name: /« enfants »: Practise this/ }));
+    expect(audio.playNative).toHaveBeenLastCalledWith(['les enfants', 'enfants'], expect.objectContaining({ speed: 0.75 }));
+    // Focus
+    await click(screen.getByRole('button', { name: /Practise just this word/ }));
+    expect(screen.getByLabelText('Speed')).toBeTruthy();
+    await click(screen.getByRole('button', { name: /Hear it/ }));
+    expect(audio.playNative).toHaveBeenLastCalledWith('enfants', expect.objectContaining({ speed: 0.75 }));
+  });
+
+  it('shows what a focus word sounds roughly like, in English letters', async () => {
+    assessMock.mockResolvedValueOnce(sentenceResult([95, 40, 95, 95, 95, 70]));
+    renderLab();
+    await recordTake(/Tap and say the sentence/);
+    await click(screen.getByRole('button', { name: /« enfants »: Practise this/ }));
+    await click(screen.getByRole('button', { name: /Practise just this word/ }));
+    expect(screen.getByTestId('lab-respell').textContent).toBe('Sounds roughly like ah(n)-fah(n)');
+  });
+
+  it('says which sentence of a longer answer this is, and moves on with the first checked take kept', async () => {
+    assessMock.mockResolvedValueOnce(sentenceResult([95, 40, 95, 95, 95, 70]));
+    const onNextSentence = vi.fn();
+    const onResult = vi.fn();
+    const onDone = vi.fn();
+    render(
+      <LabPractice
+        targetSentence={SENTENCE}
+        entry="learn_feedback"
+        position={{ index: 0, total: 3 }}
+        onNextSentence={onNextSentence}
+        onResult={onResult}
+        onDone={onDone}
+        trackOpen={false}
+      />,
+    );
+    expect(screen.getByTestId('lab-position').textContent).toBe('Sentence 1 of 3');
+    expect(trackMock).not.toHaveBeenCalledWith(expect.objectContaining({ name: 'lab_opened' }));
+    expect(screen.getByRole('button', { name: 'Skip this sentence' })).toBeTruthy();
+
+    await recordTake(/Tap and say the sentence/);
+    expect(screen.getByText('Say this sentence again', { exact: false })).toBeTruthy();
+    await click(screen.getByRole('button', { name: 'Next sentence' }));
+    expect(onNextSentence).toHaveBeenCalledTimes(1);
+    expect(onResult).toHaveBeenCalledWith({ total: 6, firstClear: 4, bestClear: 4, fixedInPractice: 0, takes: 1 });
+    expect(onDone).not.toHaveBeenCalled();
+
+    await click(screen.getByRole('button', { name: 'Stop here' }));
+    expect(onDone).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports nothing for a sentence skipped without a take, and uses the leave label it is given', async () => {
+    const onResult = vi.fn();
+    const onDone = vi.fn();
+    render(<LabPractice targetSentence={SENTENCE} entry="learn_feedback" doneLabel="Done — next question" onResult={onResult} onDone={onDone} />);
+    expect(screen.queryByTestId('lab-position')).toBeNull();
+    await click(screen.getByRole('button', { name: 'Done — next question' }));
+    expect(onResult).toHaveBeenCalledWith(null);
+    expect(onDone).toHaveBeenCalledTimes(1);
+  });
+});

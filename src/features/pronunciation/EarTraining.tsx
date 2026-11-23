@@ -25,11 +25,13 @@ import { useNativePlayer } from './useNativePlayer';
 interface Props {
   /** Start on one sound's pairs (from the guide); the learner can widen it. */
   initialFamily?: SoundFamilyId | 'all';
+  /** Told once when a round is finished (the Lab's daily plan ticks its ear-training step). */
+  onRoundComplete?: () => void;
 }
 
 type Phase = { kind: 'asking' } | { kind: 'answered'; picked: string };
 
-export function EarTraining({ initialFamily = 'all' }: Props) {
+export function EarTraining({ initialFamily = 'all', onRoundComplete }: Props) {
   const reduced = useReducedMotion() ?? false;
   const native = useNativePlayer();
   const [family, setFamily] = useState<SoundFamilyId | 'all'>(initialFamily);
@@ -46,7 +48,10 @@ export function EarTraining({ initialFamily = 'all' }: Props) {
     if (finished && !reported.current) {
       reported.current = true;
       track({ name: 'ear_training_round', props: { correct: right, total: questions.length } });
+      onRoundComplete?.();
     }
+    // The callback only reports the round; a new identity must not report it again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finished, right, questions.length]);
 
   const restart = (next: SoundFamilyId | 'all' = family) => {

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import type { Question } from '../../../types';
 import type { QuestionDemands } from '../../../domain/learn/demand/types';
 import { deriveDemandLevel } from '../../../domain/learn/demand/deriveDemandLevel';
@@ -36,5 +36,39 @@ describe('QuestionCard demand chip', () => {
     render(<QuestionCard question={QUESTION} showHint={false} onToggleHint={() => {}} />);
     expect(screen.getByText(/Stretch \(B2\)/)).toBeTruthy();
     expect(document.body.textContent).not.toMatch(/B1\+|\b(C1|C2)\b/);
+  });
+});
+
+describe('QuestionCard vocabulary chips', () => {
+  const WITH_VOCAB = { ...QUESTION, keyVocab: [{ fr: 'bon', en: 'good' }, { fr: 'faire du sport', en: 'to do sport' }] } as unknown as Question;
+
+  it('says the word when its chip opens, with a "sounds like" cue for a single word', async () => {
+    const { TTS } = await import('../../../services/tts/ttsService');
+    vi.mocked(TTS.speak).mockClear();
+    render(<QuestionCard question={WITH_VOCAB} showHint={false} onToggleHint={() => {}} />);
+    fireEvent.click(screen.getByRole('button', { name: 'bon: good' }));
+    expect(TTS.speak).toHaveBeenCalledWith('bon', { recorded: true });
+    expect(screen.getByTestId('vocab-cue').textContent).toBe('· boh(n)');
+    // Closing it is silent.
+    fireEvent.click(screen.getByRole('button', { name: 'bon: good' }));
+    expect(TTS.speak).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads a phrase as written and gives it no cue', async () => {
+    const { TTS } = await import('../../../services/tts/ttsService');
+    vi.mocked(TTS.speak).mockClear();
+    render(<QuestionCard question={WITH_VOCAB} showHint={false} onToggleHint={() => {}} />);
+    fireEvent.click(screen.getByRole('button', { name: 'faire du sport: to do sport' }));
+    expect(TTS.speak).toHaveBeenCalledWith('faire du sport', { recorded: true });
+    expect(screen.queryByTestId('vocab-cue')).toBeNull();
+  });
+
+  it('stays silent while the microphone is open, so nothing lands in the answer', async () => {
+    const { TTS } = await import('../../../services/tts/ttsService');
+    vi.mocked(TTS.speak).mockClear();
+    render(<QuestionCard question={WITH_VOCAB} showHint={false} onToggleHint={() => {}} micOpen />);
+    fireEvent.click(screen.getByRole('button', { name: 'bon: good' }));
+    expect(TTS.speak).not.toHaveBeenCalled();
+    expect(screen.getByText('good', { exact: false })).toBeTruthy();
   });
 });

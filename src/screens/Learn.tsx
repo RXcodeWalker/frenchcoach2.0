@@ -89,7 +89,7 @@ import { isUnscored, averageRealScores } from '../domain/scoring';
 import { nextTopicMastery } from '../features/learn/topicAverage';
 import { resolveFeatureStatus } from '../config/featureFlags';
 import { SayItAgainCard } from '../features/feedback/components/SayItAgainCard';
-import { LabPractice } from '../features/pronunciation/LabPractice';
+import { ChunkedPractice } from '../features/pronunciation/ChunkedPractice';
 import { incrementCounter } from '../services/telemetry/localCounters';
 import { measureAnswerSpeech, type AnswerSpeech } from '../features/pronunciation/audio/answerSpeech';
 import { summarizeSpeech } from '../domain/fluency/speechMetrics';
@@ -1865,6 +1865,7 @@ export function Learn() {
                   isReview={isReviewQuestion}
                   selectionReason={currentSessionQuestion?.selectionReason}
                   compact={!desktop}
+                  micOpen={recording.isRecording}
                 />
               )}
 
@@ -1946,9 +1947,11 @@ export function Learn() {
 
               {learnState === 'feedback' && feedbackMode === 'coach' && showPracticeStep && currentQuestion && (
                 pronunciationLabLive ? (
-                  <LabPractice
-                    targetSentence={practiceTargetSentence}
+                  <ChunkedPractice
+                    text={practiceTargetSentence}
                     entry="learn_feedback"
+                    doneLabel="Done — next question"
+                    continueLabel="Next question"
                     onDone={handlePracticeStepDone}
                   />
                 ) : (

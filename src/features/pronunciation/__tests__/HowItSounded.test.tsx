@@ -202,3 +202,33 @@ describe('How it sounded', () => {
   });
 });
 
+
+describe('How it sounded — opened from the "Say it better" card', () => {
+  it('opens the practice when asked from outside, once per request, and reports it', async () => {
+    const onPractiseOpened = vi.fn();
+    const view = render(<HowItSounded answerBlob={BLOB} sentence={SENTENCE} onPractiseOpened={onPractiseOpened} openSignal={0} />);
+    await act(async () => {});
+    expect(screen.queryByTestId('lab-practice')).toBeNull();
+
+    view.rerender(<HowItSounded answerBlob={BLOB} sentence={SENTENCE} onPractiseOpened={onPractiseOpened} openSignal={1} />);
+    await act(async () => {});
+    expect(screen.getByTestId('lab-practice')).toBeTruthy();
+    expect(onPractiseOpened).toHaveBeenCalledTimes(1);
+    expect(labProps).toHaveBeenLastCalledWith(expect.objectContaining({ targetSentence: SENTENCE }));
+
+    // Leaving, then re-rendering with the same number, must not reopen it.
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+    view.rerender(<HowItSounded answerBlob={BLOB} sentence={SENTENCE} onPractiseOpened={onPractiseOpened} openSignal={1} />);
+    await act(async () => {});
+    expect(screen.queryByTestId('lab-practice')).toBeNull();
+    expect(onPractiseOpened).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays a long corrected answer sentence by sentence', async () => {
+    await renderCard({ sentence: "J'habite à Londres. J'aime le football." });
+    fireEvent.click(screen.getByRole('button', { name: 'Native' }));
+    await act(async () => {});
+    expect(audio.playNative).toHaveBeenNthCalledWith(1, "J'habite à Londres.", expect.objectContaining({ synthesize: true }));
+    expect(audio.playNative).toHaveBeenNthCalledWith(2, "J'aime le football.", expect.objectContaining({ synthesize: true }));
+  });
+});

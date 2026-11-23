@@ -17,6 +17,7 @@ import { FIX_FIRST_HEADING, coachPointGroups, hasGoFurther } from './coachPoints
 import { PronunciationCard } from './components/PronunciationCard';
 import { AzurePronunciationCard } from './components/AzurePronunciationCard';
 import { HowItSounded } from '../pronunciation/HowItSounded';
+import { SayItBetterActions } from './components/SayItBetterActions';
 import type { HeardAsNote } from '../../domain/transcription/misheardExpressions';
 import { FeedbackFooter } from './components/FeedbackFooter';
 import { MinimalResponseCard } from './components/MinimalResponseCard';
@@ -157,6 +158,8 @@ function FeedbackContent({
   const answerText = feedback.gradedTranscript?.trim() ? feedback.gradedTranscript : (transcript ?? '');
   // The notebook offer appears after a Second take or a high-scoring answer.
   const [tookSecondTake, setTookSecondTake] = useState(false);
+  // Each bump asks the "How it sounded" card to open its practice (the Say-it-better card's button).
+  const [practiseSignal, setPractiseSignal] = useState(0);
 
   // Each answered Predict check, judged against the answer and the filtered fixes.
   const calibration = useMemo(
@@ -182,14 +185,21 @@ function FeedbackContent({
   // Vocabulary, extension ideas and the model answer live only in the Full
   // report (owner, 2026-11-13: one place, not both); the script no longer
   // places "Go further" in the conversation.
+  const correctedSentence = feedback.improved_answer?.trim() ?? '';
   const renderSection = (section: 'say-it-better' | 'go-further'): ReactNode =>
     section === 'say-it-better' && answerText ? (
-      <BeforeAfterDiff
-        transcript={answerText}
-        improvedAnswer={feedback.improved_answer}
-        changes={feedback.changes}
-        title="Say it better"
-      />
+      <div className="space-y-3">
+        <BeforeAfterDiff
+          transcript={answerText}
+          improvedAnswer={feedback.improved_answer}
+          changes={feedback.changes}
+          title="Say it better"
+        />
+        {/* With the Lab live, hear and say the rewrite right here; "How it sounded" below does the rest. */}
+        {howItSounded && correctedSentence && (
+          <SayItBetterActions sentence={correctedSentence} onPractise={() => setPractiseSignal((n) => n + 1)} />
+        )}
+      </div>
     ) : null;
   const hasReportExtras = hasGoFurther(feedback) || !!modelAnswer;
 
@@ -280,6 +290,7 @@ function FeedbackContent({
           heardAs={howItSounded.heardAs}
           sentence={feedback.improved_answer || feedback.rephrase || ''}
           onPractiseOpened={howItSounded.onPractiseOpened}
+          openSignal={practiseSignal}
         />
       ) : (
         <>

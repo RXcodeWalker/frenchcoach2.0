@@ -50,6 +50,8 @@ describe('the Lab history stays local', () => {
       // HowItSounded and Learn only record a take (they never read it back into anything that leaves the device).
       'features/pronunciation/MonthlyCheck.tsx',
       'features/pronunciation/HowItSounded.tsx',
+      // The end-of-practice summary counts the tricky words waiting, on screen only (no request, no storage).
+      'features/pronunciation/ChunkedPractice.tsx',
       'screens/Progress.tsx',
       'screens/Learn.tsx',
       'screens/LearnSounds.tsx',
@@ -58,8 +60,9 @@ describe('the Lab history stays local', () => {
     const offenders = walk(SRC)
       .filter((f) => !allowed.has(rel(f)))
       .filter((f) => HISTORY_REF.test(strip(readFileSync(f, 'utf8'))))
-      // SoundsHome only takes the LabHistory type as a prop; storage.ts and accountService name the key.
-      .filter((f) => !['features/pronunciation/SoundsHome.tsx', 'services/persistence/storage.ts', 'services/account/accountService.ts'].includes(rel(f)))
+      // SoundsHome and todayPlan only take the LabHistory type (todayPlan builds today's plan from it, in memory);
+      // storage.ts and accountService name the key.
+      .filter((f) => !['features/pronunciation/SoundsHome.tsx', 'domain/pronunciation/lab/todayPlan.ts', 'services/persistence/storage.ts', 'services/account/accountService.ts'].includes(rel(f)))
       .map(rel);
     expect(offenders).toEqual([]);
   });

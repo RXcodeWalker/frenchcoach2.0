@@ -9,6 +9,7 @@ import { useSpaceToRecord } from '../../lib/useSpaceToRecord';
 import { correct, enter, enterReduced, fill } from '../../components/motion/variants';
 import { clipWindow } from '../../domain/pronunciation/lab/clipWindows';
 import { pickedFocusWord } from '../../domain/pronunciation/lab/focusWords';
+import { respellWord } from '../../domain/pronunciation/lab/respell';
 import { tokenizeSentence, watchOutFor, wordPlayTexts, type SentenceToken } from '../../domain/pronunciation/lab/textFeatures';
 import { SOUND_TIPS, tipFor } from '../../domain/pronunciation/lab/tips';
 import { buildLabTake, drillVerdict, takeWords, type LabTake, type LabWordItem } from '../../domain/pronunciation/lab/wordStates';
@@ -75,6 +76,26 @@ interface Props {
   entry: LabEntry;
   /** Leaves the Lab (Learn: on to the next question). */
   onDone: () => void;
+  /** This sentence is one of several cut from a longer answer: "Sentence 2 of 3". */
+  position?: { index: number; total: number };
+  /** Offered as the main button once there is a next sentence to move on to. */
+  onNextSentence?: () => void;
+  /** What the leave button says (Learn: "Done — next question"). */
+  doneLabel?: string;
+  /** Told what happened here just before the learner leaves or moves on; null when no take could be checked. */
+  onResult?: (result: LabSentenceResult | null) => void;
+  /** False for the second and later sentences of one answer, so one answer opens the Lab once. */
+  trackOpen?: boolean;
+}
+
+/** What one sentence's practice came to, for the summary at the end (never stored). */
+export interface LabSentenceResult {
+  total: number;
+  firstClear: number;
+  bestClear: number;
+  /** Words not clear in the best take that the learner then said clearly on their own. */
+  fixedInPractice: number;
+  takes: number;
 }
 
 const STEP_INDEX: Record<LabStep, number> = { listen: 0, say: 1, compare: 2, focus: 3 };
@@ -221,7 +242,7 @@ export function CompareSentence({
   );
 }
 
-export function LabPractice({ targetSentence, entry, onDone }: Props) {
+export function LabPractice({ targetSentence, entry, onDone, position, onNextSentence, doneLabel = 'Done', onResult, trackOpen = true }: Props) {
   const reduced = useReducedMotion() ?? false;
   const [state, dispatch] = useReducer(labPracticeReducer, initialLabPracticeState);
   // captureWav: MediaRecorder's webm sometimes can't be decoded back ("Unable to decode audio data"),
@@ -256,7 +277,7 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
   const [drillWeak, setDrillWeak] = useState<{ index: number; take: number; weak: WeakSound } | null>(null);
 
   useEffect(() => {
-    track({ name: 'lab_opened', props: { entry } });
+    if (trackOpen) track({ name: 'lab_opened', props: { entry } });
     alive.current = true;
     return () => {
       alive.current = false;
@@ -264,7 +285,7 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
       stopClip();
       stopNative();
     };
-  }, [entry]);
+  }, [entry, trackOpen]);
 
   const take = latestTake(state);
   const comparison = firstVsBest(state);
@@ -430,11 +451,27 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
     if (blob && window) await playClip(blob, window);
   };
 
-  const finish = () => {
+  /** What this sentence came to: the first and best usable takes, and words fixed on their own. */
+  const sentenceResult = (): LabSentenceResult | null => {
+    const usable = state.takes.filter((t) => t.refused === null);
+    if (usable.length === 0) return null;
+    const best = usable.reduce((b, t) => (t.counts.clear > b.counts.clear ? t : b), usable[0]);
+    return {
+      total: usable[0].counts.total,
+      firstClear: usable[0].counts.clear,
+      bestClear: best.counts.clear,
+      fixedInPractice: fixedInPractice.size,
+      takes: usable.length,
+    };
+  };
+
+  const leave = (then: () => void) => {
     stopAudio();
     abortRef.current?.abort();
-    onDone();
+    onResult?.(sentenceResult());
+    then();
   };
+  const finish = () => leave(onDone);
 
   // Space records the sentence (Listen / Say it) or the focus word (Focus); the start handler
   // re-checks busy, allowance and the take limits, so a refused take never reaches the mic.
@@ -468,6 +505,7 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
   const lastVerdict = drillsHere[drillsHere.length - 1] ?? null;
   const weakHere = drillWeak && drillWeak.index === state.focusIndex && drillWeak.take === drillsHere.length ? drillWeak.weak : null;
   const lead = focusLead(state.focusEmphasis, state.focus.map((_, i) => focusText(i)));
+  const respell = focusWord ? respellWord(focusText(state.focusIndex)) : null;
   const latestBlob = takeBlobs.current[state.takes.length - 1];
   const focusItem = focusWord && take ? takeWords(take).find((w) => w.tokenIndex === focusWord.tokenIndex) : undefined;
   const hasYourWord = Boolean(latestBlob && focusItem && clipWindow(focusItem.source));
@@ -484,7 +522,14 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
       data-testid="lab-practice"
     >
       <div className="space-y-3">
-        <p className="text-eyebrow uppercase text-action-text">Say it again</p>
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-eyebrow uppercase text-action-text">Say it again</p>
+          {position && position.total > 1 && (
+            <p className="text-caption text-ink-muted" data-testid="lab-position">
+              Sentence {position.index + 1} of {position.total}
+            </p>
+          )}
+        </div>
         <Stepper step={state.step} reduced={reduced} />
       </div>
 
@@ -562,10 +607,11 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
             <PlayButton label="Play both" play={playBoth} />
             {canRecordSentence(state) && (
               <Button variant="secondary" size="sm" onClick={() => dispatch({ type: 'sayAgain' })}>
-                <Mic size={16} aria-hidden="true" /> Say the whole sentence again
+                <Mic size={16} aria-hidden="true" /> Say {position && position.total > 1 ? 'this sentence' : 'the whole sentence'} again
               </Button>
             )}
           </div>
+          <ListenSpeedControl speed={listenSpeed} onChange={setListenSpeed} id="listen-speed-compare" />
           {lead && (
             <div className="space-y-2 rounded-control bg-surface-recessed p-3">
               <p className="text-body-s text-ink">{lead}</p>
@@ -590,6 +636,11 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
           </p>
           <p className="text-display-m text-ink" lang="fr">{focusText(state.focusIndex)}</p>
           <p className="text-body-s text-ink">{tipFor(focusWord.family, focusWord.text)}</p>
+          {respell && (
+            <p className="text-body-s text-ink-muted" data-testid="lab-respell">
+              Sounds roughly like <span className="font-semibold text-ink">{respell}</span>
+            </p>
+          )}
           <div className="flex flex-wrap gap-2">
             <PlayButton
               label="Hear it"
@@ -598,6 +649,7 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
             />
             {hasYourWord && <PlayButton label="Your take" play={() => playYourWord(focusWord.tokenIndex)} />}
           </div>
+          <ListenSpeedControl speed={listenSpeed} onChange={setListenSpeed} id="listen-speed-focus" />
           <SpeakingConsentGate>
             <RecordControl
               size="md"
@@ -685,8 +737,19 @@ export function LabPractice({ targetSentence, entry, onDone }: Props) {
         <p className="text-caption text-ink-muted">{NATIVE_UNAVAILABLE}</p>
       )}
 
-      <Button variant={showCompare && !lead ? 'primary' : 'quiet'} className="w-full" onClick={finish}>
-        Done
+      {onNextSentence && (
+        <Button
+          variant={take ? 'primary' : 'secondary'}
+          className="w-full"
+          disabled={busy}
+          onClick={() => leave(onNextSentence)}
+          data-testid="lab-next-sentence"
+        >
+          {take ? 'Next sentence' : 'Skip this sentence'}
+        </Button>
+      )}
+      <Button variant={showCompare && !lead && !onNextSentence ? 'primary' : 'quiet'} className="w-full" onClick={finish}>
+        {onNextSentence ? 'Stop here' : doneLabel}
       </Button>
     </motion.section>
   );

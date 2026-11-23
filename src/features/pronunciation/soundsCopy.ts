@@ -34,6 +34,9 @@ export const HOME_INTRO = 'Listen, say it, hear yourself next to a native speake
 
 export const YOUR_SOUNDS_HELP = `A sound shows a status after ${LAB_THRESHOLDS.family.minObservations} checked words on ${LAB_THRESHOLDS.family.minDays} different days of Lab practice. Tap a sound for its guide.`;
 
+/** Before any sound has enough practice behind it: say what will make a status appear, once, instead of ten empty chips. */
+export const YOUR_SOUNDS_EMPTY = `Practise a few sentences over a couple of days and each sound gets a status here. Until then, tap any sound for its guide.`;
+
 export const TEXT_ONLY_NOTE = 'Also in the guide — sounds you can see in the spelling:';
 
 /** A tally on the Tricky words card. */

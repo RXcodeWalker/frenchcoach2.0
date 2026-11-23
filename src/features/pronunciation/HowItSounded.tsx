@@ -11,8 +11,9 @@ import { SOUND_TIPS } from '../../domain/pronunciation/lab/tips';
 import { measureAnswerPauses } from './audio/answerPauses';
 import { playClip, stopClip } from './audio/clipPlayer';
 import { playNative, stopNative } from './audio/nativeVoice';
+import { playNativeChunks } from './audio/playChunks';
 import { NATIVE_PREPARING, NATIVE_UNAVAILABLE, flowLine } from './labCopy';
-import { LabPractice } from './LabPractice';
+import { ChunkedPractice } from './ChunkedPractice';
 import { ListenSpeedControl, useListenSpeed } from './ListenSpeed';
 
 /**
@@ -50,9 +51,14 @@ interface Props {
   heardAs?: readonly HeardAsNote[];
   /** Called once when the learner opens the Lab from the card (Learn: it is this question's practice step). */
   onPractiseOpened?: () => void;
+  /**
+   * Opens the practice from outside the card (the "Say it better" card's own button): each new number
+   * is one request. The card scrolls itself into view when it opens this way.
+   */
+  openSignal?: number;
 }
 
-export function HowItSounded({ answerBlob, sentence, heardAs = [], onPractiseOpened }: Props) {
+export function HowItSounded({ answerBlob, sentence, heardAs = [], onPractiseOpened, openSignal = 0 }: Props) {
   const reduced = useReducedMotion() ?? false;
   const [speed, changeSpeed] = useListenSpeed();
   const [pauses, setPauses] = useState<PauseStats | null>(null);
@@ -62,6 +68,11 @@ export function HowItSounded({ answerBlob, sentence, heardAs = [], onPractiseOpe
   /** Only the latest Native play may clear the "preparing" line (an older one resolves 'stopped' later). */
   const nativeCall = useRef(0);
   const alive = useRef(true);
+  const rootRef = useRef<HTMLElement | null>(null);
+  const setRoot = (el: HTMLElement | null) => {
+    rootRef.current = el;
+  };
+  const handledSignal = useRef(openSignal);
   const target = sentence.trim();
   const features = useMemo(() => (target ? watchOutFor(target) : []), [target]);
 
@@ -86,8 +97,25 @@ export function HowItSounded({ answerBlob, sentence, heardAs = [], onPractiseOpe
     };
   }, [answerBlob]);
 
+  useEffect(() => {
+    if (openSignal === handledSignal.current) return;
+    handledSignal.current = openSignal;
+    if (!target) return;
+    stopClip();
+    stopNative();
+    onPractiseOpened?.();
+    setPractising(true);
+    rootRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    // The callback only reports the open; a new identity must not reopen the practice.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openSignal, target]);
+
   if (practising) {
-    return <LabPractice targetSentence={target} entry="how_it_sounded" onDone={() => setPractising(false)} />;
+    return (
+      <div ref={setRoot}>
+        <ChunkedPractice text={target} entry="how_it_sounded" onDone={() => setPractising(false)} />
+      </div>
+    );
   }
   if (!answerBlob && !target && heardAs.length === 0) return null;
 
@@ -95,13 +123,15 @@ export function HowItSounded({ answerBlob, sentence, heardAs = [], onPractiseOpe
   const native = async (text: string, rate: number, sentence = false) => {
     stopClip();
     const call = ++nativeCall.current;
-    const result = await playNative(text, {
+    const options = {
       speed: rate,
       synthesize: sentence,
       onPreparing: () => {
         if (alive.current && call === nativeCall.current) setNativePreparing(true);
       },
-    });
+    };
+    // A corrected answer is played sentence by sentence — the same recordings the practice uses.
+    const result = sentence ? await playNativeChunks(text, options) : await playNative(text, options);
     if (!alive.current || call !== nativeCall.current) return;
     setNativePreparing(false);
     if (result === 'unavailable') setNativeUnavailable(true);
@@ -121,6 +151,7 @@ export function HowItSounded({ answerBlob, sentence, heardAs = [], onPractiseOpe
 
   return (
     <motion.section
+      ref={setRoot}
       variants={reduced ? enterReduced : enter}
       initial="hidden"
       animate="show"

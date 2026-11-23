@@ -264,7 +264,23 @@ describe('FeedbackExperience coach view (Batch 6a + 6b)', () => {
     expect(screen.getByTestId('how-it-sounded')).toBeTruthy();
     expect(screen.queryByTestId('azure-card')).toBeNull();
     expect(screen.queryByText(/Pronunciation/)).toBeNull();
-    expect(howItSoundedProps).toHaveBeenLastCalledWith({ answerBlob: blob, sentence: FEEDBACK.improved_answer, onPractiseOpened });
+    expect(howItSoundedProps).toHaveBeenLastCalledWith({ answerBlob: blob, sentence: FEEDBACK.improved_answer, onPractiseOpened, openSignal: 0 });
+  });
+
+  it('with the Lab live, the "Say it better" card offers hear-it and practise-it right under the rewrite', () => {
+    renderFeedback({ howItSounded: { answerBlob: null } });
+    // The rewrite waits for the learner to try the fixes first; its buttons wait with it.
+    expect(screen.queryByTestId('say-it-better-actions')).toBeNull();
+    showMe();
+    expect(screen.getByTestId('say-it-better-actions')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Practise saying it/ })).toBeTruthy();
+  });
+
+  it('without the Lab, no hear-it buttons under the rewrite', () => {
+    renderFeedback({});
+    showMe();
+    expect(screen.getByText('Say it better')).toBeTruthy();
+    expect(screen.queryByTestId('say-it-better-actions')).toBeNull();
   });
 
   it('without the Lab, no "How it sounded" card', () => {

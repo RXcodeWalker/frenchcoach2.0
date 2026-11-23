@@ -4,12 +4,17 @@ import { useApp } from '../context/AppContext';
 import { PageShell } from '../components/layout/PageShell';
 import { TopContextBar } from '../components/TopContextBar';
 import { historyStatuses } from '../domain/pronunciation/lab/labHistory';
+import { pairsFor } from '../domain/pronunciation/lab/earTraining';
+import { buildTodayPlan, type PlanStep, type PlanStepKind } from '../domain/pronunciation/lab/todayPlan';
+import { localDay } from '../domain/pronunciation/lab/trickyWords';
 import { SCORED_FAMILIES, type ScoredFamilyId } from '../domain/pronunciation/lab/soundFamilies';
 import { SOUND_TIPS } from '../domain/pronunciation/lab/tips';
 import type { SoundFamilyId } from '../domain/pronunciation/lab/types';
 import type { LabEntry } from '../services/telemetry/telemetryService';
 import { EarTraining } from '../features/pronunciation/EarTraining';
-import { LabPractice } from '../features/pronunciation/LabPractice';
+import { ChunkedPractice } from '../features/pronunciation/ChunkedPractice';
+import { TodayPlan } from '../features/pronunciation/TodayPlan';
+import { pickTodaySentence } from '../features/pronunciation/todaySentence';
 import { PracticePicker } from '../features/pronunciation/PracticePicker';
 import { SoundGuide } from '../features/pronunciation/SoundGuide';
 import { SoundsHome } from '../features/pronunciation/SoundsHome';
@@ -29,17 +34,19 @@ import { useLabHistory } from '../features/pronunciation/labStore';
 
 type View =
   | { kind: 'home' }
+  | { kind: 'today' }
   | { kind: 'guide'; family: SoundFamilyId }
-  | { kind: 'ear'; family: SoundFamilyId | 'all' }
-  | { kind: 'tricky' }
+  | { kind: 'ear'; family: SoundFamilyId | 'all'; back?: View; planStep?: PlanStepKind }
+  | { kind: 'tricky'; back?: View }
   | { kind: 'practise'; family: SoundFamilyId | null }
-  | { kind: 'lab'; sentence: string; entry: LabEntry; back: View; nonce: number };
+  | { kind: 'lab'; sentence: string; entry: LabEntry; back: View; nonce: number; planStep?: PlanStepKind };
 
 const HOME: View = { kind: 'home' };
 
 function subtitleOf(view: View): string {
   switch (view.kind) {
     case 'home': return 'Listen, say it, compare';
+    case 'today': return 'Today’s 5 minutes';
     case 'guide': return SOUND_TIPS[view.family].name;
     case 'ear': return 'Ear training';
     case 'tricky': return 'Tricky words';
@@ -59,12 +66,44 @@ export function LearnSounds() {
   const statuses = historyStatuses(history);
   const notebookAnswers = useMemo(() => state.notebook.map((e) => e.answer), [state.notebook]);
 
-  const openLab = (sentence: string, entry: LabEntry, back: View) =>
-    setView({ kind: 'lab', sentence, entry, back, nonce: ++nonce.current });
+  const openLab = (sentence: string, entry: LabEntry, back: View, planStep?: PlanStepKind) =>
+    setView({ kind: 'lab', sentence, entry, back, nonce: ++nonce.current, planStep });
+
+  // Today's plan: the steps it was opened with (so a finished tricky step stays on the list), and what is done this sitting.
+  const [planSteps, setPlanSteps] = useState<PlanStep[] | null>(null);
+  const [planDone, setPlanDone] = useState<ReadonlySet<PlanStepKind>>(() => new Set());
+  const markDone = (kind: PlanStepKind) => setPlanDone((prev) => new Set(prev).add(kind));
+  const livePlan = buildTodayPlan(history, localDay(new Date()));
+  const shownPlan = planSteps ?? livePlan;
+  /** A tricky step whose words are all practised now counts as done, even though it has left the live plan. */
+  const doneKinds: ReadonlySet<PlanStepKind> =
+    planSteps && !livePlan.some((s) => s.kind === 'tricky') && planSteps.some((s) => s.kind === 'tricky')
+      ? new Set([...planDone, 'tricky' as const])
+      : planDone;
+
+  const openToday = () => {
+    setPlanSteps(buildTodayPlan(history, localDay(new Date())));
+    setPlanDone(new Set());
+    setView({ kind: 'today' });
+  };
+  const startStep = (step: PlanStep) => {
+    const today: View = { kind: 'today' };
+    if (step.kind === 'tricky') {
+      setView({ kind: 'tricky', back: today });
+    } else if (step.kind === 'ear') {
+      const family = step.family && pairsFor(step.family).length > 0 ? step.family : 'all';
+      setView({ kind: 'ear', family, back: today, planStep: 'ear' });
+    } else {
+      const sentence = pickTodaySentence(step.family);
+      if (sentence) openLab(sentence, 'lab_home', today, 'sentence');
+      else setView({ kind: 'practise', family: step.family });
+    }
+  };
 
   const handleBack = () => {
     if (view.kind === 'home') navigate('/learn');
     else if (view.kind === 'lab') setView(view.back);
+    else if (view.kind === 'tricky' || view.kind === 'ear') setView(view.back ?? HOME);
     else setView(HOME);
   };
 
@@ -81,12 +120,14 @@ export function LearnSounds() {
         {view.kind === 'home' && (
           <SoundsHome
             history={history}
+            onOpenToday={openToday}
             onOpenGuide={(family) => setView({ kind: 'guide', family })}
             onOpenEar={() => setView({ kind: 'ear', family: 'all' })}
             onOpenTricky={() => setView({ kind: 'tricky' })}
             onOpenPractise={() => setView({ kind: 'practise', family: null })}
           />
         )}
+        {view.kind === 'today' && <TodayPlan steps={shownPlan} done={doneKinds} onStart={startStep} />}
         {view.kind === 'guide' && (
           <SoundGuide
             family={view.family}
@@ -96,7 +137,13 @@ export function LearnSounds() {
             onSentences={() => setView({ kind: 'practise', family: view.family })}
           />
         )}
-        {view.kind === 'ear' && <EarTraining key={view.family} initialFamily={view.family} />}
+        {view.kind === 'ear' && (
+          <EarTraining
+            key={view.family}
+            initialFamily={view.family}
+            onRoundComplete={view.planStep ? () => markDone(view.planStep as PlanStepKind) : undefined}
+          />
+        )}
         {view.kind === 'tricky' && <TrickyWords history={history} onPractiseSentence={() => setView({ kind: 'practise', family: null })} />}
         {view.kind === 'practise' && (
           <PracticePicker
@@ -107,11 +154,14 @@ export function LearnSounds() {
           />
         )}
         {view.kind === 'lab' && (
-          <LabPractice
+          <ChunkedPractice
             key={view.nonce}
-            targetSentence={view.sentence}
+            text={view.sentence}
             entry={view.entry}
-            onDone={() => setView(view.back)}
+            onDone={() => {
+              if (view.planStep) markDone(view.planStep);
+              setView(view.back);
+            }}
           />
         )}
       </PageShell>
