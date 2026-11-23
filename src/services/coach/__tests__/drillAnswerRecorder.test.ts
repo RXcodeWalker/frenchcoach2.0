@@ -58,6 +58,11 @@ describe('recordDrillAnswer', () => {
     expect(newUnlockedAchievementIds.filter((id) => /score|marks?/i.test(id))).toEqual([]);
   });
 
+  it('awards no gems', () => {
+    expect(recordDrillAnswer({ ...base, complete: true }).xpResult.gemsGain).toBe(0);
+    expect(recordDrillAnswer({ ...base, step: 4, complete: false }).xpResult.gemsGain).toBe(0);
+  });
+
   it('carries homework through to the Session', () => {
     expect(recordDrillAnswer({ ...base, complete: true, assignmentId: 'hw-1' }).session.assignmentId).toBe('hw-1');
     expect(recordDrillAnswer({ ...base, step: 3, complete: true }).session.assignmentId).toBeUndefined();

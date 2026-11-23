@@ -86,7 +86,7 @@ function _progressPct(xp: number) {
   return Math.min(100, Math.round(((xp - lvl.minXP) / (next.minXP - lvl.minXP)) * 100));
 }
 
-export function awardXP(score: number, streak = 0, source: XpSource = 'practice', options: XPGainOptions = {}): { gain: number; totalXP: number; gemsGain: number; totalGems: number; levelUp: boolean; activeBoosters: { id: string; expiresAt: string; multiplier: number }[] } {
+export function awardXP(score: number, streak = 0, source: XpSource = 'practice', options: XPGainOptions & { noGems?: boolean } = {}): { gain: number; totalXP: number; gemsGain: number; totalGems: number; levelUp: boolean; activeBoosters: { id: string; expiresAt: string; multiplier: number }[] } {
   const data = _load();
   const prevXP = data.xp;
   const prevLevel = _levelFor(prevXP);
@@ -102,7 +102,7 @@ export function awardXP(score: number, streak = 0, source: XpSource = 'practice'
   });
   data.activeBoosters = validBoosters;
 
-  const gemsGain = Math.floor(gain / 10) + scoreGemBonus(score, options.scoreCounts);
+  const gemsGain = options.noGems ? 0 : Math.floor(gain / 10) + scoreGemBonus(score, options.scoreCounts);
 
   data.xp      = prevXP + gain;
   data.totalXP = (data.totalXP || 0) + gain;
@@ -120,7 +120,7 @@ export function awardXP(score: number, streak = 0, source: XpSource = 'practice'
 }
 
 /** D5: participation path for sessions with no real assessed score — never derives XP/gems from a fabricated score. */
-export function awardParticipationXP(streak = 0, source: XpSource = 'practice'): { gain: number; totalXP: number; gemsGain: number; totalGems: number; levelUp: boolean; activeBoosters: { id: string; expiresAt: string; multiplier: number }[] } {
+export function awardParticipationXP(streak = 0, source: XpSource = 'practice', options: { noGems?: boolean } = {}): { gain: number; totalXP: number; gemsGain: number; totalGems: number; levelUp: boolean; activeBoosters: { id: string; expiresAt: string; multiplier: number }[] } {
   const data = _load();
   const prevXP = data.xp;
   const prevLevel = _levelFor(prevXP);
@@ -135,7 +135,7 @@ export function awardParticipationXP(streak = 0, source: XpSource = 'practice'):
   });
   data.activeBoosters = validBoosters;
 
-  const gemsGain = Math.floor(gain / 10);
+  const gemsGain = options.noGems ? 0 : Math.floor(gain / 10);
 
   data.xp      = prevXP + gain;
   data.totalXP = (data.totalXP || 0) + gain;

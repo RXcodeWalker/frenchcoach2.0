@@ -191,7 +191,7 @@ describe('RolePlayDrill — the offline coaching', () => {
     await answer('', examCard.tasks[1].promptFr);
     expect(screen.getByTestId('bar').textContent).toContain('Exchange 2 of');
     const missed = screen.getByTestId('drill-answer-card-0');
-    expect(within(missed).getByText(/No answer was heard/)).toBeTruthy();
+    expect(within(missed).getByText(/No response/)).toBeTruthy();
     expect(within(missed).getByText(examCard.tasks[0].modelShort)).toBeTruthy();
     fireEvent.click(screen.getByLabelText('Leave the role play'));
     expect(drillRecorder.record).not.toHaveBeenCalled();

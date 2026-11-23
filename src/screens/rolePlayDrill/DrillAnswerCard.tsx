@@ -47,7 +47,7 @@ export function DrillAnswerCard({ exchange, number, canTryAgain, onTryAgain }: P
       <h3 className="text-eyebrow uppercase text-ink-subtle">Exchange {number}</h3>
 
       {missed ? (
-        <p className="text-body-s text-ink-muted">No answer was heard, so this exchange was skipped.</p>
+        <p className="text-body-s text-ink-muted">No response.</p>
       ) : (
         <ul className="flex flex-col gap-1.5" aria-label="Parts of the question">
           {check.parts.map((part) => (
@@ -68,7 +68,7 @@ export function DrillAnswerCard({ exchange, number, canTryAgain, onTryAgain }: P
       )}
 
       <div className="flex flex-col gap-0.5 rounded-control surface-recessed p-3">
-        <span className="text-eyebrow uppercase text-ink-subtle">A short answer that works</span>
+        <span className="text-eyebrow uppercase text-ink-subtle">A 2-mark answer</span>
         <p lang="fr" className="exam-serif text-body-base text-ink">{check.modelShort}</p>
       </div>
 

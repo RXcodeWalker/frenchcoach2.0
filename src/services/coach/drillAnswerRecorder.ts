@@ -8,7 +8,7 @@
 //
 // XP (owner brief, role-play drill rebuild): `computeXPGain` at full credit when
 // every part of the task was communicated, `computeParticipationXPGain`
-// otherwise. `Session.score` is null — the drill shows and stores no mark.
+// otherwise, with no gems. `Session.score` is null — the drill shows and stores no mark.
 
 import { recordSession } from '../analytics/analyticsService';
 import { awardXP, awardParticipationXP, checkAchievements, getProgressionState } from '../progression/progressionService';
@@ -22,7 +22,7 @@ import type { Session } from '../../types';
 /** The score `computeXPGain` is asked for when every part was covered: full credit. */
 export const DRILL_FULL_CREDIT_SCORE = 10;
 
-/** The XP a checked drill answer is worth. Pure. */
+/** The XP a checked drill answer is worth. Pure. The drill earns XP only — never gems (owner, 2026-11-23). */
 export function drillXpGain(complete: boolean, streakDays: number): { gain: number; gemsGain: number } {
   return complete ? computeXPGain(DRILL_FULL_CREDIT_SCORE, streakDays) : computeParticipationXPGain(streakDays);
 }
@@ -72,8 +72,8 @@ export function recordDrillAnswer(input: DrillAnswerInput): DrillAnswerResult {
 
   const xpSource = 'story' as const;
   const xp = input.complete
-    ? awardXP(DRILL_FULL_CREDIT_SCORE, input.streakDays, xpSource)
-    : awardParticipationXP(input.streakDays, xpSource);
+    ? awardXP(DRILL_FULL_CREDIT_SCORE, input.streakDays, xpSource, { noGems: true })
+    : awardParticipationXP(input.streakDays, xpSource, { noGems: true });
   const { level } = getProgressionState();
 
   // A drill answer carries no marked score, so no score achievement can fire.
