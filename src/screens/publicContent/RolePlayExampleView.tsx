@@ -1,17 +1,20 @@
 import { MarketingLayout } from '../../components/layout/MarketingLayout';
 import { getPublicContentSeo } from '../../config/publicContentSeo';
 import { ROLE_PLAY } from '../../domain/igcse/rubric';
-import { ROLEPLAY_CARDS } from '../../data/roleplayCards';
+import { EXAM_STYLE_CARDS } from '../../data/rolePlayDrill/examStyleCards';
+import { MORE_EXAM_STYLE_CARDS } from '../../data/rolePlayDrill/moreExamStyleCards';
 import { getRolePlayExample } from '../../data/seo/rolePlays';
 import type { RolePlayExample } from '../../data/seo/types';
 import { IGCSE_PATH, ROLEPLAY_HUB_PATH, TOPICS_HUB_PATH, rolePlayPath } from '../../data/seo/paths';
 import { Eyebrow, Fr, LinkCard, PracticePanel } from './parts';
 import { FAINT, MUTED } from './styles';
 
-/** One role-play example: the card's examiner lines and task instructions, with a model reply to each task. */
+const CARDS = [...EXAM_STYLE_CARDS, ...MORE_EXAM_STYLE_CARDS];
+
+/** One role-play example: an exam-style drill card's examiner questions, with a model reply to each. */
 export function RolePlayExampleView({ slug }: { slug: string }) {
   const example: RolePlayExample | undefined = getRolePlayExample(slug);
-  const card = example ? ROLEPLAY_CARDS.find((c) => c.id === example.cardId) : undefined;
+  const card = example ? CARDS.find((c) => c.id === example.cardId) : undefined;
   if (!example || !card) return <RolePlayNotFound />;
 
   const path = rolePlayPath(example.slug);
@@ -43,36 +46,40 @@ export function RolePlayExampleView({ slug }: { slug: string }) {
             <p className="font-semibold mb-1" style={FAINT}>
               The situation
             </p>
-            <p>{card.setting}</p>
+            <p>{example.situation}</p>
+            <Fr as="p" className="mt-2">
+              {card.scenario}
+            </Fr>
           </div>
         </header>
 
         <section id="tasks">
-          <h2 className="font-display text-2xl mb-3">The {card.tasks.length} tasks, with model replies</h2>
+          <h2 className="font-display text-2xl mb-3">The {card.tasks.length} questions, with model replies</h2>
           <p className="text-base leading-relaxed mb-6" style={MUTED}>
-            Cover the model reply and say your own answer out loud, then compare. Each task is worth up to{' '}
-            {ROLE_PLAY.marksPerResponse} marks, for communicating what the task asks completely and correctly.
+            Cover the model reply and say your own answer out loud, then compare. Each answer is worth up to{' '}
+            {ROLE_PLAY.marksPerResponse} marks, for answering every part of the question completely and correctly.
+            A short answer can earn full marks.
           </p>
           <ol className="flex flex-col gap-6">
             {card.tasks.map((task) => {
-              const model = example.tasks.find((t) => t.taskId === task.task_id);
+              const model = example.tasks.find((t) => t.taskId === task.taskId);
               if (!model) return null;
               return (
-                <li key={task.task_id} className="rounded-2xl border mk-hairline p-6" style={{ background: 'var(--mk-surface)' }}>
+                <li key={task.taskId} className="rounded-2xl border mk-hairline p-6" style={{ background: 'var(--mk-surface)' }}>
                   <h3 className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--mk-accent)' }}>
-                    Task {task.task_id}
+                    Question {task.taskId}
                   </h3>
                   <p className="text-sm font-semibold mb-1" style={FAINT}>
                     The examiner says
                   </p>
                   <Fr as="p" className="text-lg leading-snug mb-4">
-                    « {task.prompt_fr} »
+                    « {task.promptFr} »
                   </Fr>
                   <p className="text-sm font-semibold mb-1" style={FAINT}>
-                    What you need to do
+                    What it asks for
                   </p>
                   <p className="text-base mb-4" style={MUTED}>
-                    {task.prompt_en}
+                    {task.promptEn}
                   </p>
                   <p className="text-sm font-semibold mb-1" style={FAINT}>
                     Model reply

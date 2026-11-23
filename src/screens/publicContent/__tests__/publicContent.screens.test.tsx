@@ -117,7 +117,8 @@ describe('public content pages (static prerender output)', () => {
         expect(text).toContain(t.note);
       }
       expect(text).toContain('The examiner says');
-      expect(text).toContain('What you need to do');
+      expect(text).toContain('What it asks for');
+      expect(text).toContain(r.situation);
     });
 
     it('answers an unknown slug with a not-found page', () => {

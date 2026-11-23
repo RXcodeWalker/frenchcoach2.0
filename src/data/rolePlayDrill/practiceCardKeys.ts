@@ -1,10 +1,10 @@
 /**
  * Answer keys for the six original practice cards in src/data/roleplayCards.ts.
  *
- * Those cards' French lines and English tasks stay in roleplayCards.ts (the
- * public role-play pages read them from there, so they are not retyped or
- * changed here); this file adds only what the drill needs on top: what each
- * task asks for (`parts`), and a short and a full model answer.
+ * Those cards' French lines and English tasks stay in roleplayCards.ts; this
+ * file adds only what the drill needs on top: what each task asks for
+ * (`parts`), and a short and a full model answer. (The public role-play pages
+ * used to read these cards; since 2026-11-23 they read exam-style cards.)
  *
  * These are the older "task card" style: the English task tells the candidate
  * what to say, and several tasks ask the candidate to ask a question. A part

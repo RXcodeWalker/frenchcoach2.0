@@ -88,8 +88,10 @@ export interface RolePlayModelTask {
 
 export interface RolePlayExample {
   slug: string;
-  /** `ROLEPLAY_CARDS[].id` — the card's French lines and English task instructions are read from there. */
+  /** An exam-style Role-play drill card's id (`EXAM_STYLE_CARDS`/`MORE_EXAM_STYLE_CARDS`) — its French scenario, examiner lines and English tasks are read from there. */
   cardId: string;
+  /** The situation in English, for the page (the card's own scenario is in French). */
+  situation: string;
   /** English page name. */
   title: string;
   /** How the examiner addresses you in this card: staff you don't know → vous. */

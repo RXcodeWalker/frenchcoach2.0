@@ -25,8 +25,8 @@ export function RolePlayHub() {
             IGCSE French role-play examples with model answers
           </h1>
           <p className="text-lg leading-relaxed" style={MUTED}>
-            {ROLE_PLAY_EXAMPLES.length} practice role plays. Each shows what the examiner says, what you have to get
-            across in each task, and a short model reply, so you can see how little it takes to score well.
+            {ROLE_PLAY_EXAMPLES.length} practice role plays. Each shows the examiner's questions, what each one asks
+            for, and a short model reply, so you can see how little it takes to score well.
           </p>
         </header>
 
@@ -57,7 +57,7 @@ export function RolePlayHub() {
           <ul className="grid gap-3 sm:grid-cols-2">
             {ROLE_PLAY_EXAMPLES.map((r) => (
               <li key={r.slug}>
-                <LinkCard href={rolePlayPath(r.slug)} title={r.title} sub={`${r.tasks.length} tasks with model replies`} />
+                <LinkCard href={rolePlayPath(r.slug)} title={r.title} sub={`${r.tasks.length} questions with model replies`} />
               </li>
             ))}
           </ul>

@@ -7,7 +7,7 @@ import { PUBLIC_CONTENT_HUB_PATHS, PUBLIC_CONTENT_PAGE_PATHS } from '../paths';
 import { SUB_TOPICS_BY_AREA } from '../../exam/bank/types';
 import { TOPICS } from '../../topics';
 import { QUESTIONS } from '../../questions';
-import { ROLEPLAY_CARDS } from '../../roleplayCards';
+import { STORY_CARDS } from '../../storyCards';
 import { TOPIC_AREA_NAMES } from '../../../features/examGuide/guideContent';
 import { topicFromDeepLink } from '../../../features/learn/topicDeepLink';
 
@@ -85,19 +85,22 @@ describe('public topic pages (docs/systems/public-seo-pages.md)', () => {
 });
 
 describe('public role-play examples', () => {
-  it('has unique slugs and reads only the original practice cards (never an exam bank set or a past paper)', () => {
+  it('has unique slugs and reads only exam-style drill cards (never an exam bank set or a past paper)', () => {
     const slugs = ROLE_PLAY_EXAMPLES.map((r) => r.slug);
     expect(new Set(slugs).size).toBe(slugs.length);
     expect(new Set(ROLE_PLAY_EXAMPLES.map((r) => r.cardId)).size).toBe(ROLE_PLAY_EXAMPLES.length);
     for (const r of ROLE_PLAY_EXAMPLES) {
-      expect(r.cardId, r.slug).toMatch(/^rp_[a-z_]+_\d+$/);
-      expect(ROLEPLAY_CARDS.some((c) => c.id === r.cardId), `${r.slug}: card ${r.cardId}`).toBe(true);
+      const card = STORY_CARDS.find((c) => c.id === r.cardId);
+      expect(card, `${r.slug}: card ${r.cardId}`).toBeDefined();
+      expect(card!.guided, `${r.slug}: an exam-style card, not an older task card`).toBe(false);
+      expect(card!.paperId, r.slug).toBeNull();
+      expect(r.situation.length, r.slug).toBeGreaterThan(20);
     }
   });
 
   it.each(ROLE_PLAY_EXAMPLES.map((r) => [r.slug, r] as const))('%s: a model reply for exactly the card’s tasks', (_slug, r) => {
-    const card = ROLEPLAY_CARDS.find((c) => c.id === r.cardId)!;
-    expect(r.tasks.map((t) => t.taskId)).toEqual(card.tasks.map((t) => t.task_id));
+    const card = STORY_CARDS.find((c) => c.id === r.cardId)!;
+    expect(r.tasks.map((t) => t.taskId)).toEqual(card.tasks.map((t) => t.taskId));
     for (const t of r.tasks) {
       expect(words(t.answer), `${r.slug} task ${t.taskId}`).toBeGreaterThanOrEqual(5);
       // Role-play replies are short and complete: never a monologue.
