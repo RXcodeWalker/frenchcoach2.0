@@ -20,7 +20,7 @@ import { isUnscored } from '../domain/scoring';
 import { STORAGE_KEYS, storageSetRaw } from '../services/persistence/storage';
 import { isSafeReturnTo } from '../utils/routeSafety';
 import type { Aim } from '../domain/learn/selection/sessionTarget';
-import type { Question } from '../types';
+import type { CoachStrength, FeedbackV2, Question } from '../types';
 import { track } from '../services/telemetry/telemetryService';
 import { MIN_PLACEMENT_PROCESSING_MS } from './placementTiming';
 
@@ -31,6 +31,20 @@ const DIAGNOSTIC_QUESTION_IDS = ['sch_01', 'sch_02', 'sch_03', 'sch_10', 'sch_11
 const MAX_RETRIES_PER_QUESTION = 2;
 
 type QuestionStatus = 'pending' | 'recording' | 'submitting' | 'retry' | 'done';
+
+/** At most this many "what your coach noticed" lines are shown on the result card. */
+const MAX_NOTICED = 3;
+
+/**
+ * The one thing worth saying back about an answer: its first quoted strength (already grounded and
+ * filtered at normalisation), else the older single `best_moment` line. Words only — never a mark.
+ */
+function noticedFrom(fb: FeedbackV2): CoachStrength | null {
+  const first = fb.strengths?.find(s => s.quote.trim() && s.why.trim());
+  if (first) return first;
+  const moment = fb.best_moment?.trim();
+  return moment ? { quote: '', why: moment } : null;
+}
 
 function bucketAim(abilityScore: number): Aim {
   if (abilityScore < 4.0) return 'comfortable';
@@ -59,7 +73,7 @@ export function OnboardingPlacement() {
   const [unavailableNotice, setUnavailableNotice] = useState(false);
   // Set when all five questions are done: the check ends on its own "here's where you start" moment
   // instead of dropping the learner onto Home with no sign it worked.
-  const [result, setResult] = useState<{ band: string; caption: string; answered: number } | null>(null);
+  const [result, setResult] = useState<{ band: string; caption: string; answered: number; noticed: CoachStrength[] } | null>(null);
   // Per-question-index "already submitted" flag — the only guard against a
   // double observeAttempt call, since appendEvidenceEvents doesn't dedupe.
   const submittedIndexesRef = useState(() => new Set<number>())[0];
@@ -79,6 +93,9 @@ export function OnboardingPlacement() {
 
   // Questions answered and marked in this run, for placement_completed.
   const answeredCountRef = useRef(0);
+  // What the coach liked in each marked answer: the placement used to throw this away, so the learner
+  // did the product's core act five times and heard nothing back about their French.
+  const noticedRef = useRef<CoachStrength[]>([]);
   // True once any question was skipped or could not be marked: the run no longer seeds the aim (docs §4.4).
   const incompleteRef = useRef(false);
   useEffect(() => {
@@ -106,7 +123,7 @@ export function OnboardingPlacement() {
         dispatch({ type: 'SET_AIM', aim });
         // A starting point, worded by the same confidence-gated read-out Learn uses — never a mark or band.
         const { band, caption } = measuredLevelDisplay(ability);
-        setResult({ band, caption, answered: answeredCountRef.current });
+        setResult({ band, caption, answered: answeredCountRef.current, noticed: noticedRef.current.slice(0, MAX_NOTICED) });
         return;
       }
       navigate(destination, { replace: true });
@@ -200,6 +217,8 @@ export function OnboardingPlacement() {
     await holdProcessing();
     setStatus('done');
     answeredCountRef.current += 1;
+    const noticed = noticedFrom(fb);
+    if (noticed) noticedRef.current.push(noticed);
     await advanceOrFinish(isLastQuestion ? beliefSnapshot : undefined);
   }, [
     recording, questionIndex, retryCount, currentQuestion, sessionId,
@@ -244,6 +263,20 @@ export function OnboardingPlacement() {
             <p className="mt-2 text-subtitle text-ink">{result.band}</p>
             <p className="mt-1 text-body-s text-ink-muted">{result.caption}</p>
           </motion.div>
+
+          {result.noticed.length > 0 && (
+            <motion.div variants={item} className="surface mb-6 rounded-card p-5" data-testid="placement-noticed">
+              <p className="text-eyebrow uppercase text-ink-subtle">What your coach liked</p>
+              <ul className="mt-3 grid gap-3">
+                {result.noticed.map((n, i) => (
+                  <li key={i} className="text-body-s text-ink-muted">
+                    {n.quote && <span className="font-semibold text-ink">« {n.quote} » </span>}
+                    {n.why}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          )}
 
           <motion.div variants={item}>
             <Button size="lg" className="w-full" onClick={() => navigate(destination, { replace: true })} data-testid="placement-result-continue">

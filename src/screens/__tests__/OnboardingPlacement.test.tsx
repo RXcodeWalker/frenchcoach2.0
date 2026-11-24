@@ -166,10 +166,40 @@ describe('OnboardingPlacement', () => {
     expect(result.textContent).toContain('Your starting level');
     expect(result.textContent).toMatch(/\((A1|A2|B1|B2)\)/); // the same CEFR-in-brackets read-out Learn uses
     expect(result.textContent).not.toMatch(/\b(score|grade|band|mark(ed)?)\b.*\d/i); // no number dressed as a mark
+    expect(screen.queryByTestId('placement-noticed')).toBeNull(); // nothing to say back when the reply has no strengths
     expect(screen.queryByTestId('location')).toBeNull(); // still here; not navigated yet
 
     fireEvent.click(screen.getByTestId('placement-result-continue'));
     expect(screen.getByTestId('location').textContent).toBe('/learn');
+  });
+
+  it('the result card says back what the coach liked, in words only, up to three lines', async () => {
+    let n = 0;
+    feedbackImpl = async () => {
+      n += 1;
+      return { scores: { overall: 7 }, wordCount: 5, strengths: [{ quote: `phrase ${n}`, why: `shows a clear link ${n}` }] };
+    };
+    renderPlacement('?returnTo=%2F');
+    for (let i = 0; i < 5; i++) {
+      recordAndStop();
+      await waitFor(() => expect(observeAttemptMock).toHaveBeenCalledTimes(i + 1));
+    }
+    const noticed = await screen.findByTestId('placement-noticed');
+    expect(noticed.textContent).toContain('What your coach liked');
+    expect(noticed.textContent).toContain('phrase 1');
+    expect(noticed.textContent).toContain('phrase 3');
+    expect(noticed.textContent).not.toContain('phrase 4'); // capped at three
+    expect(noticed.querySelectorAll('li')).toHaveLength(3);
+  });
+
+  it('falls back to best_moment, and shows no "liked" card when the reply has neither', async () => {
+    feedbackImpl = async () => ({ scores: { overall: 7 }, wordCount: 5, best_moment: 'You linked two ideas with « parce que ».' });
+    renderPlacement('?returnTo=%2F');
+    for (let i = 0; i < 5; i++) {
+      recordAndStop();
+      await waitFor(() => expect(observeAttemptMock).toHaveBeenCalledTimes(i + 1));
+    }
+    expect((await screen.findByTestId('placement-noticed')).textContent).toContain('parce que');
   });
 
   it('a rapid double-submit on one question results in exactly one observeAttempt call', async () => {
