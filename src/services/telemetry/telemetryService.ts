@@ -560,6 +560,7 @@ export type TelemetryEvent =
   | { name: 'error_screen_shown';      props: ErrorScreenShownProps }
   | { name: 'feedback_sent';           props: FeedbackSentProps }
   | { name: 'progress_viewed';         props: NoProps }
+  | { name: 'plan_viewed';             props: NoProps }
   | { name: 'profile_viewed';          props: NoProps }
   | { name: 'web_vitals';              props: WebVitalsProps }
   | { name: 'backend_cold_start';      props: BackendColdStartProps }
@@ -654,6 +655,7 @@ const DECLARED_PROPS = {
   error_screen_shown: ['area'],
   feedback_sent: ['kind', 'has_email'],
   progress_viewed: [],
+  plan_viewed: [],
   profile_viewed: [],
   web_vitals: ['lcp_ms', 'inp_ms', 'cls'],
   backend_cold_start: ['latency_ms', 'attempts', 'reached'],

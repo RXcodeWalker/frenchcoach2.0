@@ -27,6 +27,7 @@
 // marks that were already shown to the learner on their results screen.
 
 import type { CoachGoalType } from '../../types/coach';
+import { localDay, localDayOf } from '../../lib/localDay';
 import type { EvidenceDerivedSkillBelief } from '../../types/beliefs';
 import type { StoredSession } from '../analytics/analyticsService';
 import { examSummary, examAreas, learnTopicPath, EXAM_WINDOW_DAYS, type ExamArea, type ExamAreaKey } from '../../features/progress/progressSummary';
@@ -266,20 +267,45 @@ function pct(x: number): number {
   return Math.round(x * 100);
 }
 
-export function daysUntil(examDate: string | null, now: number): number | null {
-  if (!examDate) return null;
-  const t = new Date(examDate).getTime();
-  if (!Number.isFinite(t)) return null;
-  return Math.ceil((t - now) / DAY_MS);
+/** An exam date as the learner's local calendar day: a bare YYYY-MM-DD already is one. '' when unusable. */
+export function examLocalDay(examDate: string | null): string {
+  if (!examDate) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(examDate)) return examDate;
+  return localDayOf(examDate);
 }
+
+/** Whole local calendar days from `now` to the exam (0 = today, negative = passed); null without a usable date. */
+export function daysUntil(examDate: string | null, now: number): number | null {
+  const day = examLocalDay(examDate);
+  if (!day) return null;
+  const [y, m, d] = day.split('-').map(Number);
+  const [ty, tm, td] = localDay(new Date(now)).split('-').map(Number);
+  const diff = Math.round((Date.UTC(y, m - 1, d) - Date.UTC(ty, tm - 1, td)) / DAY_MS);
+  return Number.isFinite(diff) ? diff : null;
+}
+
+/**
+ * Where each phase starts, in days before the exam (inclusive): a learner with
+ * this many days or fewer left is in it. My Plan draws its road from these, so
+ * the stages it shows are the phases the coach is acting on.
+ */
+export const PHASE_STARTS_DAYS_BEFORE = { sharpen: 84, exam_month: 28, final_week: 7 } as const;
+
+/** What each phase is for — the coach's headline and My Plan's road say the same thing. */
+export const PHASE_FOCUS = {
+  build: 'cover every topic and get comfortable in past, present and future',
+  sharpen: 'fix your biggest weakness and keep every topic warm',
+  exam_month: 'one Exam Sim a week, role plays, and fix what costs you marks',
+  final_week: 'full run-throughs and confidence, no new grammar',
+} as const;
 
 export function examPhase(goalType: CoachGoalType | null, days: number | null): ExamPhase {
   if (!goalType || !EXAM_GOALS.has(goalType)) return 'no_exam';
   if (days === null) return 'no_date';
   if (days < 0) return 'after_exam';
-  if (days <= 7) return 'final_week';
-  if (days <= 28) return 'exam_month';
-  if (days <= 84) return 'sharpen';
+  if (days <= PHASE_STARTS_DAYS_BEFORE.final_week) return 'final_week';
+  if (days <= PHASE_STARTS_DAYS_BEFORE.exam_month) return 'exam_month';
+  if (days <= PHASE_STARTS_DAYS_BEFORE.sharpen) return 'sharpen';
   return 'build';
 }
 
@@ -289,13 +315,13 @@ function phaseHeadline(phase: ExamPhase, days: number | null): string | null {
     case 'final_week':
       return days === 0
         ? 'Exam day. Warm up gently, speak slowly and develop every answer.'
-        : `Exam in ${plural(days ?? 0, 'day')} — final week: full run-throughs and confidence, no new grammar.`;
+        : `Exam in ${plural(days ?? 0, 'day')} — final week: ${PHASE_FOCUS.final_week}.`;
     case 'exam_month':
-      return `Exam in ${days} days — exam month: one Exam Sim a week, role plays, and fix what costs you marks.`;
+      return `Exam in ${days} days — exam month: ${PHASE_FOCUS.exam_month}.`;
     case 'sharpen':
-      return `${weeks} weeks to your exam — sharpen: fix your biggest weakness and keep every topic warm.`;
+      return `${weeks} weeks to your exam — sharpen: ${PHASE_FOCUS.sharpen}.`;
     case 'build':
-      return `${weeks} weeks to your exam — build: cover every topic and get comfortable in past, present and future.`;
+      return `${weeks} weeks to your exam — build: ${PHASE_FOCUS.build}.`;
     case 'no_date':
       return 'No exam date yet — add it in Profile and I’ll plan your weeks around it.';
     case 'after_exam':

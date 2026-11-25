@@ -9,9 +9,12 @@ export const FEATURE_FLAGS = {
   league:            'coming-soon',
   studyGroups:       'coming-soon',
   friendChallenges:  'live',
-  roadmap:           'coming-soon',
-  mastery:           'coming-soon',
-  fluencyHeatmap:    'coming-soon',
+  // My Plan (/plan): the path to the exam, merging the old French Roadmap,
+  // Mastery Journey and Fluency Heatmap stubs (their paths redirect here).
+  // A reader of the coach brain, week plan, learner model and outcome log —
+  // it decides nothing. Rollback: 'coming-soon' (Explore tile and Home's
+  // "Full plan" link hide with it).
+  myPlan:            'live',
   rapidFire:         'live',
   speedSpeaking:     'coming-soon',
   wordDrop:          'live',
