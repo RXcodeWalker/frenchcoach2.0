@@ -79,6 +79,8 @@ export const ROUTES: RouteEntry[] = [
   { path: '/speed-speaking', kind: 'app', indexable: false },
   { path: '/roadmap', kind: 'app', indexable: false },
   { path: '/fluency-heatmap', kind: 'app', indexable: false },
+  { path: '/fluency', kind: 'app', indexable: false },
+  { path: '/fluency/drill', kind: 'app', indexable: false },
   { path: '/story-mode', kind: 'app', indexable: false },
   { path: '/scenario/:scenarioId', kind: 'dynamic', indexable: false },
   { path: '/scenario-architect', kind: 'app', indexable: false },

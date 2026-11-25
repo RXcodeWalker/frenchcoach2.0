@@ -35,7 +35,7 @@ export const FEATURES: FeatureCard[] = [
   { id: 'boss_battle', title: 'Boss Battles', description: 'Defeat grammar bosses', icon: '👾', category: 'Words & Grammar', color: '#EF4444', locked: false, screen: 'boss-battle' },
   { id: 'question_detective', title: 'Question Detective', description: 'Learn what each French question word is asking for', icon: '🔍', category: 'Words & Grammar', color: '#7C3AED', locked: false, screen: 'question-detective', badge: 'New' },
   { id: 'grammar_repair', title: 'Grammar Repair', description: 'Fix errors in your writing instantly', icon: '🔧', category: 'Words & Grammar', color: '#7C3AED', locked: true },
-  { id: 'fluency_heat', title: 'Fluency Heatmap', description: 'Visualize your speaking patterns', icon: '🌡', category: 'Insights & Plan', color: '#F59E0B', locked: true, screen: 'fluency-heatmap' },
+  { id: 'fluency_trainer', title: 'Fluency Trainer', description: 'Your speed and pauses, plus the 60-45-30 s drill', icon: '⏱', category: 'Insights & Plan', color: '#10B981', locked: false, screen: 'fluency', badge: 'New' },
   { id: 'roadmap', title: 'French Roadmap', description: 'Your personalized learning path', icon: '🗺', category: 'Insights & Plan', color: '#7C3AED', locked: true, screen: 'roadmap' },
   { id: 'mastery', title: 'Mastery Journey', description: 'Track your path to fluency', icon: '🚀', category: 'Insights & Plan', color: '#F59E0B', locked: true, screen: 'mastery' },
   { id: 'challenges', title: 'Challenges', description: 'Weekly competitive events', icon: '⚔', category: 'Compete & Rewards', color: '#EF4444', locked: true, screen: 'challenges' },

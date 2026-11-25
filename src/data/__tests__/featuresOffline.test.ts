@@ -26,7 +26,7 @@ describe('Explore tiles match their feature flags', () => {
     listening: 'listeningMode',
     survival: 'survivalMode',
     challenges: 'challenges',
-    fluency_heat: 'fluencyHeatmap',
+    fluency_trainer: 'fluencyTrainer',
     roadmap: 'roadmap',
     mastery: 'mastery',
   } as const;

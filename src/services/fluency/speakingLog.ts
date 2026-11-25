@@ -1,7 +1,7 @@
 /**
  * Learn's speaking log: one row of flow measurements per spoken answer
- * (`domain/fluency/speechMetrics.ts`), kept so a future fluency view has history
- * to draw on. Nothing reads it in the UI yet.
+ * (`domain/fluency/speechMetrics.ts`). The fluency trainer reads it, only through
+ * `features/fluency/flowSource.ts` (docs/systems/fluency-trainer.md).
  *
  * Per account (the key is account-scoped, not device-scoped), with a cloud copy in
  * Supabase `speaking_samples` (`services/sync/speakingLogSync.ts`, signed-in only).

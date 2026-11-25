@@ -71,6 +71,8 @@ import {
   SpeedSpeaking,
   FrenchRoadmap,
   FluencyHeatmap,
+  Fluency,
+  FluencyDrill,
   RolePlayDrill,
   ExamGuide,
   ScenarioArchitect,
@@ -403,6 +405,16 @@ function AppShell() {
           <Route path="/fluency-heatmap" element={
             <ComingSoonGate status={resolveFeatureStatus('fluencyHeatmap')} featureId="fluencyHeatmap" name="Fluency Heatmap" description="Visualise when and how much you've been practising." fallbackRoute="/progress" fallbackLabel="View Progress">
               <FluencyHeatmap />
+            </ComingSoonGate>
+          } />
+          <Route path="/fluency" element={
+            <ComingSoonGate status={resolveFeatureStatus('fluencyTrainer')} featureId="fluencyTrainer" name="Fluency trainer" description="Your speaking speed and pauses, and a 60-45-30 second drill to smooth them out." fallbackRoute="/progress" fallbackLabel="View Progress">
+              <Fluency />
+            </ComingSoonGate>
+          } />
+          <Route path="/fluency/drill" element={
+            <ComingSoonGate status={resolveFeatureStatus('fluencyTrainer')} featureId="fluencyTrainer" name="4-3-2 drill" description="Say one answer three times, in 60, 45 and 30 seconds." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
+              <FluencyDrill />
             </ComingSoonGate>
           } />
           {/* Story Mode became Exam's Role-play drill (2026-11-03); old links land there. */}

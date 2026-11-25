@@ -47,6 +47,8 @@ export const RapidFire = lazyScreen(() => import('../screens/RapidFire'), 'Rapid
 export const SpeedSpeaking = lazyScreen(() => import('../screens/SpeedSpeaking'), 'SpeedSpeaking');
 export const FrenchRoadmap = lazyScreen(() => import('../screens/FrenchRoadmap'), 'FrenchRoadmap');
 export const FluencyHeatmap = lazyScreen(() => import('../screens/FluencyHeatmap'), 'FluencyHeatmap');
+export const Fluency = lazyScreen(() => import('../screens/Fluency'), 'Fluency');
+export const FluencyDrill = lazyScreen(() => import('../screens/FluencyDrill'), 'FluencyDrill');
 export const ScenarioArchitect = lazyScreen(() => import('../screens/ScenarioArchitect'), 'ScenarioArchitect');
 export const ScenarioArchitectSession = lazyScreen(() => import('../screens/ScenarioArchitectSession'), 'ScenarioArchitectSession');
 export const RoleplaySession = lazyScreen(() => import('../screens/RoleplaySession'), 'RoleplaySession');
@@ -151,6 +153,8 @@ export const SCREEN_PATHS: ReadonlyArray<readonly [string, readonly AnyScreen[]]
   ['/speed-speaking', [SpeedSpeaking]],
   ['/roadmap', [FrenchRoadmap]],
   ['/fluency-heatmap', [FluencyHeatmap]],
+  ['/fluency', [Fluency]],
+  ['/fluency/drill', [FluencyDrill]],
   ['/scenario/:scenarioId', [RoleplaySession]],
   ['/scenario-architect', [ScenarioArchitect]],
   ['/scenario-architect/session', [ScenarioArchitectSession]],
