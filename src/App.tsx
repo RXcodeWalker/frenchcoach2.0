@@ -77,6 +77,7 @@ import {
   ScenarioArchitectSession,
   RoleplaySession,
   WordDrop,
+  Dictee,
   QuestionDetective,
   MasteryJourney,
   BossBattle,
@@ -413,6 +414,11 @@ function AppShell() {
           <Route path="/word-drop" element={
             <ComingSoonGate status={resolveFeatureStatus('wordDrop')} featureId="wordDrop" name="Word Drop" description="Catch falling words before they hit the ground." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
               <WordDrop />
+            </ComingSoonGate>
+          } />
+          <Route path="/dictee" element={
+            <ComingSoonGate status={resolveFeatureStatus('dictee')} featureId="dictee" name="Dictée" description="Listen to French and type what you hear." fallbackRoute="/explore" fallbackLabel="Back to Explore">
+              <Dictee />
             </ComingSoonGate>
           } />
           <Route path="/question-detective" element={

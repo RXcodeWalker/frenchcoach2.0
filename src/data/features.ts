@@ -25,6 +25,7 @@ export const FEATURES: FeatureCard[] = [
   { id: 'speed', title: 'Speed Speaking', description: 'Race against the clock', icon: '⏱', category: 'Speak & Listen', color: '#06B6D4', locked: true, screen: 'speed-speaking', needsConnection: true },
   { id: 'scenario_arch', title: 'Scenario Architect', description: 'Build custom AI roleplays on the fly', icon: '🏗️', category: 'Speak & Listen', color: '#7C3AED', locked: false, screen: 'scenario-architect', badge: 'AI', needsConnection: true },
   { id: 'daily_news', title: 'Daily News Flash', description: 'A new French story every day: listen, check, then report it', icon: '📻', category: 'Speak & Listen', color: '#7C3AED', locked: false, badge: 'New', screen: 'daily-news', needsConnection: true },
+  { id: 'dictee', title: 'Dictée', description: 'Listen to French, then type what you hear', icon: '🎧', category: 'Speak & Listen', color: '#EC4899', locked: false, screen: 'dictee', badge: 'New', needsConnection: true },
   { id: 'listening', title: 'Listening Mode', description: 'Train your ear with native audio', icon: '🎧', category: 'Speak & Listen', color: '#EC4899', locked: true, screen: 'listening-mode' },
   { id: 'accent', title: 'Accent Analyzer', description: 'AI-powered accent scoring', icon: '🎯', category: 'Speak & Listen', color: '#06B6D4', locked: false, screen: 'accent-analyzer', needsConnection: true },
   { id: 'ai_chat', title: 'AI Conversations', description: 'Chat with an AI tutor in French', icon: '🤖', category: 'Speak & Listen', color: '#06B6D4', locked: true, badge: 'New' },

@@ -15,6 +15,8 @@ export const FEATURE_FLAGS = {
   rapidFire:         'live',
   speedSpeaking:     'coming-soon',
   wordDrop:          'live',
+  // Dictée (listen and type): hand-written lines, recorded voice, deterministic marker, no AI. Rollback: 'coming-soon'.
+  dictee:            'live',
   bossBattle:        'live',
   emojiMaster:       'live',
   survivalMode:      'coming-soon',

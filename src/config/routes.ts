@@ -84,6 +84,7 @@ export const ROUTES: RouteEntry[] = [
   { path: '/scenario-architect', kind: 'app', indexable: false },
   { path: '/scenario-architect/session', kind: 'app', indexable: false },
   { path: '/word-drop', kind: 'app', indexable: false },
+  { path: '/dictee', kind: 'app', indexable: false },
   { path: '/mastery', kind: 'app', indexable: false },
   { path: '/boss-battle', kind: 'app', indexable: false },
   { path: '/emoji-master', kind: 'app', indexable: false },

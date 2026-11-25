@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
-  AudioLines, Bot, Building2, CalendarDays, Dices, Ear, Flame, Gift,
+  AudioLines, Bot, Headphones, Building2, CalendarDays, Dices, Ear, Flame, Gift,
   Handshake, Map, Medal, Mountain, Newspaper, Palmtree, Puzzle, 
   Rocket, ScanSearch, ShoppingBag, Smile, Sparkles, Swords, Target, Thermometer, Timer, Users, Wrench, Zap,
   Briefcase, CloudRain, Plane, Shield, ShoppingBasket, Stethoscope, Ticket,
@@ -15,6 +15,7 @@ import {
 const ICONS: Record<string, LucideIcon> = {
   ai_chat: Bot,
   listening: Ear,
+  dictee: Headphones,
   speaking: AudioLines,
   daily_news: Newspaper,
   grammar_repair: Wrench,

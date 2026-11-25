@@ -11,8 +11,8 @@ describe('Explore offline marking (offline support)', () => {
     }
   });
 
-  it('live speech recognition, AI and server-backed modes are marked as needing a connection', () => {
-    for (const id of ['speaking', 'speed', 'scenario_arch', 'daily_news', 'accent', 'rankings', 'xp_shop', 'mystery_box']) {
+  it('live speech recognition, AI, server-backed modes and the recorded-voice listening game are marked as needing a connection', () => {
+    for (const id of ['speaking', 'speed', 'scenario_arch', 'daily_news', 'accent', 'dictee', 'rankings', 'xp_shop', 'mystery_box']) {
       expect(byId.get(id)?.needsConnection, id).toBe(true);
     }
   });

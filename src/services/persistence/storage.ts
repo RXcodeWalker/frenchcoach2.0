@@ -103,6 +103,8 @@ export const STORAGE_KEYS = {
   rapidFireBests: 'frenchCoach_rapidFireBests',
   // ── Word Drop personal bests + last settings (a game for its own sake: no XP, no Session) ────
   wordDropBests: 'frenchCoach_wordDropBests',
+  // ── Dictée (listen and type) bests, last setup, lines to practise again (a game for its own sake: no XP, no Session) ────
+  dictee: 'frenchCoach_dictee',
   // ── Sentence Rebuilder bests, last setup and sentences mastered (a game for its own sake: no XP, no Session) ────
   sentenceRebuilder: 'frenchCoach_sentenceRebuilder',
   // ── Boss Battle personal records (versioned payload): stars and bests per boss. LOCAL ONLY — a fight writes no XP,

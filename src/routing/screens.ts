@@ -51,6 +51,7 @@ export const ScenarioArchitect = lazyScreen(() => import('../screens/ScenarioArc
 export const ScenarioArchitectSession = lazyScreen(() => import('../screens/ScenarioArchitectSession'), 'ScenarioArchitectSession');
 export const RoleplaySession = lazyScreen(() => import('../screens/RoleplaySession'), 'RoleplaySession');
 export const WordDrop = lazyScreen(() => import('../screens/WordDrop'), 'WordDrop');
+export const Dictee = lazyScreen(() => import('../screens/Dictee'), 'Dictee');
 export const QuestionDetective = lazyScreen(() => import('../screens/QuestionDetective'), 'QuestionDetective');
 export const MasteryJourney = lazyScreen(() => import('../screens/MasteryJourney'), 'MasteryJourney');
 export const BossBattle = lazyScreen(() => import('../screens/BossBattle'), 'BossBattle');
@@ -155,6 +156,7 @@ export const SCREEN_PATHS: ReadonlyArray<readonly [string, readonly AnyScreen[]]
   ['/scenario-architect', [ScenarioArchitect]],
   ['/scenario-architect/session', [ScenarioArchitectSession]],
   ['/word-drop', [WordDrop]],
+  ['/dictee', [Dictee]],
   ['/question-detective', [QuestionDetective]],
   ['/mastery', [MasteryJourney]],
   ['/boss-battle', [BossBattle]],
