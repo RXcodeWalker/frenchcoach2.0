@@ -23,6 +23,7 @@ import type { Aim } from '../domain/learn/selection/sessionTarget';
 import type { CoachStrength, FeedbackV2, Question } from '../types';
 import { track } from '../services/telemetry/telemetryService';
 import { MIN_PLACEMENT_PROCESSING_MS } from './placementTiming';
+import { placementBravo, placementNote } from '../features/onboarding/coachVoice';
 
 /** One question per CognitiveDemand, all in one well-covered base topic (docs
  * §4.4) — resolved by id, not hardcoded, so a future content edit that
@@ -58,7 +59,8 @@ export function OnboardingPlacement() {
   const rawReturnTo = searchParams.get('returnTo');
   const destination = isSafeReturnTo(rawReturnTo) ? rawReturnTo : '/';
 
-  const { dispatch } = useApp();
+  const { state, dispatch } = useApp();
+  const name = state?.profile?.username;
   const { consentStatus } = useAuth();
   const recording = useRecording(consentStatus === 'pending');
 
@@ -253,9 +255,7 @@ export function OnboardingPlacement() {
             </motion.span>
             <p className="mb-2 text-eyebrow uppercase text-progress-text">Level check complete</p>
             <h1 id="ob-place-done-h" className="text-title text-ink sm:text-h2">Your coach knows where to start.</h1>
-            <p className="mt-2 text-body-base text-ink-muted">
-              You answered {result.answered} of {total} questions out loud. There are no marks — this only sets your first questions.
-            </p>
+            <p className="mt-2 text-body-base text-ink-muted">{placementBravo(name, result.answered, total)}</p>
           </motion.div>
 
           <motion.div variants={item} className="surface mb-6 rounded-card p-5">
@@ -316,9 +316,7 @@ export function OnboardingPlacement() {
 
         <div className="mb-6">
           <h1 className="text-title text-ink sm:text-h2">Quick placement check</h1>
-          <p className="mt-2 text-body-base text-ink-muted">
-            Answer a few questions out loud so your coach can start you at the right level. There are no marks here.
-          </p>
+          <p className="mt-2 text-body-base text-ink-muted">{placementNote(questionIndex, total)}</p>
         </div>
 
         <AnimatePresence mode="wait">

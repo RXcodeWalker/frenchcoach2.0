@@ -14,6 +14,7 @@ import { preloadScreenFor } from '../routing/screens';
 import { useSfxOnChange } from '../services/sound/useSfx';
 import { track } from '../services/telemetry/telemetryService';
 import { BUILD_HOLD_MS, BUILD_STEP_MS, buildSteps, PATH_STEPS } from '../features/onboarding/planSummary';
+import { buildingNote, thanksNote } from '../features/onboarding/coachVoice';
 
 /**
  * The end of first-run setup (`/onboarding/ready`): a short "building your
@@ -114,7 +115,7 @@ export function OnboardingReady() {
             <motion.section key="building" {...stepProps} aria-labelledby="ob-build-h" data-testid="onboarding-building" className="mt-[10vh]">
               <p className="mb-3 text-eyebrow uppercase text-action-text">Setting up</p>
               <h1 id="ob-build-h" className="text-title text-ink sm:text-h2">Building your plan{name ? `, ${name}` : ''}</h1>
-              <p className="mt-2 text-body-base text-ink-muted">Shaping every session around your answers.</p>
+              <p className="mt-2 text-body-base text-ink-muted">{buildingNote(name)}</p>
 
               <div
                 className="mt-6 h-1.5 overflow-hidden rounded-pill bg-track"
@@ -180,7 +181,7 @@ export function OnboardingReady() {
                 >
                   You're all set{name ? `, ${name}` : ''}.
                 </h1>
-                <p className="mt-2 text-body-base text-ink-muted">Here's the plan your coach built from your answers.</p>
+                <p className="mt-2 text-body-base text-ink-muted">{thanksNote(name)}</p>
               </motion.div>
 
               <motion.ul variants={item} className="surface mb-4 grid gap-3.5 rounded-card p-4" aria-label="Your plan">

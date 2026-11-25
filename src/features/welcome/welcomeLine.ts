@@ -5,5 +5,5 @@ export const WELCOME_VISIBLE_MS = 5500;
 export function welcomeLine(streakDays: number): { text: string; streak: boolean } {
   if (streakDays >= 2) return { text: `${streakDays}-day streak. Keep it alive today.`, streak: true };
   if (streakDays === 1) return { text: '1-day streak. Practise today to make it two.', streak: true };
-  return { text: "Your plan for today is ready when you are.", streak: false };
+  return { text: "Good to have you back. Your plan for today is ready when you are.", streak: false };
 }

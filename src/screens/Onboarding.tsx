@@ -19,6 +19,7 @@ import { useApp } from '../context/AppContext';
 import { JUNIOR_TRACK_SELECTABLE } from '../config/launchScope';
 import type { CoachGoalType } from '../types/coach';
 import { track } from '../services/telemetry/telemetryService';
+import { surveyNote } from '../features/onboarding/coachVoice';
 
 type WizardStep = 1 | 2 | 3;
 type ExamBoard = 'igcse' | 'gcse' | 'a_level' | 'delf' | 'none';
@@ -241,7 +242,7 @@ export function Onboarding() {
         <AnimatePresence mode="wait">
           {step === 1 && (
             <motion.section key="step1" {...stepProps} aria-labelledby="ob-h1">
-              <StepHeading id="ob-h1" title="What are you studying for?" subtitle="Your coach will personalise every session around your goal." />
+              <StepHeading id="ob-h1" title="What are you studying for?" subtitle={isEditMode ? 'Your coach will personalise every session around your goal.' : surveyNote('exam_board')} />
               <div role="radiogroup" aria-labelledby="ob-h1" className="grid gap-2.5">
                 {BOARDS.map(({ value, label, sub, Icon }) => (
                   <OptionCard
@@ -288,7 +289,7 @@ export function Onboarding() {
 
           {step === 2 && (
             <motion.section key="step2" {...stepProps} aria-labelledby="ob-h2">
-              <StepHeading id="ob-h2" title="When is your exam?" subtitle="Your coach will ramp up intensity as the date approaches." />
+              <StepHeading id="ob-h2" title="When is your exam?" subtitle={isEditMode ? 'Your coach will ramp up intensity as the date approaches.' : surveyNote('exam_date')} />
 
               {pastDateWarning && (
                 <div role="alert" className="mb-4 flex items-start gap-2.5 rounded-control border border-reward bg-reward-soft p-3 text-body-s text-reward-text">
@@ -332,7 +333,7 @@ export function Onboarding() {
 
           {step === 3 && (
             <motion.section key="step3" {...stepProps} aria-labelledby="ob-h3">
-              <StepHeading id="ob-h3" title="What's your main goal?" subtitle="This shapes how your coach designs each session." />
+              <StepHeading id="ob-h3" title="What's your main goal?" subtitle={isEditMode ? 'This shapes how your coach designs each session.' : surveyNote('goal_intent')} />
               <div role="radiogroup" aria-labelledby="ob-h3" className="grid gap-2.5">
                 {INTENTS.map(({ value, label, sub, Icon }) => (
                   <OptionCard
