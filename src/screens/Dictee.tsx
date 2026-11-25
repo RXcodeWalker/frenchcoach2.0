@@ -150,6 +150,7 @@ export function Dictee() {
             setGame(g => (g ? giveUp(g) : g));
           }}
           onNext={() => setGame(g => (g ? next(g) : g))}
+          onLeave={() => setConfirmLeave(true)}
         />
         <Modal
           open={confirmLeave}

@@ -313,6 +313,16 @@ describe('My slips', () => {
 });
 
 describe('leaving a round', () => {
+  it('Escape in the answer box asks first, and Keep playing returns to the box', async () => {
+    await start();
+    type('ab');
+    act(() => { fireEvent.keyDown(box(), { key: 'Escape' }); });
+    expect(screen.getByText('Leave this round?')).toBeTruthy();
+    click(byTestId('dictee-stay'));
+    expect(screen.queryByText('Leave this round?')).toBeNull();
+    expect(box().value).toBe('ab');
+  });
+
   it('asks first, keeps the learner there on "Keep playing", and drops the round on "Leave round"', async () => {
     await start();
     click(screen.getByRole('button', { name: 'Leave round' }));

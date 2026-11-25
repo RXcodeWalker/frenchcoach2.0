@@ -33,6 +33,9 @@ async function openDictee(page: Page) {
   await page.goto('/explore');
   await page.getByRole('button', { name: /Dictée/ }).first().click();
   await expect(page.getByTestId('dictee-start')).toBeVisible();
+  // The app re-mounts its routes once while it settles after load (the guest identity resolves); a round started
+  // in that first second would be thrown away with them. A learner doesn't click that fast; a test does.
+  await page.waitForTimeout(2000);
 }
 
 test.describe('Dictée', () => {

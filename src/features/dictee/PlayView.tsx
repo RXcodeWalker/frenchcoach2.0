@@ -22,6 +22,8 @@ interface Props {
   onSubmit: (typed: string) => void;
   onGiveUp: () => void;
   onNext: () => void;
+  /** Escape in the answer box: ask whether to leave the round. */
+  onLeave: () => void;
 }
 
 const TONE_CLASS: Record<Tone, string> = {
@@ -38,7 +40,7 @@ const TONE_CLASS: Record<Tone, string> = {
  * never alone. The only movement is the progress bar's `fill` and the named
  * `correct` entrance of the verdict.
  */
-export function PlayView({ game, playing, onListen, onMeaning, onSubmit, onGiveUp, onNext }: Props) {
+export function PlayView({ game, playing, onListen, onMeaning, onSubmit, onGiveUp, onNext, onLeave }: Props) {
   const reduced = useReducedMotion();
   const rise = reduced ? enterReduced : enter;
   const line = currentItem(game);
@@ -152,7 +154,7 @@ export function PlayView({ game, playing, onListen, onMeaning, onSubmit, onGiveU
 
       {game.phase === 'answering' && (
         <motion.section variants={rise} initial="hidden" animate="show" className="flex flex-col gap-4 rounded-card border border-hairline bg-surface p-5 shadow-card">
-          <AnswerBox format={line.format} value={value} onChange={setValue} onSubmit={() => canCheck && onSubmit(value)} inputRef={inputRef} />
+          <AnswerBox format={line.format} value={value} onChange={setValue} onSubmit={() => canCheck && onSubmit(value)} onEscape={onLeave} inputRef={inputRef} />
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <Button size="lg" disabled={!canCheck} onClick={() => onSubmit(value)} className="sm:min-w-[160px]" data-testid="dictee-check">
               <Check size={16} aria-hidden="true" />

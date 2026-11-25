@@ -8,6 +8,8 @@ interface Props {
   onChange: (value: string) => void;
   /** Enter (without Shift) checks the answer. */
   onSubmit: () => void;
+  /** Escape inside the box: the global Escape-is-back handler stands down for typing fields, so the box asks itself. */
+  onEscape?: () => void;
   disabled?: boolean;
   inputRef: RefObject<HTMLInputElement | HTMLTextAreaElement | null>;
 }
@@ -20,7 +22,7 @@ const FIELD =
  * Where the answer is typed. Spell-check, autocorrect and capitalisation are
  * all off: the field must not fix the spelling the learner is being tested on.
  */
-export function AnswerBox({ format, value, onChange, onSubmit, disabled, inputRef }: Props) {
+export function AnswerBox({ format, value, onChange, onSubmit, onEscape, disabled, inputRef }: Props) {
   const shared = {
     value,
     disabled,
@@ -38,6 +40,12 @@ export function AnswerBox({ format, value, onChange, onSubmit, disabled, inputRe
       if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
         e.preventDefault();
         onSubmit();
+      } else if (e.key === 'Escape' && onEscape) {
+        e.preventDefault();
+        // The dialog this opens listens for Escape on `document`; this same keydown is still on its way there
+        // and would close it again at once. (jsdom's synchronous act() hides this; a real browser does not.)
+        e.stopPropagation();
+        onEscape();
       }
     },
   };
