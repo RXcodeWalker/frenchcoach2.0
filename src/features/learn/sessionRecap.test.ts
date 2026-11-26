@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { demandPracticeCounts, earnsConfetti, practisedLine } from './sessionRecap';
+import { demandPracticeCounts, practisedLine } from './sessionRecap';
 import type { SessionQuestion } from '../../types';
 import type { CognitiveDemand } from '../../domain/learn/demand/types';
 
@@ -29,14 +29,5 @@ describe('practisedLine', () => {
     for (const d of ['describe', 'explain', 'justify', 'compare', 'hypothesize'] as const) {
       expect(practisedLine({ demand: d, count: 1 })).not.toMatch(/hypothesize|justify/);
     }
-  });
-});
-
-describe('earnsConfetti', () => {
-  it('only for a real average of 7 or more', () => {
-    expect(earnsConfetti(null)).toBe(false);
-    expect(earnsConfetti(6.9)).toBe(false);
-    expect(earnsConfetti(7)).toBe(true);
-    expect(earnsConfetti(9.2)).toBe(true);
   });
 });

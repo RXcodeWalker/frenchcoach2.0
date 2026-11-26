@@ -21,8 +21,6 @@ const ALLOWED: Record<string, string> = {
     'guarded — early-returns a "not graded" card when isUnscored(feedback), before the scoreEntries render',
   'src/screens/learn/FeedbackPanel.tsx':
     'guarded — isUnscored(feedback) ternary renders a "not graded" block instead of the score grid',
-  'src/screens/learn/SessionComplete.tsx':
-    'guarded — `unscored ? "Not graded" : scores.overall.toFixed(1)` ternary (component is also dead code, no importer)',
   'src/screens/Learn.tsx':
     'data computation only (XP branch, Session.score write, streak logic) — all gated on the `unscored` flag',
   'src/screens/ScenarioArchitectSession.tsx':

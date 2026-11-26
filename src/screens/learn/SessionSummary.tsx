@@ -1,9 +1,11 @@
-import { useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Zap, MessageSquare, Flame, Gem, ArrowRight, RotateCcw, Home, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import confetti from 'canvas-confetti';
+import { motion, useReducedMotion } from 'framer-motion';
+import { ArrowRight, Flame, Gem, Home, MessageSquare, RotateCcw, Trophy, Zap } from 'lucide-react';
+import { Button } from '../../components/ui/Button';
+import { TopicChip } from '../../components/ui/TopicChip';
+import { enter, enterReduced, fill, stagger } from '../../components/motion/variants';
 import { averageRealScores, scoreTone } from '../../domain/scoring';
-import { demandPracticeCounts, earnsConfetti, practisedLine } from '../../features/learn/sessionRecap';
+import { demandPracticeCounts, practisedLine } from '../../features/learn/sessionRecap';
+import { summaryHeadline } from '../../features/learn/sessionRecapCopy';
 import { shownBestScore } from '../../features/learn/markingLevel';
 import type { ActiveSession, SkillProfile, TopicMasteryEntry } from '../../types';
 import { useSfxOnChange } from '../../services/sound/useSfx';
@@ -20,7 +22,7 @@ interface Props {
   session: ActiveSession;
   currentSkillProfile: SkillProfile;
   topicLabel: string;
-  topicIcon: string;
+  topicKey: string;
   topicMastery: TopicMasteryEntry | null;
   onContinueTopic: () => void;
   onNewTopic: () => void;
@@ -39,27 +41,32 @@ function computeSkillDeltas(session: ActiveSession, current: SkillProfile): Skil
     .slice(0, 4);
 }
 
-function formatDuration(startedAt: string): string {
-  const mins = Math.round((Date.now() - new Date(startedAt).getTime()) / 60000);
-  return mins < 1 ? '<1 min' : `${mins} min`;
+function minutesSince(startedAt: string): number {
+  return Math.round((Date.now() - new Date(startedAt).getTime()) / 60000);
 }
 
+/**
+ * The end of a Learn session (Design System v2). The headline is worked out
+ * from this session's own facts (`summaryHeadline`), never a fixed cheer; no
+ * emoji, confetti or glow — a result screen is calm.
+ */
 export function SessionSummary({
   session,
   currentSkillProfile,
   topicLabel,
-  topicIcon,
+  topicKey,
   topicMastery,
   onContinueTopic,
   onNewTopic,
   onHome,
 }: Props) {
+  const reduced = useReducedMotion();
   // Neutral on purpose: the summary sounds the same however the session went.
   useSfxOnChange('complete', true, 250);
   const deltas = computeSkillDeltas(session, currentSkillProfile);
   const practised = demandPracticeCounts(session.questions);
   const completedQs = session.questions.filter(q => q.status === 'completed');
-  // learn-marking §8.2 — the average (and its confetti) is at the learner's marking level.
+  // learn-marking §8.2 — the average is at the learner's marking level.
   const avgScore = averageRealScores(completedQs.map(shownBestScore));
 
   const totalWords = session.questions.reduce((a, q) => {
@@ -69,188 +76,135 @@ export function SessionSummary({
   }, 0);
 
   const allSavedVocab = session.questions.flatMap(q => q.savedVocab);
+  const topRiser = deltas.find(d => d.delta > 0)?.name ?? null;
+  const { title, line } = summaryHeadline({
+    topicLabel,
+    answered: completedQs.length,
+    avgScore,
+    words: totalWords,
+    minutes: minutesSince(session.startedAt),
+    mastered: topicMastery?.mastered === true,
+    topSkill: topRiser,
+  });
 
-  const accentColor = avgScore == null ? 'var(--action)' : scoreTone(avgScore);
-
-  // Confetti is earned (average ≥ 7), not given for finishing.
-  useEffect(() => {
-    if (!earnsConfetti(avgScore)) return;
-    confetti({
-      particleCount: 80,
-      spread: 70,
-      origin: { y: 0.65 },
-      colors: ['#06B6D4', '#0EA5E9', '#6366F1', '#A855F7', '#EC4899', '#F59E0B'],
-      ticks: 400,
-      gravity: 0.85,
-    });
-  }, [avgScore]);
+  const item = reduced ? enterReduced : enter;
 
   return (
-    <motion.div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 overflow-y-auto"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <div className="absolute inset-0 bg-navy/90 backdrop-blur-2xl" />
-
-      <motion.div
-        className="relative z-10 w-full max-w-xl surface-raised border-white/10 overflow-hidden my-auto"
-        initial={{ scale: 0.9, opacity: 0, y: 30 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        transition={{ type: 'spring', damping: 20, stiffness: 150 }}
+    <div className="fixed inset-0 z-[100] flex justify-center overflow-y-auto bg-bg p-4 md:p-6" data-testid="session-summary">
+      <motion.section
+        variants={stagger}
+        initial="hidden"
+        animate="show"
+        aria-labelledby="session-summary-h"
+        className="my-auto w-full max-w-xl"
       >
-        <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`, opacity: 0.6 }} />
-
-        <div className="p-6 md:p-8 space-y-6">
-          {/* Header */}
-          <div className="text-center">
-            <div className="text-3xl mb-2">{topicIcon}</div>
-            <h2 className="text-2xl font-black text-white">Session Complete!</h2>
-            <p className="text-ink-muted text-sm mt-1">
-              {topicLabel} · {completedQs.length} question{completedQs.length === 1 ? '' : 's'} · {formatDuration(session.startedAt)}
-            </p>
+        <motion.div variants={item} className="mb-5 flex items-start gap-3.5">
+          <TopicChip topicKey={topicKey} size={40} />
+          <div className="min-w-0">
+            <p className="text-eyebrow uppercase text-progress-text">Session complete</p>
+            <h2 id="session-summary-h" className="text-title text-ink">{title}</h2>
+            <p className="mt-1 text-body-s text-ink-muted">{line}</p>
           </div>
+        </motion.div>
 
-          {/* 4-stat grid */}
-          <div className="grid grid-cols-4 gap-2">
-            <StatTile
-              icon={<span className="text-lg" style={{ color: accentColor }}>{avgScore == null ? '—' : avgScore.toFixed(1)}</span>}
-              label={avgScore == null ? 'Not Graded' : 'Avg Score'}
-            />
-            <StatTile
-              icon={<Zap size={16} className="text-progress-text" />}
-              label={`+${session.xpAccumulated} XP`}
-            />
-            <StatTile
-              icon={<Flame size={16} className="text-streak-text" />}
-              label={`🔥 ${session.bestStreak}`}
-            />
-            <StatTile
-              icon={<Gem size={16} className="text-info-text" />}
-              label={`+${session.gemsAccumulated}`}
-            />
-          </div>
+        <motion.div variants={item} className="mb-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+          <StatTile
+            label={avgScore == null ? 'Not graded' : 'Average'}
+            value={avgScore == null ? '—' : avgScore.toFixed(1)}
+            valueStyle={avgScore == null ? undefined : { color: scoreTone(avgScore) }}
+          />
+          <StatTile label="XP" value={`+${session.xpAccumulated}`} icon={<Zap size={14} className="text-reward-text" aria-hidden="true" />} />
+          <StatTile label="Best run" value={String(session.bestStreak)} icon={<Flame size={14} className="text-streak-text" aria-hidden="true" />} />
+          <StatTile label="Gems" value={`+${session.gemsAccumulated}`} icon={<Gem size={14} className="text-info-text" aria-hidden="true" />} />
+        </motion.div>
 
-          {/* Words spoken */}
-          {totalWords > 0 && (
-            <div className="flex items-center gap-3 p-3 rounded-xl surface-recessed">
-              <MessageSquare size={14} className="text-action-text flex-shrink-0" />
-              <span className="text-sm text-ink-muted">
-                <span className="font-bold text-white">{totalWords}</span> words spoken this session
-              </span>
+        {topicMastery?.mastered && (
+          <motion.div variants={item} className="mb-4 flex items-center gap-3 rounded-card border border-hairline bg-reward-soft p-4">
+            <Trophy size={22} className="shrink-0 text-reward-text" aria-hidden="true" />
+            <div>
+              <p className="text-[15px] font-semibold text-reward-text">Topic mastered</p>
+              <p className="text-body-s text-reward-text">{topicLabel} is now in your mastered collection.</p>
             </div>
-          )}
+          </motion.div>
+        )}
 
-          {/* Skill deltas */}
-          {deltas.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-bold text-ink-muted uppercase tracking-wide">Skills this session</p>
+        {totalWords > 0 && (
+          <motion.div variants={item} className="mb-4 flex items-center gap-3 rounded-card surface-recessed p-3">
+            <MessageSquare size={16} className="shrink-0 text-action-text" aria-hidden="true" />
+            <span className="text-body-s text-ink-muted">
+              <span className="font-semibold text-ink">{totalWords}</span> words spoken this session
+            </span>
+          </motion.div>
+        )}
+
+        {deltas.length > 0 && (
+          <motion.div variants={item} className="surface mb-4 rounded-card p-4">
+            <p className="mb-3 text-eyebrow uppercase text-ink-subtle">Skills this session</p>
+            <div className="grid gap-3">
               {deltas.map(d => (
                 <div key={d.skillId} className="flex items-center gap-3">
-                  <p className="text-xs text-ink-muted w-28 truncate flex-shrink-0">{d.name}</p>
-                  <div className="flex-1 relative h-1.5 bg-track rounded-full overflow-hidden">
-                    <div
-                      className="absolute top-0 left-0 h-full rounded-full transition-all"
-                      style={{
-                        width: `${Math.round(d.before * 100)}%`,
-                        background: 'var(--hairline-strong)',
-                      }}
-                    />
-                    <motion.div
-                      className="absolute top-0 left-0 h-full rounded-full"
-                      style={{ background: d.delta > 0 ? 'var(--progress)' : 'var(--correction)' }}
+                  <p className="w-28 shrink-0 truncate text-body-s text-ink-muted">{d.name}</p>
+                  <div className="relative h-1.5 flex-1 overflow-hidden rounded-pill bg-track">
+                    <span className="absolute left-0 top-0 h-full rounded-pill bg-hairline-strong" style={{ width: `${Math.round(d.before * 100)}%` }} />
+                    <motion.span
+                      className={`absolute left-0 top-0 h-full rounded-pill ${d.delta > 0 ? 'bg-progress' : 'bg-correction'}`}
                       initial={{ width: `${Math.round(d.before * 100)}%` }}
                       animate={{ width: `${Math.round(d.after * 100)}%` }}
-                      transition={{ duration: 1, delay: 0.5, ease: 'easeOut' }}
+                      transition={fill(0.3)}
                     />
                   </div>
-                  <div className="flex items-center gap-1 w-14 flex-shrink-0 justify-end">
-                    {d.delta > 0
-                      ? <TrendingUp size={10} className="text-progress-text" />
-                      : d.delta < 0
-                      ? <TrendingDown size={10} className="text-correction-text" />
-                      : <Minus size={10} className="text-ink-subtle" />
-                    }
-                    <span className={`text-[10px] font-bold ${d.delta > 0 ? 'text-progress-text' : d.delta < 0 ? 'text-correction-text' : 'text-ink-subtle'}`}>
-                      {d.delta > 0 ? '+' : ''}{Math.round(d.delta * 100)}%
-                    </span>
-                  </div>
+                  <span className={`w-12 shrink-0 text-right font-numeral text-[13px] ${d.delta > 0 ? 'text-progress-text' : 'text-correction-text'}`}>
+                    {d.delta > 0 ? '+' : ''}{Math.round(d.delta * 100)}%
+                  </span>
                 </div>
               ))}
             </div>
-          )}
+          </motion.div>
+        )}
 
-          {/* What was practised — plain counts, not mastery percentages */}
-          {practised.length > 0 && (
-            <div className="space-y-1">
-              <p className="text-xs font-bold text-ink-muted uppercase tracking-wide">What you practised</p>
+        {practised.length > 0 && (
+          <motion.div variants={item} className="surface mb-4 rounded-card p-4">
+            <p className="mb-2 text-eyebrow uppercase text-ink-subtle">What you practised</p>
+            <div className="grid gap-1">
               {practised.map(p => (
-                <p key={p.demand} className="text-sm text-ink-muted">{practisedLine(p)}</p>
+                <p key={p.demand} className="text-body-s text-ink-muted">{practisedLine(p)}</p>
               ))}
             </div>
-          )}
+          </motion.div>
+        )}
 
-          {/* Saved vocab */}
-          {allSavedVocab.length > 0 && (
-            <div className="p-3 rounded-xl surface-recessed space-y-1">
-              <p className="text-eyebrow text-ink-subtle uppercase">Saved vocabulary ({allSavedVocab.length})</p>
-              <p className="text-sm text-ink-muted">{allSavedVocab.join(' · ')}</p>
-            </div>
-          )}
+        {allSavedVocab.length > 0 && (
+          <motion.div variants={item} className="mb-4 rounded-card surface-recessed p-4">
+            <p className="mb-1 text-eyebrow uppercase text-ink-subtle">Saved vocabulary ({allSavedVocab.length})</p>
+            <p className="text-body-s text-ink-muted">{allSavedVocab.join(' · ')}</p>
+          </motion.div>
+        )}
 
-          {/* Topic mastery badge */}
-          {topicMastery?.mastered && (
-            <motion.div
-              className="p-4 rounded-2xl bg-reward-soft border border-hairline text-center"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.4 }}
-            >
-              <p className="text-2xl mb-1">🏆</p>
-              <p className="text-sm font-black text-reward-text">Topic Mastered!</p>
-              <p className="text-xs text-reward-text mt-0.5">{topicLabel} is now in your mastered collection</p>
-            </motion.div>
-          )}
-
-          {/* Action buttons */}
-          <div className="flex flex-col gap-2 pt-1">
-            <motion.button
-              onClick={onContinueTopic}
-              className="w-full btn-primary py-3.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              Continue {topicLabel} <ArrowRight size={16} />
-            </motion.button>
-            <div className="flex gap-2">
-              <motion.button
-                onClick={onNewTopic}
-                className="flex-1 py-3 rounded-2xl surface-recessed text-white font-semibold text-sm flex items-center justify-center gap-2"
-                whileTap={{ scale: 0.97 }}
-              >
-                <RotateCcw size={14} /> New topic
-              </motion.button>
-              <motion.button
-                onClick={onHome}
-                className="flex-1 py-3 rounded-2xl border border-white/8 hover:border-white/15 text-ink-muted hover:text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all"
-                whileTap={{ scale: 0.97 }}
-              >
-                <Home size={14} /> Home
-              </motion.button>
-            </div>
+        <motion.div variants={item} className="flex flex-col gap-2 pt-1">
+          <Button size="lg" className="w-full" onClick={onContinueTopic}>
+            Continue {topicLabel} <ArrowRight size={18} aria-hidden="true" />
+          </Button>
+          <div className="flex gap-2">
+            <Button variant="secondary" className="flex-1" onClick={onNewTopic}>
+              <RotateCcw size={16} aria-hidden="true" /> New topic
+            </Button>
+            <Button variant="secondary" className="flex-1" onClick={onHome}>
+              <Home size={16} aria-hidden="true" /> Home
+            </Button>
           </div>
-        </div>
-      </motion.div>
-    </motion.div>
+        </motion.div>
+      </motion.section>
+    </div>
   );
 }
 
-function StatTile({ icon, label }: { icon: React.ReactNode; label: string }) {
+function StatTile({ label, value, icon, valueStyle }: { label: string; value: string; icon?: React.ReactNode; valueStyle?: React.CSSProperties }) {
   return (
-    <div className="p-3 rounded-xl surface-recessed text-center space-y-1">
-      <div className="flex justify-center">{icon}</div>
-      <p className="text-[10px] font-bold text-ink-muted leading-tight">{label}</p>
+    <div className="surface rounded-card p-3 text-center">
+      <p className="font-numeral text-[22px] leading-tight text-ink" style={valueStyle}>{value}</p>
+      <p className="mt-0.5 flex items-center justify-center gap-1 text-[12px] font-semibold text-ink-muted">
+        {icon}{label}
+      </p>
     </div>
   );
 }

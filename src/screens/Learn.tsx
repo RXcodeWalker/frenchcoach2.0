@@ -30,6 +30,8 @@ import type { PronunciationAssessment } from '../domain/pronunciation/types';
 import { LearnExaminerFeedback } from '../features/feedback/teacher/LearnExaminerFeedback';
 import { pickFollowUpPrompt } from '../domain/learn/feedback/followUpQuestion';
 import { detectFirsts, type FirstId } from '../features/feedback/teacher/firsts';
+import { FIRST_ANSWER_ID, provesFirstAnswer } from '../features/learn/firstAnswer';
+import { FirstAnswerToast } from '../features/learn/FirstAnswerToast';
 import type { NotebookDraft } from '../domain/learn/notebook/notebook';
 import { getSessionHistory } from '../services/analytics/analyticsService';
 import { examinerFailureKind, isExaminerFeedbackEmpty, type ExaminerFailureKind, type ExaminerFeedback } from '../services/coaching/examinerFeedback';
@@ -145,6 +147,8 @@ export function Learn() {
   const [feedback, setFeedback] = useState<FeedbackV2 | null>(null);
   // Batch 6c — milestone firsts the teacher proved for THIS answer (see firsts.ts).
   const [firsts, setFirsts] = useState<FirstId[]>([]);
+  // The learner's first marked answer ever: a one-off achievement card (firstAnswer.ts).
+  const [firstAnswerOpen, setFirstAnswerOpen] = useState(false);
   const [isLoadingFeedback, setIsLoadingFeedback] = useState(false);
   const [isRetry, setIsRetry] = useState(false);
   const [showMidToast, setShowMidToast] = useState(false);
@@ -668,6 +672,14 @@ export function Learn() {
 
     // Only a conversation is shown for a full answer; a minimal one has no place to say it.
     setFirsts((fb.responseTier ?? 3) >= 2 ? proveFirsts(transcript) : []);
+    // Proven from the stored history BEFORE this answer is recorded below, and said once ever.
+    if (
+      (fb.responseTier ?? 3) >= 2 &&
+      provesFirstAnswer({ priorSessions: getSessionHistory().length, firstsSeen: state.firstsSeen, marked: !unscored })
+    ) {
+      dispatch({ type: 'MARK_FIRSTS_SEEN', ids: [FIRST_ANSWER_ID] });
+      setFirstAnswerOpen(true);
+    }
 
     const orchestration = orchestrateAttempt({
       session,
@@ -2029,13 +2041,15 @@ export function Learn() {
         )}
       </AnimatePresence>
 
+      <FirstAnswerToast open={firstAnswerOpen} name={state.profile?.username} onDismiss={() => setFirstAnswerOpen(false)} />
+
       <AnimatePresence>
         {learnState === 'session_summary' && activeSession && selectedTopic && (
           <SessionSummary
             session={activeSession}
             currentSkillProfile={state.skillProfile}
             topicLabel={selectedTopic.label}
-            topicIcon={selectedTopic.icon}
+            topicKey={selectedTopic.key}
             topicMastery={topicMastery[selectedTopic.key] ?? null}
             onContinueTopic={handleContinueTopic}
             onNewTopic={handleNewTopic}
