@@ -69,16 +69,17 @@ import {
   InviteCode,
   RapidFire,
   SpeedSpeaking,
-  FrenchRoadmap,
-  FluencyHeatmap,
+  MyPlan,
+  Fluency,
+  FluencyDrill,
   RolePlayDrill,
   ExamGuide,
   ScenarioArchitect,
   ScenarioArchitectSession,
   RoleplaySession,
   WordDrop,
+  Dictee,
   QuestionDetective,
-  MasteryJourney,
   BossBattle,
   EmojiMaster,
   MysteryBox,
@@ -395,14 +396,23 @@ function AppShell() {
               <DuelDetail />
             </ComingSoonGate>
           } />
-          <Route path="/roadmap" element={
-            <ComingSoonGate status={resolveFeatureStatus('roadmap')} featureId="roadmap" name="French Roadmap" description="Your personalised path from A1 to C1, milestone by milestone." fallbackRoute="/progress" fallbackLabel="View Progress">
-              <FrenchRoadmap />
+          <Route path="/plan" element={
+            <ComingSoonGate status={resolveFeatureStatus('myPlan')} featureId="myPlan" name="My Plan" description="Your path from today to the exam, stage by stage." fallbackRoute="/progress" fallbackLabel="View Progress">
+              <MyPlan />
             </ComingSoonGate>
           } />
-          <Route path="/fluency-heatmap" element={
-            <ComingSoonGate status={resolveFeatureStatus('fluencyHeatmap')} featureId="fluencyHeatmap" name="Fluency Heatmap" description="Visualise when and how much you've been practising." fallbackRoute="/progress" fallbackLabel="View Progress">
-              <FluencyHeatmap />
+          {/* French Roadmap, Mastery Journey and Fluency Heatmap became My Plan (2026-11-25); old links land there. */}
+          <Route path="/roadmap" element={<Navigate to="/plan" replace />} />
+          <Route path="/fluency-heatmap" element={<Navigate to="/plan" replace />} />
+          <Route path="/mastery" element={<Navigate to="/plan" replace />} />
+          <Route path="/fluency" element={
+            <ComingSoonGate status={resolveFeatureStatus('fluencyTrainer')} featureId="fluencyTrainer" name="Fluency trainer" description="Your speaking speed and pauses, and a 60-45-30 second drill to smooth them out." fallbackRoute="/progress" fallbackLabel="View Progress">
+              <Fluency />
+            </ComingSoonGate>
+          } />
+          <Route path="/fluency/drill" element={
+            <ComingSoonGate status={resolveFeatureStatus('fluencyTrainer')} featureId="fluencyTrainer" name="4-3-2 drill" description="Say one answer three times, in 60, 45 and 30 seconds." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
+              <FluencyDrill />
             </ComingSoonGate>
           } />
           {/* Story Mode became Exam's Role-play drill (2026-11-03); old links land there. */}
@@ -415,14 +425,14 @@ function AppShell() {
               <WordDrop />
             </ComingSoonGate>
           } />
+          <Route path="/dictee" element={
+            <ComingSoonGate status={resolveFeatureStatus('dictee')} featureId="dictee" name="Dictée" description="Listen to French and type what you hear." fallbackRoute="/explore" fallbackLabel="Back to Explore">
+              <Dictee />
+            </ComingSoonGate>
+          } />
           <Route path="/question-detective" element={
             <ComingSoonGate status={resolveFeatureStatus('questionDetective')} featureId="questionDetective" name="Question Detective" description="Learn what each French question word is asking for." fallbackRoute="/explore" fallbackLabel="Back to Explore">
               <QuestionDetective />
-            </ComingSoonGate>
-          } />
-          <Route path="/mastery" element={
-            <ComingSoonGate status={resolveFeatureStatus('mastery')} featureId="mastery" name="Mastery Journey" description="Track your CEFR progress across all grammar and vocab domains." fallbackRoute="/progress" fallbackLabel="View Progress">
-              <MasteryJourney />
             </ComingSoonGate>
           } />
           <Route path="/boss-battle" element={

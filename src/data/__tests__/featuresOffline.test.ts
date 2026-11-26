@@ -11,8 +11,8 @@ describe('Explore offline marking (offline support)', () => {
     }
   });
 
-  it('live speech recognition, AI and server-backed modes are marked as needing a connection', () => {
-    for (const id of ['speaking', 'speed', 'scenario_arch', 'daily_news', 'accent', 'rankings', 'xp_shop', 'mystery_box']) {
+  it('live speech recognition, AI, server-backed modes and the recorded-voice listening game are marked as needing a connection', () => {
+    for (const id of ['speaking', 'speed', 'scenario_arch', 'daily_news', 'accent', 'dictee', 'rankings', 'xp_shop', 'mystery_box']) {
       expect(byId.get(id)?.needsConnection, id).toBe(true);
     }
   });
@@ -26,9 +26,8 @@ describe('Explore tiles match their feature flags', () => {
     listening: 'listeningMode',
     survival: 'survivalMode',
     challenges: 'challenges',
-    fluency_heat: 'fluencyHeatmap',
-    roadmap: 'roadmap',
-    mastery: 'mastery',
+    my_plan: 'myPlan',
+    fluency_trainer: 'fluencyTrainer',
   } as const;
 
   it('locks every tile whose flag is coming-soon', () => {

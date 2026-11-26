@@ -5,6 +5,7 @@ import { hasContent, type ReviewChange, type ReviewDone, type ReviewPlannedItem,
 
 interface WeeklyReviewCardProps {
   review: WeeklyReview | null | undefined;
+  /** Shows the dismiss button (Home); My Plan shows the review without one. */
   onDismiss?: () => void;
 }
 
@@ -95,14 +96,16 @@ export function WeeklyReviewCard({ review, onDismiss }: WeeklyReviewCardProps) {
           <h2 className="text-eyebrow uppercase text-ink-subtle">Last week</h2>
           <span className="font-numeral text-caption text-ink-subtle">{formatDateRange(review.weekStart, review.weekEnd)}</span>
         </div>
-        <button
-          type="button"
-          onClick={onDismiss}
-          aria-label="Dismiss weekly review"
-          className="-m-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-control text-ink-subtle transition-colors duration-state ease-smooth hover:bg-track hover:text-ink"
-        >
-          <X size={16} aria-hidden="true" />
-        </button>
+        {onDismiss && (
+          <button
+            type="button"
+            onClick={onDismiss}
+            aria-label="Dismiss weekly review"
+            className="-m-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-control text-ink-subtle transition-colors duration-state ease-smooth hover:bg-track hover:text-ink"
+          >
+            <X size={16} aria-hidden="true" />
+          </button>
+        )}
       </div>
 
       <Section title="What you did">

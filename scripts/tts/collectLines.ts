@@ -34,6 +34,7 @@ import { guideTexts, lexiconTexts } from '../../src/domain/pronunciation/lab/lex
 import { normalizeSpokenText } from '../../src/services/tts/voiceKey';
 import { NEWS_EDITIONS } from '../../src/data/news';
 import { NEWS_LEVELS } from '../../src/data/news/types';
+import { DICTEE_ITEMS, acceptedSpellings } from '../../src/data/dictee';
 
 export type LineSource =
   | 'exam'
@@ -45,7 +46,8 @@ export type LineSource =
   | 'lab-guide'
   | 'lab-words'
   | 'lab-sentences'
-  | 'news';
+  | 'news'
+  | 'dictee';
 
 export interface CatalogueLine {
   /** The authored text, exactly as the app speaks it (and as Azure receives it). */
@@ -178,6 +180,16 @@ export function newsLines(): string[] {
 }
 
 /**
+ * Dictée (listen and type): every word and sentence of the hand-written bank,
+ * exactly as the screen plays it (`TTS.speak(item.fr, { recorded: true })`, at
+ * normal and slow speed — the same file, played slower), plus any alternative
+ * spelling that is equally right.
+ */
+export function dicteeLines(): string[] {
+  return DICTEE_ITEMS.flatMap((item) => acceptedSpellings(item));
+}
+
+/**
  * The whole catalogue, deduplicated by `normalizeSpokenText` (the key the
  * recording is stored under). Exam sets come from the bundled fixtures, which
  * `npm run authoring:parity` keeps identical to the backend's published bank.
@@ -200,6 +212,8 @@ export function collectLines(): CatalogueLine[] {
     ['lab-sentences', labSentenceLines()],
     // Daily News (daily-news §5, §7): every sentence of every level, plus every line Henri says in the show.
     ['news', newsLines()],
+    // Dictée: its own hand-written words and sentences (a few are also in the lexicon; the first source wins).
+    ['dictee', dicteeLines()],
   ];
 
   const seen = new Set<string>();
