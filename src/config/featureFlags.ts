@@ -15,6 +15,10 @@ export const FEATURE_FLAGS = {
   // it decides nothing. Rollback: 'coming-soon' (Explore tile and Home's
   // "Full plan" link hide with it).
   myPlan:            'live',
+  // docs/systems/fluency-trainer.md — the fluency view (/fluency) and the 4-3-2
+  // drill (/fluency/drill), built on Learn's speaking log. No AI call, no quota;
+  // thresholds UNVALIDATED (the screens say so). Rollback: 'coming-soon'.
+  fluencyTrainer:    'live',
   rapidFire:         'live',
   speedSpeaking:     'coming-soon',
   wordDrop:          'live',

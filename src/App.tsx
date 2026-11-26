@@ -70,6 +70,8 @@ import {
   RapidFire,
   SpeedSpeaking,
   MyPlan,
+  Fluency,
+  FluencyDrill,
   RolePlayDrill,
   ExamGuide,
   ScenarioArchitect,
@@ -403,6 +405,16 @@ function AppShell() {
           <Route path="/roadmap" element={<Navigate to="/plan" replace />} />
           <Route path="/fluency-heatmap" element={<Navigate to="/plan" replace />} />
           <Route path="/mastery" element={<Navigate to="/plan" replace />} />
+          <Route path="/fluency" element={
+            <ComingSoonGate status={resolveFeatureStatus('fluencyTrainer')} featureId="fluencyTrainer" name="Fluency trainer" description="Your speaking speed and pauses, and a 60-45-30 second drill to smooth them out." fallbackRoute="/progress" fallbackLabel="View Progress">
+              <Fluency />
+            </ComingSoonGate>
+          } />
+          <Route path="/fluency/drill" element={
+            <ComingSoonGate status={resolveFeatureStatus('fluencyTrainer')} featureId="fluencyTrainer" name="4-3-2 drill" description="Say one answer three times, in 60, 45 and 30 seconds." fallbackRoute="/learn" fallbackLabel="Practice Speaking">
+              <FluencyDrill />
+            </ComingSoonGate>
+          } />
           {/* Story Mode became Exam's Role-play drill (2026-11-03); old links land there. */}
           <Route path="/story-mode" element={<Navigate to="/exam/role-play" replace />} />
           <Route path="/scenario/:scenarioId" element={<RoleplaySession />} />

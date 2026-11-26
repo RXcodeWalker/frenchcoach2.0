@@ -7,7 +7,8 @@
  * nothing is marked, and the thresholds are UNVALIDATED heuristics, versioned by
  * `SPEECH_METRICS_VERSION` so a later change can't be silently mixed with older samples.
  *
- * Feeds the local speaking log (`services/fluency/speakingLog.ts`) only.
+ * Feeds the local speaking log (`services/fluency/speakingLog.ts`) and the fluency
+ * trainer's 4-3-2 drill rounds (docs/systems/fluency-trainer.md).
  */
 
 import type { TrimResult } from '../examPronunciation/trim';

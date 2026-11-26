@@ -138,6 +138,8 @@ export const STORAGE_KEYS = {
   notifyDailyGoal:               'frenchCoach_notifyDailyGoal',
   // ── Learn speaking log: per-answer flow measurements (local only) ───────────────
   speakingLog:                   'frenchCoach_speakingLog',
+  // ── Fluency trainer: finished 4-3-2 drills (numbers only, local only) ─────────
+  fluencyDrills:                 'frenchCoach_fluencyDrills',
   // ── Exam guide: opened once (auto-opens before the first Exam Sim until then) ───
   examGuideSeen:                 'frenchCoach_examGuideSeen',
   // ── Learner model (docs/systems/learner-model.md): per-skill decayed Beta stats.

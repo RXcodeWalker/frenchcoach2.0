@@ -27,6 +27,8 @@ describe('the speaking log reaches only its own table', () => {
       'services/persistence/storage.ts',
       'services/account/accountService.ts',
       'screens/Learn.tsx',
+      // fluency-trainer §2: the trainer's one reader (read only).
+      'features/fluency/flowSource.ts',
     ]);
     const offenders = walk(SRC)
       .filter((f) => !allowed.has(rel(f)))

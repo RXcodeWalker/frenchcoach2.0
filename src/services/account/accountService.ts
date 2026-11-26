@@ -138,6 +138,7 @@ export async function deleteMyAccount(): Promise<void> {
   storageRemove(STORAGE_KEYS.notebook);
   storageRemove(STORAGE_KEYS.pronunciationLab);
   storageRemove(STORAGE_KEYS.speakingLog);
+  storageRemove(STORAGE_KEYS.fluencyDrills);
   storageRemove(STORAGE_KEYS.learnerTrack);
   storageRemove(STORAGE_KEYS.junior);
   storageRemove(STORAGE_KEYS.coachOutcomeLog);

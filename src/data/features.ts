@@ -36,6 +36,7 @@ export const FEATURES: FeatureCard[] = [
   { id: 'boss_battle', title: 'Boss Battles', description: 'Defeat grammar bosses', icon: '👾', category: 'Words & Grammar', color: '#EF4444', locked: false, screen: 'boss-battle' },
   { id: 'question_detective', title: 'Question Detective', description: 'Learn what each French question word is asking for', icon: '🔍', category: 'Words & Grammar', color: '#7C3AED', locked: false, screen: 'question-detective', badge: 'New' },
   { id: 'grammar_repair', title: 'Grammar Repair', description: 'Fix errors in your writing instantly', icon: '🔧', category: 'Words & Grammar', color: '#7C3AED', locked: true },
+  { id: 'fluency_trainer', title: 'Fluency Trainer', description: 'Your speed and pauses, plus the 60-45-30 s drill', icon: '⏱', category: 'Insights & Plan', color: '#10B981', locked: false, screen: 'fluency', badge: 'New' },
   { id: 'my_plan', title: 'My Plan', description: 'Your path to the exam: today, this week and every stage after', icon: '🗺', category: 'Insights & Plan', color: '#7C3AED', locked: false, screen: 'plan', badge: 'New' },
   { id: 'challenges', title: 'Challenges', description: 'Weekly competitive events', icon: '⚔', category: 'Compete & Rewards', color: '#EF4444', locked: true, screen: 'challenges' },
   { id: 'rankings', title: 'Rankings', description: 'See where you stand', icon: '🥇', category: 'Compete & Rewards', color: '#F59E0B', locked: false, screen: 'rankings', needsConnection: true },

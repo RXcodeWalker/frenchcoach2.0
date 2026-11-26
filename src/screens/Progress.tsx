@@ -28,6 +28,7 @@ import { ConsistencyCard } from './progress/ConsistencyCard';
 import { TopicsCard } from './progress/TopicsCard';
 import { PastAttempts } from './progress/PastAttempts';
 import { SoundsCard } from './progress/SoundsCard';
+import { FluencyLinkCard } from './progress/FluencyLinkCard';
 
 /**
  * Progress (Design System v2, frame 3a): the next step first (the screen's
@@ -114,6 +115,7 @@ export function Progress() {
         </div>
         <TopicsCard learn={learn} topics={TOPICS} />
         {sounds && <SoundsCard {...sounds} signedIn={Boolean(user)} />}
+        {resolveFeatureStatus('fluencyTrainer') === 'live' && <FluencyLinkCard />}
         <PastAttempts attempts={attempts} />
       </PageShell>
     </div>

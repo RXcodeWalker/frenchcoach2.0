@@ -46,6 +46,8 @@ export const InviteCode = lazyScreen(() => import('../screens/InviteCode'), 'Inv
 export const RapidFire = lazyScreen(() => import('../screens/RapidFire'), 'RapidFire');
 export const SpeedSpeaking = lazyScreen(() => import('../screens/SpeedSpeaking'), 'SpeedSpeaking');
 export const MyPlan = lazyScreen(() => import('../screens/MyPlan'), 'MyPlan');
+export const Fluency = lazyScreen(() => import('../screens/Fluency'), 'Fluency');
+export const FluencyDrill = lazyScreen(() => import('../screens/FluencyDrill'), 'FluencyDrill');
 export const ScenarioArchitect = lazyScreen(() => import('../screens/ScenarioArchitect'), 'ScenarioArchitect');
 export const ScenarioArchitectSession = lazyScreen(() => import('../screens/ScenarioArchitectSession'), 'ScenarioArchitectSession');
 export const RoleplaySession = lazyScreen(() => import('../screens/RoleplaySession'), 'RoleplaySession');
@@ -149,6 +151,8 @@ export const SCREEN_PATHS: ReadonlyArray<readonly [string, readonly AnyScreen[]]
   ['/rapid-fire', [RapidFire]],
   ['/speed-speaking', [SpeedSpeaking]],
   ['/plan', [MyPlan]],
+  ['/fluency', [Fluency]],
+  ['/fluency/drill', [FluencyDrill]],
   ['/scenario/:scenarioId', [RoleplaySession]],
   ['/scenario-architect', [ScenarioArchitect]],
   ['/scenario-architect/session', [ScenarioArchitectSession]],
