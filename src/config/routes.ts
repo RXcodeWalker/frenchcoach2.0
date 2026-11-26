@@ -77,6 +77,7 @@ export const ROUTES: RouteEntry[] = [
   { path: '/question-detective', kind: 'app', indexable: false },
   { path: '/rapid-fire', kind: 'app', indexable: false },
   { path: '/speed-speaking', kind: 'app', indexable: false },
+  { path: '/plan', kind: 'app', indexable: false },
   { path: '/roadmap', kind: 'app', indexable: false },
   { path: '/fluency-heatmap', kind: 'app', indexable: false },
   { path: '/story-mode', kind: 'app', indexable: false },

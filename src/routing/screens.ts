@@ -45,15 +45,13 @@ export const AgeBand = lazyScreen(() => import('../screens/AgeBand'), 'AgeBand')
 export const InviteCode = lazyScreen(() => import('../screens/InviteCode'), 'InviteCode');
 export const RapidFire = lazyScreen(() => import('../screens/RapidFire'), 'RapidFire');
 export const SpeedSpeaking = lazyScreen(() => import('../screens/SpeedSpeaking'), 'SpeedSpeaking');
-export const FrenchRoadmap = lazyScreen(() => import('../screens/FrenchRoadmap'), 'FrenchRoadmap');
-export const FluencyHeatmap = lazyScreen(() => import('../screens/FluencyHeatmap'), 'FluencyHeatmap');
+export const MyPlan = lazyScreen(() => import('../screens/MyPlan'), 'MyPlan');
 export const ScenarioArchitect = lazyScreen(() => import('../screens/ScenarioArchitect'), 'ScenarioArchitect');
 export const ScenarioArchitectSession = lazyScreen(() => import('../screens/ScenarioArchitectSession'), 'ScenarioArchitectSession');
 export const RoleplaySession = lazyScreen(() => import('../screens/RoleplaySession'), 'RoleplaySession');
 export const WordDrop = lazyScreen(() => import('../screens/WordDrop'), 'WordDrop');
 export const Dictee = lazyScreen(() => import('../screens/Dictee'), 'Dictee');
 export const QuestionDetective = lazyScreen(() => import('../screens/QuestionDetective'), 'QuestionDetective');
-export const MasteryJourney = lazyScreen(() => import('../screens/MasteryJourney'), 'MasteryJourney');
 export const BossBattle = lazyScreen(() => import('../screens/BossBattle'), 'BossBattle');
 export const EmojiMaster = lazyScreen(() => import('../screens/EmojiMaster'), 'EmojiMaster');
 export const MysteryBox = lazyScreen(() => import('../screens/MysteryBox'), 'MysteryBox');
@@ -150,15 +148,13 @@ export const SCREEN_PATHS: ReadonlyArray<readonly [string, readonly AnyScreen[]]
   ['/invite-code', [InviteCode]],
   ['/rapid-fire', [RapidFire]],
   ['/speed-speaking', [SpeedSpeaking]],
-  ['/roadmap', [FrenchRoadmap]],
-  ['/fluency-heatmap', [FluencyHeatmap]],
+  ['/plan', [MyPlan]],
   ['/scenario/:scenarioId', [RoleplaySession]],
   ['/scenario-architect', [ScenarioArchitect]],
   ['/scenario-architect/session', [ScenarioArchitectSession]],
   ['/word-drop', [WordDrop]],
   ['/dictee', [Dictee]],
   ['/question-detective', [QuestionDetective]],
-  ['/mastery', [MasteryJourney]],
   ['/boss-battle', [BossBattle]],
   ['/emoji-master', [EmojiMaster]],
   ['/mystery-box', [MysteryBox]],

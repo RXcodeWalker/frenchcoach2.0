@@ -1,28 +1,20 @@
 import { motion } from 'framer-motion';
-import { ClipboardCheck, Feather, Flag, MessagesSquare, RotateCcw, Target, Wrench, type LucideIcon } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { fadeUp } from '../../components/motion/variants';
-import type { PlanDay, PlanDayKind, WeekPlan } from '../../services/coach/weekPlan';
+import type { PlanDay, WeekPlan } from '../../services/coach/weekPlan';
+import { PLAN_DAY_VISUAL } from './planDayVisual';
 
 interface Props {
   plan: WeekPlan;
   onOpen: (to: string) => void;
   compact?: boolean;
+  /** Shows a "Full plan" link to My Plan (/plan) when given. */
+  onOpenPlan?: () => void;
 }
 
-/** Icon and role-token colours per kind. Colour only ever pairs with an icon and a label. */
-const KIND: Record<PlanDayKind, { icon: LucideIcon; chip: string; name: string }> = {
-  exam_day: { icon: Flag, chip: 'bg-action-soft text-action-text', name: 'Exam day' },
-  exam_sim: { icon: ClipboardCheck, chip: 'bg-action-soft text-action-text', name: 'Exam Sim' },
-  coached_exam: { icon: ClipboardCheck, chip: 'bg-action-soft text-action-text', name: 'Coached exam' },
-  follow_up: { icon: Wrench, chip: 'bg-reward-soft text-reward-text', name: 'Fix what the Exam Sim showed' },
-  learn: { icon: Target, chip: 'bg-surface-recessed text-ink-muted', name: 'Learn' },
-  review: { icon: RotateCcw, chip: 'bg-info-soft text-info-text', name: 'Review' },
-  role_play: { icon: MessagesSquare, chip: 'bg-progress-soft text-progress-text', name: 'Role plays' },
-  light: { icon: Feather, chip: 'bg-surface-recessed text-ink-muted', name: 'Light day' },
-};
 
 function Cell({ day, onOpen }: { day: PlanDay; onOpen: (to: string) => void }) {
-  const k = KIND[day.kind];
+  const k = PLAN_DAY_VISUAL[day.kind];
   const Icon = k.icon;
   const body = (
     <>
@@ -69,7 +61,7 @@ function summary(plan: WeekPlan): string {
  * mission. Cells scroll sideways on a phone rather than shrinking the labels
  * below 12px. Only the `enter` motion (shared with the other Home cards).
  */
-export function PlanWeek({ plan, onOpen, compact = false }: Props) {
+export function PlanWeek({ plan, onOpen, compact = false, onOpenPlan }: Props) {
   const total = summary(plan);
   return (
     <motion.section
@@ -80,7 +72,19 @@ export function PlanWeek({ plan, onOpen, compact = false }: Props) {
     >
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h2 className={compact ? 'text-[14px] font-semibold text-ink' : 'text-section text-ink'}>Your week</h2>
-        {total && <span className="font-numeral text-[13px] text-ink-subtle">{total}</span>}
+        <span className="flex items-baseline gap-3">
+          {total && <span className="font-numeral text-[13px] text-ink-subtle">{total}</span>}
+          {onOpenPlan && (
+            <button
+              type="button"
+              onClick={onOpenPlan}
+              className="-my-2 inline-flex min-h-11 items-center gap-0.5 text-[13px] font-medium text-action-text"
+              data-testid="home-plan-week-full"
+            >
+              Full plan<ChevronRight size={14} aria-hidden="true" />
+            </button>
+          )}
+        </span>
       </div>
       <div
         className="grid auto-cols-[minmax(76px,1fr)] grid-flow-col gap-2 overflow-x-auto pb-1"

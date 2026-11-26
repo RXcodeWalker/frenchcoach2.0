@@ -31,6 +31,7 @@ import { CoachPick } from './home/CoachPick';
 import { ThisWeek, type WeekDay } from './home/ThisWeek';
 import { PlanWeek } from './home/PlanWeek';
 import { buildWeekPlan } from '../services/coach/weekPlan';
+import { resolveFeatureStatus } from '../config/featureFlags';
 import { HomeworkCard } from '../features/homework/HomeworkCard';
 import { RecentActivity } from './home/RecentActivity';
 
@@ -305,7 +306,14 @@ export function Home() {
             : undefined}
         />
 
-        {weekPlan && <PlanWeek plan={weekPlan} compact={!desktop} onOpen={to => navigate(to)} />}
+        {weekPlan && (
+          <PlanWeek
+            plan={weekPlan}
+            compact={!desktop}
+            onOpen={to => navigate(to)}
+            onOpenPlan={resolveFeatureStatus('myPlan') === 'live' ? () => navigate('/plan') : undefined}
+          />
+        )}
 
         <HomeworkCard />
 
