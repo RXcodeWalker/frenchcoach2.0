@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { resolveFeatureStatus } from '../config/featureFlags';
@@ -98,6 +100,11 @@ export function Progress() {
         <motion.div variants={fadeUp} className="flex flex-col gap-2">
           <h1 className="text-[clamp(30px,5cqw,40px)] font-semibold leading-[1.05] tracking-[-0.025em] text-ink">Progress</h1>
           <p className="text-body-l text-ink-muted [text-wrap:pretty]">Your exam marks, your Learn practice and what to do next.</p>
+          {resolveFeatureStatus('myPlan') === 'live' && (
+            <Link to="/plan" className="inline-flex min-h-11 w-fit items-center gap-0.5 text-[14px] font-medium text-action-text" data-testid="progress-plan-link">
+              See your plan to the exam<ChevronRight size={16} aria-hidden="true" />
+            </Link>
+          )}
         </motion.div>
 
         {move && <NextStepCard move={move} />}

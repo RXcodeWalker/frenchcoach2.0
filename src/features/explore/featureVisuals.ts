@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 import {
   AudioLines, Bot, Building2, CalendarDays, Dices, Ear, Flame, Gift,
   Handshake, Map, Medal, Mountain, Newspaper, Palmtree, Puzzle, 
-  Gauge, Rocket, ScanSearch, ShoppingBag, Smile, Sparkles, Swords, Target, Timer, Users, Wrench, Zap,
+  Gauge, ScanSearch, ShoppingBag, Smile, Sparkles, Swords, Target, Timer, Users, Wrench, Zap,
   Briefcase, CloudRain, Plane, Shield, ShoppingBasket, Stethoscope, Ticket,
 } from 'lucide-react';
 
@@ -26,8 +26,7 @@ const ICONS: Record<string, LucideIcon> = {
   xp_shop: ShoppingBag,
   challenges: Swords,
   seasonal: Sparkles,
-  roadmap: Map,
-  mastery: Rocket,
+  my_plan: Map,
   rapid_fire: Zap,
   boss_battle: Flame,
   emoji_master: Smile,

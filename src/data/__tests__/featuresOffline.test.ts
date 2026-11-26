@@ -26,9 +26,8 @@ describe('Explore tiles match their feature flags', () => {
     listening: 'listeningMode',
     survival: 'survivalMode',
     challenges: 'challenges',
+    my_plan: 'myPlan',
     fluency_trainer: 'fluencyTrainer',
-    roadmap: 'roadmap',
-    mastery: 'mastery',
   } as const;
 
   it('locks every tile whose flag is coming-soon', () => {

@@ -2,7 +2,7 @@ import type { QuestionDemands } from '../domain/learn/demand/types';
 import type { DemandBand, SelectionReason, SlotType } from '../domain/learn/selection/types';
 import type { DemandBelief } from './beliefs';
 
-export type Screen = 'home' | 'learn' | 'exam' | 'progress' | 'profile' | 'explore' | 'shop' | 'about' | 'challenges' | 'rapid-fire' | 'boss-battle' | 'survival' | 'speed-speaking' | 'emoji-master' | 'mystery-box' | 'study-groups' | 'pronunciation-lab' | 'roadmap' | 'rankings' | 'listening-mode' | 'fluency-heatmap' | 'fluency' | 'speaking-arena' | 'accent-analyzer' | 'weakness-analysis' | 'sentence-rebuilder' | 'word-drop' | 'daily-news' | 'scenario-architect' | 'mastery' | 'question-detective' | 'junior';
+export type Screen = 'home' | 'learn' | 'exam' | 'progress' | 'profile' | 'explore' | 'shop' | 'about' | 'challenges' | 'rapid-fire' | 'boss-battle' | 'survival' | 'speed-speaking' | 'emoji-master' | 'mystery-box' | 'study-groups' | 'pronunciation-lab' | 'plan' | 'fluency' | 'rankings' | 'listening-mode' | 'speaking-arena' | 'accent-analyzer' | 'weakness-analysis' | 'sentence-rebuilder' | 'word-drop' | 'daily-news' | 'scenario-architect' | 'question-detective' | 'junior';
 
 
 export type Level = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' | 'Beast Mode';

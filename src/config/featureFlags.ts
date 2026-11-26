@@ -9,9 +9,12 @@ export const FEATURE_FLAGS = {
   league:            'coming-soon',
   studyGroups:       'coming-soon',
   friendChallenges:  'live',
-  roadmap:           'coming-soon',
-  mastery:           'coming-soon',
-  fluencyHeatmap:    'coming-soon',
+  // My Plan (/plan): the path to the exam, merging the old French Roadmap,
+  // Mastery Journey and Fluency Heatmap stubs (their paths redirect here).
+  // A reader of the coach brain, week plan, learner model and outcome log —
+  // it decides nothing. Rollback: 'coming-soon' (Explore tile and Home's
+  // "Full plan" link hide with it).
+  myPlan:            'live',
   // docs/systems/fluency-trainer.md — the fluency view (/fluency) and the 4-3-2
   // drill (/fluency/drill), built on Learn's speaking log. No AI call, no quota;
   // thresholds UNVALIDATED (the screens say so). Rollback: 'coming-soon'.
