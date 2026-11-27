@@ -5,7 +5,7 @@
  * envelope errors + retry), daily-limit and empty states. The view is a
  * synthetic EnvelopeView — the report is display-only and reads nothing else.
  */
-import { describe, expect, it, vi, afterEach } from 'vitest';
+import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest';
 import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react';
 import { ExamResults } from '../ExamResults';
 import { ScoringApiError } from '../../../services/exam/scoringApiClient';
@@ -13,6 +13,13 @@ import type { EnvelopeView } from '../../../domain/igcse/envelope/envelopeView';
 import type { SessionTranscript } from '../../../domain/igcse/stt/types';
 import type { ExamFeedbackReport } from '../../../domain/examFeedback/types';
 import { RP_MARK_2, COMM_10_12 } from '../../../domain/igcse/canonical';
+import { track } from '../../../services/telemetry/telemetryService';
+import { consumePracticeEntry } from '../../../services/telemetry/practiceEntry';
+
+vi.mock('../../../services/telemetry/telemetryService', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../../services/telemetry/telemetryService')>()),
+  track: vi.fn(),
+}));
 
 afterEach(() => cleanup());
 
@@ -260,5 +267,81 @@ describe('ExamResults — practice plan and last time (redesign 2026-11-27)', ()
 
     rerender(<ExamResults {...props} coached={true} />);
     expect(screen.queryByTestId('exam-change')).toBeNull();
+  });
+});
+
+describe('ExamResults — analytics for the report and its plan', () => {
+  const previousExam = {
+    date: '2026-11-13T10:00:00.000Z',
+    marks: { rolePlay: 6, rolePlayMax: 10, communication: 6, qualityOfLanguage: 6, total: 18 },
+  };
+  const trackMock = vi.mocked(track);
+  const events = (name: string) => trackMock.mock.calls.map(([e]) => e).filter((e) => e.name === name);
+
+  beforeEach(() => {
+    trackMock.mockClear();
+    sessionStorage.clear();
+  });
+
+  function renderWithPlan(onPractise = vi.fn(), coached = false) {
+    render(
+      <ExamResults
+        transcript={TRANSCRIPT}
+        envelopeView={view(ENVELOPE_ERRORS)}
+        scoringError={null}
+        onRetryScoring={vi.fn()}
+        onRetake={vi.fn()}
+        onHome={vi.fn()}
+        coached={coached}
+        railEntries={[]}
+        requestFeedback={() => new Promise<ExamFeedbackReport>(() => {})}
+        previousExam={previousExam}
+        onPractise={onPractise}
+      />,
+    );
+    return onPractise;
+  }
+
+  it('reports one view with the score, plan size and the change already shown — counts only', () => {
+    renderWithPlan();
+    const viewed = events('exam_report_viewed');
+    expect(viewed).toHaveLength(1);
+    expect(viewed[0].props).toEqual({
+      has_score: true,
+      mode: 'sim',
+      counts_toward_progress: true,
+      total_score: 27,
+      plan_items: 3,
+      compared: true,
+      change_total: 9,
+    });
+  });
+
+  it('a plan tap is tracked with its area and rank, and tags the practice session it opens', () => {
+    const onPractise = renderWithPlan();
+    fireEvent.click(within(screen.getByTestId('plan-rolePlay')).getByRole('button', { name: /role play/i }));
+    expect(onPractise).toHaveBeenCalledWith('/exam/role-play');
+    expect(events('exam_plan_action')[0].props).toEqual({
+      area: 'rolePlay',
+      rank: 3,
+      plan_items: 3,
+      marks_lost: 1,
+      destination: 'role_play',
+      next_step_shown: false,
+      mode: 'sim',
+      counts_toward_progress: true,
+    });
+    // A Learn session does not take the role-play marker; the drill does, once.
+    expect(consumePracticeEntry('learn')).toEqual({ entry: 'direct', entry_area: null });
+    expect(consumePracticeEntry('role_play')).toEqual({ entry: 'exam_plan', entry_area: 'rolePlay' });
+    expect(consumePracticeEntry('role_play')).toEqual({ entry: 'direct', entry_area: null });
+  });
+
+  it('tracks a tab only when it changes, and a Coached report is never compared', async () => {
+    renderWithPlan(vi.fn(), true);
+    expect(events('exam_report_viewed')[0].props).toMatchObject({ mode: 'coached', compared: false, change_total: null });
+    fireEvent.click(screen.getByTestId('exam-tab-report'));
+    fireEvent.click(screen.getByTestId('exam-tab-answers'));
+    expect(events('exam_report_tab').map((e) => e.props)).toEqual([{ tab: 'answers' }]);
   });
 });

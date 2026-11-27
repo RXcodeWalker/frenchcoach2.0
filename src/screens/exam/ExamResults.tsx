@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   AlertTriangle,
@@ -19,7 +19,8 @@ import { ExaminerFeedbackCard } from '../../features/feedback/components/Examine
 import type { RailEntry } from '../../services/exam/turnFeedback';
 import { countsTowardProgress } from '../../services/exam/attemptStatus';
 import { requestExamFeedback, ScoringApiError } from '../../services/exam/scoringApiClient';
-import { captureError } from '../../services/telemetry/telemetryService';
+import { captureError, track } from '../../services/telemetry/telemetryService';
+import { markPracticeEntry } from '../../services/telemetry/practiceEntry';
 import type { ExamFeedbackReport } from '../../domain/examFeedback/types';
 import { displayRespell } from '../../domain/examFeedback/shared/displayRespell';
 import { summariseRecognition } from '../../domain/igcse/stt/quality/summariseRecognition';
@@ -35,9 +36,11 @@ import { ExamPracticePlan } from '../../features/exam/report/ExamPracticePlan';
 import { ExamAnswers } from '../../features/exam/report/ExamAnswers';
 import {
   answersByPart,
+  changeSince,
   examFacts,
   practicePlan,
   taskLabel,
+  type PracticeItem,
   type PracticeRoute,
   type PreviousExam,
 } from '../../features/exam/report/examReport';
@@ -323,6 +326,55 @@ export function ExamResults({
   const answerCount = answerParts.reduce((sum, p) => sum + p.rows.length, 0);
   const compareWith = attemptStatus.countsTowardProgress ? previousExam : null;
 
+  // Analytics (enums and counts only — never an answer, quote or feedback
+  // text): one view per mount, plus one more if a failed marking is retried
+  // into a score, so "report seen" and "plan tapped" share a denominator.
+  const mode = coached ? 'coached' : 'sim';
+  const viewedRef = useRef<Set<boolean>>(new Set());
+  useEffect(() => {
+    const hasScore = envelopeView !== null;
+    if (viewedRef.current.has(hasScore)) return;
+    viewedRef.current.add(hasScore);
+    const change = envelopeView && compareWith ? changeSince(envelopeView, compareWith).total : null;
+    track({
+      name: 'exam_report_viewed',
+      props: {
+        has_score: hasScore,
+        mode,
+        counts_toward_progress: attemptStatus.countsTowardProgress,
+        total_score: envelopeView?.total ?? null,
+        plan_items: plan.length,
+        compared: change !== null,
+        change_total: change,
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per scored/unscored state
+  }, [envelopeView !== null]);
+
+  const changeTab = (next: Tab) => {
+    if (next !== tab) track({ name: 'exam_report_tab', props: { tab: next } });
+    setTab(next);
+  };
+
+  const practise = (item: PracticeItem, rank: number) => {
+    const destination = item.action.to === '/exam/role-play' ? 'role_play' : 'learn';
+    track({
+      name: 'exam_plan_action',
+      props: {
+        area: item.area,
+        rank,
+        plan_items: plan.length,
+        marks_lost: item.lost,
+        destination,
+        next_step_shown: item.nextStep !== null,
+        mode,
+        counts_toward_progress: attemptStatus.countsTowardProgress,
+      },
+    });
+    markPracticeEntry(destination, item.area);
+    onPractise?.(item.action.to);
+  };
+
   const detailsBody = (
     <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-3" data-testid="exam-details">
       {coached && railEntries.length > 0 && (
@@ -519,7 +571,7 @@ export function ExamResults({
         )}
 
         {envelopeView && (
-          <ExamPracticePlan items={plan} reportPending={feedback.status === 'pending'} onPractise={onPractise} />
+          <ExamPracticePlan items={plan} reportPending={feedback.status === 'pending'} onPractise={onPractise ? practise : undefined} />
         )}
 
         {envelopeView ? (
@@ -528,7 +580,7 @@ export function ExamResults({
               <Segmented<Tab>
                 label="Report sections"
                 value={tab}
-                onChange={setTab}
+                onChange={changeTab}
                 testIdPrefix="exam-tab"
                 options={[
                   { id: 'report', label: 'Report' },

@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Award, Target } from 'lucide-react';
 import { enter, enterReduced, stagger } from '../../../components/motion/variants';
-import { AREA_LABEL, taskLabel, type PracticeItem, type PracticeRoute } from './examReport';
+import { AREA_LABEL, taskLabel, type PracticeItem } from './examReport';
 
 /**
  * "What to practise next": the scored areas ranked by the marks the envelope
@@ -13,7 +13,8 @@ interface Props {
   items: PracticeItem[];
   /** Whether the post-marking report is still being written (its next steps are not in yet). */
   reportPending: boolean;
-  onPractise?: (to: PracticeRoute) => void;
+  /** `rank` is 1 for the top of the plan. */
+  onPractise?: (item: PracticeItem, rank: number) => void;
 }
 
 function listTasks(ids: string[]): string {
@@ -114,7 +115,7 @@ export function ExamPracticePlan({ items, reportPending, onPractise }: Props) {
                   {onPractise && (
                     <button
                       type="button"
-                      onClick={() => onPractise(item.action.to)}
+                      onClick={() => onPractise(item, i + 1)}
                       className="mt-1 inline-flex items-center gap-1.5 rounded-control text-label text-action-text transition-colors duration-state hover:text-ink active:scale-[.97]"
                     >
                       {item.action.label}

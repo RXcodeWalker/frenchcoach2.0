@@ -80,6 +80,7 @@ import { useExtraTurnBudget } from './learn/useExtraTurnBudget';
 import { captureError, failureReason, track } from '../services/telemetry/telemetryService';
 import { errorStatus } from '../services/telemetry/sentryFilters';
 import { claimFirstTime } from '../services/telemetry/analyticsState';
+import { consumePracticeEntry } from '../services/telemetry/practiceEntry';
 import { deriveDemandLevel } from '../domain/learn/demand/deriveDemandLevel';
 import { selectCoachFixes } from '../features/feedback/coachPoints';
 import { IGCSE_EXPECTATIONS } from '../utils/difficultyConfig';
@@ -538,6 +539,7 @@ export function Learn() {
         filters_used: hasActiveFilters(filters),
         first_time: claimFirstTime('learn_session'),
         style: feedbackMode,
+        ...consumePracticeEntry('learn'),
       },
     });
     setShowHint(false);

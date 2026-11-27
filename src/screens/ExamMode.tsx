@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { track, captureError, type ExamPartReached, type ExamStep } from '../services/telemetry/telemetryService';
-import { TrackView } from '../services/telemetry/TrackView';
 import confetti from 'canvas-confetti';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { examModeFromSearch } from '../features/exam/examDeepLink';
@@ -1198,7 +1197,6 @@ export function ExamMode() {
   if (examState === 'results' && transcript) {
     return (
       <>
-      <TrackView event={{ name: 'exam_report_viewed', props: { has_score: envelopeView !== null } }} />
       <ExamResults
         transcript={transcript}
         envelopeView={envelopeView}

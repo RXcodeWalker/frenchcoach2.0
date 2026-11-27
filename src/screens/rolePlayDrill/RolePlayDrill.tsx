@@ -9,6 +9,8 @@ import { useMyHomework } from '../../features/homework/useMyHomework';
 import { useRecording } from '../../features/recording/useRecording';
 import { getAIFeedback } from '../../services/api/apiClient';
 import { getSessionHistory } from '../../services/analytics/analyticsService';
+import { track } from '../../services/telemetry/telemetryService';
+import { consumePracticeEntry } from '../../services/telemetry/practiceEntry';
 import type { PanelEntry } from '../../components/ui/LiveFeedbackPanel';
 import type { FeedbackV2, Question, Session } from '../../types';
 import { orchestrateAttempt } from '../../services/coach/sessionOrchestrator';
@@ -196,6 +198,7 @@ export function RolePlayDrill() {
     setFinished(false);
     setPhase('talk');
     window.scrollTo?.({ top: 0 });
+    track({ name: 'role_play_drill_started', props: { guided: card.guided === true, ...consumePracticeEntry('role_play') } });
     const first = card.tasks[0];
     if (first) void speakNpcLine(first.promptFr, run);
   };

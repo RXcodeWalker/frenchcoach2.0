@@ -239,6 +239,10 @@ interface LearnSessionStartedProps {
   filters_used: boolean;
   first_time: boolean;
   style: FeedbackStyle;
+  /** Where the session was opened from: a "What to practise next" button on an exam report, or anywhere else. */
+  entry: PracticeEntrySource;
+  /** The exam area that button was for (only with entry = exam_plan). */
+  entry_area: ExamReportArea | null;
 }
 
 interface QuestionShownProps {
@@ -466,6 +470,45 @@ interface ExamScoringFailedProps {
 
 interface ExamReportViewedProps {
   has_score: boolean;
+  mode: 'sim' | 'coached';
+  counts_toward_progress: boolean;
+  /** The /40 already shown on the report (null while unscored). */
+  total_score: number | null;
+  /** Areas listed under "What to practise next" (0 at 40/40). */
+  plan_items: number;
+  /** Whether "since your last counted Exam Sim" was shown. */
+  compared: boolean;
+  /** The change shown there, in marks (null when not shown). */
+  change_total: number | null;
+}
+
+/** The exam's three scored areas, as the report names them. */
+export type ExamReportArea = 'rolePlay' | 'communication' | 'qualityOfLanguage';
+/** Where a practice session was opened from (see practiceEntry.ts). */
+export type PracticeEntrySource = 'exam_plan' | 'direct';
+
+interface ExamReportTabProps {
+  tab: 'report' | 'answers' | 'details';
+}
+
+interface ExamPlanActionProps {
+  area: ExamReportArea;
+  /** 1 = the top of the plan (most marks to gain). */
+  rank: number;
+  plan_items: number;
+  marks_lost: number;
+  destination: 'learn' | 'role_play';
+  /** Whether the examiner's next step was on the card when it was tapped. */
+  next_step_shown: boolean;
+  mode: 'sim' | 'coached';
+  counts_toward_progress: boolean;
+}
+
+interface RolePlayDrillStartedProps {
+  /** The older guided card rather than an exam-style one. */
+  guided: boolean;
+  entry: PracticeEntrySource;
+  entry_area: ExamReportArea | null;
 }
 
 interface QuotaHitProps {
@@ -574,6 +617,9 @@ export type TelemetryEvent =
   | { name: 'exam_abandoned';          props: ExamAbandonedProps }
   | { name: 'exam_scoring_failed';     props: ExamScoringFailedProps }
   | { name: 'exam_report_viewed';      props: ExamReportViewedProps }
+  | { name: 'exam_report_tab';         props: ExamReportTabProps }
+  | { name: 'exam_plan_action';        props: ExamPlanActionProps }
+  | { name: 'role_play_drill_started'; props: RolePlayDrillStartedProps }
   | { name: 'exam_guide_opened';       props: NoProps }
   | { name: 'exam_guide_quiz_done';    props: ExamGuideQuizDoneProps }
   | { name: 'guest_limit_hit';         props: NoProps }
@@ -640,7 +686,7 @@ const DECLARED_PROPS = {
   placement_completed: ['questions_answered', 'skipped'],
   age_band_set: ['age_band'],
   consent_blocked: ['surface'],
-  learn_session_started: ['topic_key', 'session_length', 'filters_used', 'first_time', 'style'],
+  learn_session_started: ['topic_key', 'session_length', 'filters_used', 'first_time', 'style', 'entry', 'entry_area'],
   question_shown: ['topic_key', 'level', 'slot', 'position'],
   mic_permission: ['result'],
   answer_recorded: ['input', 'duration_ms', 'first_time'],
@@ -671,7 +717,10 @@ const DECLARED_PROPS = {
   exam_completed: ['mode', 'total_score', 'duration_ms', 'asr_fallback_count', 'counts_toward_progress'],
   exam_abandoned: ['last_part', 'elapsed_ms'],
   exam_scoring_failed: ['reason', 'status'],
-  exam_report_viewed: ['has_score'],
+  exam_report_viewed: ['has_score', 'mode', 'counts_toward_progress', 'total_score', 'plan_items', 'compared', 'change_total'],
+  exam_report_tab: ['tab'],
+  exam_plan_action: ['area', 'rank', 'plan_items', 'marks_lost', 'destination', 'next_step_shown', 'mode', 'counts_toward_progress'],
+  role_play_drill_started: ['guided', 'entry', 'entry_area'],
   exam_guide_opened: [],
   exam_guide_quiz_done: ['correct', 'total'],
   guest_limit_hit: [],
