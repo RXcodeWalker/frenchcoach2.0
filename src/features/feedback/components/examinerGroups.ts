@@ -15,12 +15,19 @@ function fix(item: ExaminerErrorItem): FeedbackPoint {
   return { kind: 'fix', quote: item.quote, correction: item.correction, tag: ERROR_CATEGORY_LABELS[item.category] };
 }
 
-/** Maps each examiner reply profile to the shared point list's groups, in display order. */
-export function examinerGroups(result: ExaminerFeedback, compact: boolean): FeedbackPointGroup[] {
+/**
+ * Maps each examiner reply profile to the shared point list's groups, in display order.
+ * `descriptorNote: false` leaves the descriptor off the next step (Learn shows it in its Breakdown tab instead).
+ */
+export function examinerGroups(
+  result: ExaminerFeedback,
+  compact: boolean,
+  { descriptorNote = true }: { descriptorNote?: boolean } = {},
+): FeedbackPointGroup[] {
   if (result.profile === 'learn') {
     const descriptor = result.nextStep ? findExaminerDescriptor(result.nextStep.descriptorId) : undefined;
     const note =
-      !compact && descriptor
+      !compact && descriptorNote && descriptor
         ? `Descriptor to aim for: “${descriptor.text}” (Teacher/Examiner Notes p.${descriptor.page})`
         : undefined;
     return [

@@ -1943,6 +1943,16 @@ export function Learn() {
                     demands={followUpTurn ? null : currentQuestion?.demands}
                     nextQuestion={examinerStatus === 'done' ? nextQuestionPreview : null}
                     firsts={firsts}
+                    howItSounded={
+                      pronunciationLabLive
+                        ? {
+                            answerBlob,
+                            onPractiseOpened: () => {
+                              if (practiceStepEligible) extraTurnBudget.consumePractice(activeSession?.currentIndex ?? null);
+                            },
+                          }
+                        : undefined
+                    }
                   />
                   {(examinerStatus === 'done' || examinerStatus === 'quota-exhausted') && (
                     <Button

@@ -25,3 +25,43 @@ export async function measureAnswerPauses(blob: Blob): Promise<PauseStats | null
     return null;
   }
 }
+
+/** One stretch of speech on the answer's own clock, in seconds from the start of the recording. */
+export interface FlowSpan {
+  startS: number;
+  endS: number;
+}
+
+/**
+ * The answer's shape for "How it sounded"'s flow timeline: the pause figures
+ * plus where each stretch of speech sat. Same measurement as
+ * {@link measureAnswerPauses} (one decode, nothing leaves the device).
+ */
+export interface AnswerFlow {
+  pauses: PauseStats;
+  /** Speech stretches in order (the gaps between them are the pauses). */
+  spans: FlowSpan[];
+  /** First speech to last speech, pauses included. */
+  speechSpanS: number;
+}
+
+export async function measureAnswerFlow(blob: Blob): Promise<AnswerFlow | null> {
+  try {
+    const normalized = await normalizeToWav16kMono(blob, { maxSeconds: ANSWER_MAX_SECONDS });
+    const { samples, sampleRate } = await readWavPcm16Mono(normalized.blob);
+    const trimmed = trimSilence(samples, sampleRate);
+    if (!trimmed.hasSpeech) return null;
+    const first = trimmed.leadingSilenceS;
+    const last = first + trimmed.speechSpanS;
+    const spans: FlowSpan[] = [];
+    let cursor = first;
+    for (const [a, b] of trimmed.pauseRunsS) {
+      if (a > cursor) spans.push({ startS: cursor, endS: a });
+      cursor = b;
+    }
+    if (last > cursor) spans.push({ startS: cursor, endS: last });
+    return { pauses: trimmed.pauses, spans, speechSpanS: trimmed.speechSpanS };
+  } catch {
+    return null;
+  }
+}

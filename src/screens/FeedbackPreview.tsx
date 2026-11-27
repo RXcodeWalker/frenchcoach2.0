@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { FeedbackExperience } from '../features/feedback/FeedbackExperience';
+import { LearnExaminerFeedback } from '../features/feedback/teacher/LearnExaminerFeedback';
+import type { ExaminerFeedback } from '../services/coaching/examinerFeedback';
 import type { CoachingIssue, FeedbackV2 } from '../types';
 
 /**
@@ -130,9 +132,47 @@ const CLEAN: FeedbackV2 = {
   biggest_opportunity: 'Add a comparison, for example « plus… que » about your old team.',
 } as unknown as FeedbackV2;
 
+/**
+ * A stand-in recording for "How it sounded": a quiet tone in phrases with a
+ * short and a long pause, so the flow timeline has something real to measure.
+ */
+function sampleRecording(): Blob {
+  const rate = 16000;
+  const plan: Array<[number, boolean]> = [[0.3, false], [3.2, true], [0.7, false], [2.4, true], [2.6, false], [3.1, true], [0.3, false]];
+  const total = Math.round(plan.reduce((n, [s]) => n + s, 0) * rate);
+  const buf = new ArrayBuffer(44 + total * 2);
+  const v = new DataView(buf);
+  const str = (o: number, t: string) => [...t].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  str(0, 'RIFF'); v.setUint32(4, 36 + total * 2, true); str(8, 'WAVE'); str(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true);
+  v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); str(36, 'data'); v.setUint32(40, total * 2, true);
+  let i = 0;
+  for (const [secs, voiced] of plan) {
+    for (let k = 0; k < Math.round(secs * rate); k++, i++) {
+      v.setInt16(44 + i * 2, voiced ? Math.round(Math.sin((2 * Math.PI * 220 * i) / rate) * 6000) : 0, true);
+    }
+  }
+  return new Blob([buf], { type: 'audio/wav' });
+}
+
+const EXAMINER: ExaminerFeedback = {
+  profile: 'learn',
+  strengths: [
+    { claim: 'You set the scene in the past with the passé composé.', quote: 'Le week-end dernier je suis allé au cinéma' },
+    { claim: 'You gave a clear personal opinion.', quote: 'je pense que' },
+  ],
+  errors: [
+    { quote: 'Mon mère', correction: 'Ma mère', category: 'gender' },
+    { quote: 'des pizza', correction: 'des pizzas', category: 'agreement' },
+    { quote: 'on a regardé', correction: 'nous avons regardé', category: 'verb_form' },
+  ],
+  nextStep: { claim: 'Justify your opinion of the film with a second reason.', quote: "c'était un peu nul", descriptorId: 'C3' },
+};
+
 const SCENARIOS = {
   rich: { label: 'Several fixes', feedback: withSpans(RICH, TRANSCRIPT), transcript: TRANSCRIPT },
   clean: { label: 'No mistakes', feedback: withSpans(CLEAN, CLEAN_TRANSCRIPT), transcript: CLEAN_TRANSCRIPT },
+  examiner: { label: 'Examiner style', feedback: withSpans(RICH, TRANSCRIPT), transcript: TRANSCRIPT },
 } as const;
 
 export function FeedbackPreview() {
@@ -142,6 +182,8 @@ export function FeedbackPreview() {
   const s = SCENARIOS[key];
   // A fresh object per run so the reveal plays again.
   const feedback = useMemo(() => (loading ? null : { ...s.feedback }), [s, loading, n]); // eslint-disable-line react-hooks/exhaustive-deps
+  const recording = useMemo(() => sampleRecording(), []);
+  const examinerResult = useMemo(() => (loading ? null : { ...EXAMINER }), [loading, n]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 space-y-4">
@@ -155,7 +197,21 @@ export function FeedbackPreview() {
           {loading ? 'Show feedback' : 'Show the wait'}
         </button>
       </div>
+      {key === 'examiner' ? (
+        <LearnExaminerFeedback
+          status={loading ? 'pending' : 'done'}
+          result={examinerResult}
+          onSwitchToCoach={() => setKey('rich')}
+          onRetry={() => setN((x) => x + 1)}
+          transcript={s.transcript}
+          name="Alex"
+          demands={{ cognitiveDemand: 'describe', timeFrames: ['past'] } as never}
+          nextQuestion="Qu'est-ce que tu vas faire le week-end prochain ?"
+          howItSounded={{ answerBlob: recording }}
+        />
+      ) : (
       <FeedbackExperience
+        howItSounded={{ answerBlob: recording, heardAs: [] }}
         feedback={feedback}
         streamPhase={loading ? 'generating' : 'complete'}
         transcript={s.transcript}
@@ -167,6 +223,7 @@ export function FeedbackPreview() {
         nextQuestion="Qu'est-ce que tu vas faire le week-end prochain ?"
         firsts={[]}
       />
+      )}
     </div>
   );
 }

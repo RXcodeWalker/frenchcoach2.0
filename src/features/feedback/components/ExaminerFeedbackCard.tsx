@@ -67,7 +67,7 @@ export function ExaminerFeedbackCard({
   shortAnswer,
 }: Props) {
   const compact = variant === 'compact';
-  const stateBox = compact ? 'rounded-xl surface-raised p-4' : 'rounded-xl surface-raised p-6';
+  const stateBox = compact ? 'rounded-xl surface-raised p-4' : 'rounded-card border border-hairline bg-surface p-5';
 
   if (status === 'pending') {
     return (
@@ -119,7 +119,7 @@ export function ExaminerFeedbackCard({
           <button
             type="button"
             onClick={onRetry}
-            className="px-4 py-2 rounded-xl surface-recessed text-xs font-bold text-ink-muted hover:bg-white/5 transition-colors"
+            className="rounded-control surface-recessed px-4 py-2 text-label text-ink transition-colors duration-state hover:bg-track"
           >
             Try again
           </button>
@@ -127,7 +127,7 @@ export function ExaminerFeedbackCard({
             <button
               type="button"
               onClick={onSwitchToCoach}
-              className="px-4 py-2 rounded-xl bg-action-soft border border-hairline text-action-text text-xs font-bold hover:bg-violet-500/25 transition-colors"
+              className="rounded-control border border-hairline bg-action-soft px-4 py-2 text-label text-action-text transition-colors duration-state hover:border-action"
             >
               Switch to coach mode
             </button>
@@ -146,10 +146,10 @@ export function ExaminerFeedbackCard({
   return (
     <div className={compact ? 'space-y-2' : 'space-y-3'}>
       {!compact && (
-        <div className="flex items-center gap-2 px-1">
-          <GraduationCap size={14} className="text-reward-text" />
-          <p className="text-[11px] font-bold text-ink-muted">Examiner commentary</p>
-          <span className="text-[9px] text-ink-muted ml-auto">Practice feedback — not a grade prediction</span>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-1">
+          <GraduationCap size={16} className="text-reward-text" aria-hidden="true" />
+          <p className="text-label text-ink">Examiner commentary</p>
+          <span className="ml-auto text-caption text-ink-muted">Practice feedback — not a grade prediction</span>
         </div>
       )}
 

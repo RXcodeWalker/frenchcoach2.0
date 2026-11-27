@@ -75,6 +75,12 @@ export interface TrimResult {
   internalPausesS: number[];
   /** Silence before the first speech frame, in seconds (0 without speech). */
   leadingSilenceS: number;
+  /**
+   * Where each internal silent run sits, as [start, end] seconds on the untrimmed
+   * clock — `internalPausesS` with positions, for drawing an answer's flow.
+   * Read by Learn's "How it sounded" timeline only, never sent anywhere.
+   */
+  pauseRunsS: Array<[number, number]>;
   /** First speech frame to last speech frame, in seconds, pauses included (0 without speech). */
   speechSpanS: number;
 }
@@ -98,7 +104,7 @@ export function trimSilence(samples: Float32Array, sampleRate: number): TrimResu
   const noPauses: PauseStats = { pausesOver2s: 0, longestPauseS: 0 };
   const empty: TrimResult = {
     samples: new Float32Array(0), sampleRate, rawS, trimmedS: 0, hasSpeech: false, pauses: noPauses, segments: [],
-    internalPausesS: [], leadingSilenceS: 0, speechSpanS: 0,
+    internalPausesS: [], leadingSilenceS: 0, speechSpanS: 0, pauseRunsS: [],
   };
   if (frameCount === 0) return empty;
 
@@ -162,6 +168,7 @@ export function trimSilence(samples: Float32Array, sampleRate: number): TrimResu
   return {
     samples: trimmed, sampleRate, rawS, trimmedS: total / sampleRate, hasSpeech: true, pauses, segments,
     internalPausesS: pauseDurations,
+    pauseRunsS: internalRuns.map(([a, b]) => [a * frameS, b * frameS] as [number, number]),
     leadingSilenceS: firstSpeech * frameS,
     speechSpanS: (lastSpeech + 1 - firstSpeech) * frameS,
   };

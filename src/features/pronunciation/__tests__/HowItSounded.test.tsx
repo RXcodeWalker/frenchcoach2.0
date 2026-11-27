@@ -15,11 +15,20 @@ const audio = vi.hoisted(() => ({
   stopClip: vi.fn(),
   playNative: vi.fn(async (): Promise<string> => 'browser'),
   stopNative: vi.fn(),
-  pauses: vi.fn(async (): Promise<{ pausesOver2s: number; longestPauseS: number } | null> => ({ pausesOver2s: 0, longestPauseS: 0.4 })),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- the mock takes the blob it is called with
+  pauses: vi.fn(async (_blob?: Blob): Promise<{ pausesOver2s: number; longestPauseS: number } | null> => ({ pausesOver2s: 0, longestPauseS: 0.4 })),
 }));
 vi.mock('../audio/clipPlayer', () => ({ playClip: audio.playClip, stopClip: audio.stopClip }));
 vi.mock('../audio/nativeVoice', () => ({ playNative: audio.playNative, stopNative: audio.stopNative }));
-vi.mock('../audio/answerPauses', () => ({ measureAnswerPauses: audio.pauses }));
+vi.mock('../audio/answerPauses', () => ({
+  measureAnswerPauses: audio.pauses,
+  measureAnswerFlow: async (blob: Blob) => {
+    const pauses = await audio.pauses(blob);
+    return pauses
+      ? { pauses, speechSpanS: 12.4, spans: [{ startS: 0.3, endS: 4 }, { startS: 4.2, endS: 6 }, { startS: 9.2, endS: 12.7 }] }
+      : null;
+  },
+}));
 const labProps = vi.fn();
 vi.mock('../LabPractice', () => ({
   LabPractice: (props: { targetSentence: string; entry: string; onDone: () => void }) => {
@@ -202,6 +211,36 @@ describe('How it sounded', () => {
   });
 });
 
+
+describe('How it sounded — the redesign (2026-11-27)', () => {
+  it('draws the answer as a timeline of phrases, marking a long pause, with plain facts', async () => {
+    audio.pauses.mockImplementation(async () => ({ pausesOver2s: 1, longestPauseS: 3.2 }));
+    await renderCard();
+    const timeline = screen.getByTestId('flow-timeline');
+    expect(screen.getByRole('img', { name: 'Your answer: 12 s from first word to last, with 1 long pause.' })).toBeTruthy();
+    expect(timeline.textContent).toContain('Long pause');
+    expect(screen.getByText(/Spoke for/).textContent).toBe('Spoke for 12 s');
+    expect(screen.getByText(/Longest pause/).textContent).toBe('Longest pause 3.2 s');
+  });
+
+  it('closes breath-length gaps so the timeline shows phrases', async () => {
+    const { phrases } = await import('../HowItSounded');
+    expect(phrases([{ startS: 0, endS: 1 }, { startS: 1.2, endS: 2 }, { startS: 3, endS: 4 }])).toEqual([
+      { startS: 0, endS: 2 },
+      { startS: 3, endS: 4 },
+    ]);
+  });
+
+  it('marks the sounds in the corrected sentence and shows how to make the chosen one', async () => {
+    await renderCard();
+    const marks = screen.getByTestId('how-it-sounded').querySelectorAll('mark');
+    expect(marks.length).toBeGreaterThan(0);
+    const liaison = screen.getByRole('button', { name: 'Hear « les enfants » — Liaison' });
+    fireEvent.click(liaison);
+    expect(liaison.getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByTestId('sound-tip').textContent).toContain('Liaison');
+  });
+});
 
 describe('How it sounded — opened from the "Say it better" card', () => {
   it('opens the practice when asked from outside, once per request, and reports it', async () => {

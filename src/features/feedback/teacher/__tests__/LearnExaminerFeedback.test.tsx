@@ -103,3 +103,38 @@ describe('LearnExaminerFeedback', () => {
     expect(claimMentionsMarkOrBand(container.querySelector('[data-role="nextQuestion"]')!.textContent!)).toBe(false);
   });
 });
+
+describe('LearnExaminerFeedback — the redesign (2026-11-27)', () => {
+  it('puts the counts and where the mistakes are above two tabs', () => {
+    render(<LearnExaminerFeedback {...base} status="done" result={RESULT} />);
+    const overview = screen.getByTestId('examiner-overview');
+    expect(overview.textContent).toContain('1 thing that worked');
+    expect(overview.textContent).toContain('1 mistake to fix');
+    expect(overview.textContent).toContain('Verb form');
+    expect(screen.getByTestId('examiner-tab-examiner')).toBeTruthy();
+    expect(screen.getByTestId('examiner-tab-breakdown')).toBeTruthy();
+  });
+
+  it('keeps the descriptor out of the conversation and in the Breakdown, with the answer corrected in place', () => {
+    const { container } = render(<LearnExaminerFeedback {...base} status="done" result={RESULT} />);
+    expect(container.textContent).not.toContain('Descriptor to aim for');
+    fireEvent.click(screen.getByTestId('examiner-tab-breakdown'));
+    expect(screen.getByTestId('examiner-look-for').textContent).toContain('Teacher/Examiner Notes, p.11');
+    const marked = screen.getByTestId('examiner-marked-answer');
+    expect(marked.textContent).toContain("j'ai mangé une pizza");
+    expect(container.querySelector('[data-role]')).toBeNull();
+    expect(container.textContent).not.toMatch(/\b\d+\s*\/\s*\d+\b|\bband\b|\bgrade\b|\bmarks?\b/i);
+  });
+
+  it('“Your next step” opens the Breakdown at what examiners look for', () => {
+    render(<LearnExaminerFeedback {...base} status="done" result={RESULT} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Your next step: show' }));
+    expect(screen.getByTestId('examiner-look-for')).toBeTruthy();
+  });
+
+  it('with the Lab live, offers "How it sounded" on the answer with every correction applied', () => {
+    render(<LearnExaminerFeedback {...base} status="done" result={RESULT} howItSounded={{ answerBlob: null }} />);
+    expect(screen.getByTestId('how-it-sounded')).toBeTruthy();
+    expect(screen.getByText('Corrected version')).toBeTruthy();
+  });
+});
