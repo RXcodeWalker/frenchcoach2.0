@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { fadeUp } from '../../../components/motion/variants';
+import { useEffect, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { Highlighter } from 'lucide-react';
+import { correct } from '../../../components/motion/variants';
+import { BreakdownCard } from './BreakdownCard';
 import { SEVERITY_COLOR } from '../theme/severity';
 import { CoachingPopover } from './CoachingPopover';
 import { canonicalizeForMatch } from '../../../domain/igcse/text/normalize';
@@ -50,10 +52,60 @@ export function buildSegments(transcript: string, feedback: FeedbackV2): Segment
 const LEGEND = [
   { severity: 'major', label: 'Error', swatch: 'bg-correction' },
   { severity: 'minor', label: 'Minor', swatch: 'bg-reward' },
+  { severity: 'polish', label: 'Polish', swatch: 'bg-action' },
   { severity: 'strong', label: 'Strong', swatch: 'bg-progress' },
 ] as const;
 
+/**
+ * One marked stretch, played with the `correct` motion: the line strikes
+ * through the learner's words, then the fix drops in beside them. Each mark
+ * starts a little after the one before, so the answer is corrected in reading
+ * order. Under reduced motion it is simply there.
+ */
+function Mark({ seg, order, reduced, onClick }: { seg: Segment; order: number; reduced: boolean; onClick: () => void }) {
+  const color = SEVERITY_COLOR[seg.span!.severity];
+  const correction = seg.issue?.correction;
+  const d = 0.3 + order * 0.22;
+  // A text-decoration (not an overlay) so a mark that wraps onto two lines is struck on both.
+  const [struck, setStruck] = useState(reduced);
+  useEffect(() => {
+    if (reduced) return setStruck(true);
+    const t = setTimeout(() => setStruck(true), (d + 0.1) * 1000);
+    return () => clearTimeout(t);
+  }, [reduced, d]);
+  return (
+    <button
+      type="button"
+      aria-label={`Issue: ${seg.issue?.diagnostic || seg.span!.category}`}
+      className="rounded-sm text-left transition-colors duration-state hover:bg-surface-recessed"
+      onClick={onClick}
+    >
+      <span
+        className="text-ink-muted line-through decoration-2"
+        style={{
+          textDecorationColor: struck ? color : 'transparent',
+          transition: reduced ? undefined : 'text-decoration-color 240ms var(--ease)',
+        }}
+      >
+        {seg.text}
+      </span>
+      {correction && (
+        <motion.span
+          className="inline-block font-semibold"
+          style={{ color }}
+          initial={reduced ? false : { opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reduced ? { duration: 0 } : correct.fix(d)}
+        >
+          {'\u00a0'}{correction}
+        </motion.span>
+      )}
+    </button>
+  );
+}
+
 export function MarkedUpScript({ transcript, feedback, onIssueClick }: Props) {
+  const reduced = useReducedMotion() ?? false;
   const [activeIssue, setActiveIssue] = useState<CoachingIssue | null>(null);
   // The annotation offsets point into the transcript the backend graded.
   const text = feedback.gradedTranscript ?? transcript;
@@ -62,46 +114,42 @@ export function MarkedUpScript({ transcript, feedback, onIssueClick }: Props) {
   const markers = segments.filter(s => s.span);
   if (!text && markers.length === 0) return null;
   const legend = LEGEND.filter(l => markers.some(m => m.span!.severity === l.severity));
+  let order = 0;
 
   return (
-    <motion.div variants={fadeUp} initial="hidden" animate="show" className="rounded-xl surface p-4">
-      <p className="text-eyebrow text-ink-subtle uppercase mb-2.5">Your Response — Marked Up</p>
-
-      <div>
-        <p className="text-sm text-ink-muted leading-relaxed">
-          {segments.map((seg, i) => {
-            if (!seg.span) return <span key={i}>{seg.text}</span>;
-
-            const color = SEVERITY_COLOR[seg.span.severity];
-            const correction = seg.issue?.correction;
-            return (
-              <button
-                key={i}
-                aria-label={`Issue: ${seg.issue?.diagnostic ?? seg.span.category}`}
-                className="cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => {
-                  if (seg.issue) {
-                    setActiveIssue(activeIssue?.id === seg.issue.id ? null : seg.issue);
-                    if (seg.span?.issueId) onIssueClick(seg.span.issueId);
-                  }
-                }}
-              >
-                <span
-                  style={{ textDecorationColor: color }}
-                  className="line-through decoration-2"
-                >
-                  {seg.text}
-                </span>
-                {correction && (
-                  <span style={{ color }} className="font-medium">
-                    {' '}{correction}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </p>
-      </div>
+    <BreakdownCard
+      title="Your answer, marked up"
+      icon={Highlighter}
+      tone="correction"
+      subtitle={markers.length > 0 ? 'Tap a correction to jump to why' : undefined}
+    >
+      <p lang="fr" className="text-body-base leading-loose text-ink">
+        {segments.map((seg, i) => {
+          if (!seg.span) return <span key={i}>{seg.text}</span>;
+          return (
+            <Mark
+              key={i}
+              seg={seg}
+              order={order++}
+              reduced={reduced}
+              onClick={() => {
+                if (!seg.issue) return;
+                if (seg.span?.issueId) onIssueClick(seg.span.issueId);
+                // The correction's own row (with its lesson) is the place to read it: jump there.
+                // Only an issue with no row in the list opens the small popover instead.
+                const id = seg.issue.id;
+                const row = Array.from(document.querySelectorAll<HTMLElement>('[data-issue-id]')).find((el) => el.dataset.issueId === id);
+                if (row) {
+                  setActiveIssue(null);
+                  row.scrollIntoView?.({ block: 'center', behavior: reduced ? 'auto' : 'smooth' });
+                } else {
+                  setActiveIssue(activeIssue?.id === seg.issue.id ? null : seg.issue);
+                }
+              }}
+            />
+          );
+        })}
+      </p>
 
       {activeIssue && (
         <div className="mt-3">
@@ -110,15 +158,15 @@ export function MarkedUpScript({ transcript, feedback, onIssueClick }: Props) {
       )}
 
       {legend.length > 0 && (
-        <div className="flex items-center gap-3 mt-3 pt-3 border-t border-hairline">
+        <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-hairline pt-3">
           {legend.map(l => (
-            <span key={l.severity} className="flex items-center gap-1 text-sm text-ink-subtle">
-              <span className={`inline-block w-3 h-0.5 rounded ${l.swatch}`} />
+            <span key={l.severity} className="flex items-center gap-1.5 text-caption text-ink-muted">
+              <span className={`inline-block h-0.5 w-3 rounded-pill ${l.swatch}`} />
               {l.label}
             </span>
           ))}
         </div>
       )}
-    </motion.div>
+    </BreakdownCard>
   );
 }

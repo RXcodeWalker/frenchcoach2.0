@@ -1,7 +1,7 @@
-import { CheckCircle, ChevronRight, RotateCcw, Lightbulb } from 'lucide-react';
+import { ArrowRight, ChevronRight, RotateCcw, Lightbulb } from 'lucide-react';
 import type { CoachingIssue } from '../../../types';
 import { SeverityBadge } from '../../../components/ui/SeverityBadge';
-import { SEVERITY_COLOR, SEVERITY_SOFT, SEVERITY_TEXT } from '../theme/severity';
+import { SEVERITY_COLOR, SEVERITY_TEXT } from '../theme/severity';
 import { TeachMeLesson } from './TeachMeLesson';
 
 interface Props {
@@ -16,20 +16,15 @@ interface Props {
 
 export function IssueRow({ issue, isSelected, lessonDefaultOpen, lessonForceOpen, lessonCommand }: Props) {
   return (
-    <div
-      className={`relative overflow-hidden rounded-xl border border-hairline bg-surface p-4 pl-5 ${isSelected ? 'ring-2 ring-action' : ''}`}
+    <li
+      data-issue-id={issue.id}
+      className={`relative overflow-hidden rounded-control border border-hairline bg-surface py-3 pl-4 pr-3 transition-shadow duration-state ${isSelected ? 'ring-2 ring-action' : ''}`}
     >
-      <span
-        aria-hidden
-        className="absolute inset-y-0 left-0 w-1"
-        style={{ backgroundColor: SEVERITY_COLOR[issue.severity] }}
-      />
-      <div className="flex items-center gap-2 mb-3 flex-wrap">
+      <span aria-hidden className="absolute inset-y-0 left-0 w-1" style={{ backgroundColor: SEVERITY_COLOR[issue.severity] }} />
+      <div className="mb-1.5 flex flex-wrap items-center gap-2">
         <SeverityBadge level={issue.severity} />
         {/* themeLabel from backend — more readable than raw category */}
-        {issue.themeLabel && (
-          <span className="text-xs text-ink-muted font-medium">{issue.themeLabel}</span>
-        )}
+        {issue.themeLabel && <span className="text-caption font-semibold text-ink-muted">{issue.themeLabel}</span>}
         {issue.marksImpact > 0 && (
           <span
             className="flex items-center gap-0.5"
@@ -37,65 +32,49 @@ export function IssueRow({ issue, isSelected, lessonDefaultOpen, lessonForceOpen
             title="Pedagogical priority — not a mark deduction"
           >
             {Array.from({ length: 3 }, (_, i) => (
-              <span
-                key={i}
-                className={`w-1 h-1 rounded-full ${i < issue.marksImpact ? 'bg-ink-muted' : 'bg-track'}`}
-              />
+              <span key={i} className={`h-1.5 w-1.5 rounded-pill ${i < issue.marksImpact ? 'bg-ink-muted' : 'bg-track'}`} />
             ))}
           </span>
         )}
         {issue.isRecurring && (
-          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-reward-soft border border-hairline text-eyebrow text-reward-text uppercase">
-            <RotateCcw size={8} />
+          <span className="flex items-center gap-1 rounded-pill bg-reward-soft px-2 py-0.5 text-caption font-semibold text-reward-text">
+            <RotateCcw size={12} aria-hidden="true" />
             Recurring
           </span>
         )}
       </div>
 
-      <div className="space-y-2.5">
+      <p lang="fr" className="text-body-base leading-snug">
         {issue.quote && (
-          <div>
-            <p className="text-eyebrow text-ink-subtle uppercase mb-1">You said</p>
-            <p
-              className={`text-base rounded-lg px-2.5 py-1.5 ${SEVERITY_TEXT[issue.severity]} ${SEVERITY_SOFT[issue.severity]}`}
-            >
-              {issue.quote}
-            </p>
-          </div>
+          <>
+            <span className={`line-through decoration-2 ${SEVERITY_TEXT[issue.severity]}`}>{issue.quote}</span>
+            <ArrowRight size={14} className="mx-1.5 inline align-[-2px] text-ink-subtle" aria-label="becomes" />
+          </>
         )}
+        <span className="font-semibold text-progress-text">{issue.correction}</span>
+      </p>
 
-        <div>
-          <p className="text-eyebrow text-ink-subtle uppercase mb-1">Say instead</p>
-          <div className="flex items-start gap-2 rounded-lg px-2.5 py-1.5 bg-progress-soft">
-            <CheckCircle size={16} className="text-progress-text flex-shrink-0 mt-1" />
-            <span className="text-base text-progress-text font-medium">{issue.correction}</span>
-          </div>
-        </div>
-      </div>
+      {issue.diagnostic && <p className="mt-1 text-body-s text-ink-muted">{issue.diagnostic}</p>}
 
-      <p className="text-sm text-ink-muted mt-3">{issue.diagnostic}</p>
-
-      {issue.isRecurring && issue.recurrenceNote && (
-        <p className="text-sm text-reward-text mt-1.5">{issue.recurrenceNote}</p>
-      )}
+      {issue.isRecurring && issue.recurrenceNote && <p className="mt-1.5 text-body-s text-reward-text">{issue.recurrenceNote}</p>}
 
       {issue.stronger && (
-        <div className="flex items-start gap-1.5 text-sm mt-2">
-          <ChevronRight size={14} className="text-action-text flex-shrink-0 mt-0.5" />
+        <div className="mt-2 flex items-start gap-1.5 text-body-s">
+          <ChevronRight size={14} className="mt-0.5 shrink-0 text-action-text" aria-hidden="true" />
           <span className="text-action-text">{issue.stronger}</span>
         </div>
       )}
 
       {/* masterTip — single highest-leverage fix from backend */}
       {issue.masterTip && (
-        <div className="flex items-start gap-2 mt-3 px-3 py-2 rounded-lg bg-reward-soft">
-          <Lightbulb size={14} className="text-reward-text flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-reward-text">{issue.masterTip}</p>
+        <div className="mt-2 flex items-start gap-2 rounded-control bg-reward-soft px-3 py-2">
+          <Lightbulb size={14} className="mt-0.5 shrink-0 text-reward-text" aria-hidden="true" />
+          <p className="text-body-s text-reward-text">{issue.masterTip}</p>
         </div>
       )}
 
       {/* Prefer mini_lesson (new backend) over teachMe (offline legacy) */}
       <TeachMeLesson mini_lesson={issue.mini_lesson} teachMe={issue.teachMe} defaultOpen={lessonDefaultOpen} forceOpen={lessonForceOpen} command={lessonCommand} />
-    </div>
+    </li>
   );
 }

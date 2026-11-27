@@ -1,24 +1,25 @@
-import { ArrowRight } from 'lucide-react';
+import { Layers } from 'lucide-react';
+import { BreakdownCard } from './BreakdownCard';
 import type { ExpansionLevel } from '../../../types';
 
-export function ExpansionLevelRow({ lvl, isLast }: { lvl: ExpansionLevel; isLast: boolean }) {
-  const colors = {
-    1: { bg: 'bg-track', text: 'text-ink-muted', num: 'bg-track text-ink-muted' },
-    2: { bg: 'bg-info-soft border border-hairline', text: 'text-info-text', num: 'bg-blue-500/20 text-info-text' },
-    3: { bg: 'bg-action-soft border border-hairline', text: 'text-action-text', num: 'bg-violet-500/20 text-action-text' },
-  }[lvl.level];
+const STEP: Record<ExpansionLevel['level'], string> = {
+  1: 'bg-track text-ink-muted',
+  2: 'bg-info-soft text-info-text',
+  3: 'bg-action-soft text-action-text',
+};
 
+export function ExpansionLevelRow({ lvl, isLast }: { lvl: ExpansionLevel; isLast: boolean }) {
   return (
-    <div className={`flex items-start gap-2.5 p-2.5 rounded-lg ${colors.bg}`}>
-      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${colors.num}`}>
+    <li className="relative flex items-start gap-3 pb-3 last:pb-0">
+      {!isLast && <span aria-hidden="true" className="absolute left-3 top-7 bottom-0 w-px bg-hairline" />}
+      <span className={`relative flex h-6 w-6 shrink-0 items-center justify-center rounded-pill font-numeral text-caption font-semibold ${STEP[lvl.level]}`}>
         {lvl.level}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p lang="fr" className="break-words text-body-s text-ink">{lvl.sentence}</p>
+        <p className="mt-0.5 text-caption text-ink-muted">+ {lvl.addedWhat}</p>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium font-mono break-words ${colors.text}`}>{lvl.sentence}</p>
-        <p className="text-xs text-ink-muted mt-0.5">+ {lvl.addedWhat}</p>
-      </div>
-      {!isLast && <ArrowRight size={9} className="text-ink-subtle mt-1 shrink-0" />}
-    </div>
+    </li>
   );
 }
 
@@ -27,16 +28,16 @@ interface Props {
   title: string;
 }
 
+/** The same idea built up one step at a time. */
 export function RewriteLadder({ levels, title }: Props) {
   if (levels.length === 0) return null;
   return (
-    <div className="rounded-xl surface-raised p-4 space-y-2">
-      <p className="text-eyebrow text-ink-muted uppercase mb-3">{title}</p>
-      <div className="space-y-2">
+    <BreakdownCard title={title} icon={Layers} tone="info" subtitle="Your idea, built up one step at a time">
+      <ol>
         {levels.map((lvl, i) => (
           <ExpansionLevelRow key={lvl.level} lvl={lvl} isLast={i === levels.length - 1} />
         ))}
-      </div>
-    </div>
+      </ol>
+    </BreakdownCard>
   );
 }

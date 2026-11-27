@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { enter, enterReduced, fill } from '../../../components/motion/variants';
 import { ClaimRow, FixRow, PointSection, type FeedbackPoint } from '../components/FeedbackPointList';
 import type { TeacherLine } from './buildTeacherScript';
 import { SecondTake } from './SecondTake';
@@ -60,7 +62,7 @@ function Avatar() {
   return (
     <span
       aria-hidden="true"
-      className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-action-soft border border-hairline text-[10px] font-black text-action-text"
+      className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-pill bg-action text-caption font-semibold text-action-ink"
     >
       {teacherInitials()}
     </span>
@@ -70,11 +72,12 @@ function Avatar() {
 function LearnerBubble({ text, quotes }: { text: string; quotes: string[] }) {
   const segments = markQuotes(text, quotes);
   return (
-    <div className="flex justify-end">
-      <p className="max-w-[88%] rounded-2xl rounded-br-sm surface-recessed px-3.5 py-2.5 text-sm leading-relaxed text-ink-muted">
+    <div className="flex flex-col items-end gap-1">
+      <p className="text-eyebrow uppercase text-ink-subtle" aria-hidden="true">Your answer</p>
+      <p lang="fr" className="max-w-[90%] rounded-card rounded-br-sm bg-action-soft px-4 py-3 text-body-s text-ink">
         {segments.map((s, i) =>
           s.marked ? (
-            <mark key={i} className="bg-transparent text-ink underline decoration-correction-text decoration-2 underline-offset-2">
+            <mark key={i} className="bg-transparent text-ink underline decoration-correction-text decoration-wavy decoration-2 underline-offset-4">
               {s.text}
             </mark>
           ) : (
@@ -88,6 +91,7 @@ function LearnerBubble({ text, quotes }: { text: string; quotes: string[] }) {
 
 export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderSection, highlightedQuote, onSecondTake, after }: Props) {
   const unitCounts = useMemo(() => lines.map((l) => (l.kind === 'talk' ? typingUnits(l.text).length : 0)), [lines]);
+  const reduced = useReducedMotion() ?? false;
   const reveal = useTypedReveal(revealKey, unitCounts);
   const { skip, done } = reveal;
   const [micOwner, setMicOwner] = useState<string | null>(null);
@@ -135,6 +139,96 @@ export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderS
     l.kind === 'points' ? l.group.points.filter((p): p is Fix => p.kind === 'fix').map((p) => p.quote) : [],
   );
 
+  const renderLine = (line: TeacherLine, i: number): ReactNode => {
+    const prev = visibleLines[i - 1];
+    const typing = i === reveal.visible - 1 && !done;
+    switch (line.kind) {
+      case 'learner':
+        return <LearnerBubble key={line.id} text={line.text} quotes={quotes} />;
+
+      case 'talk': {
+        const text = typing ? typedPrefix(line.text, reveal.units) : line.text;
+        const continuing = prev?.kind === 'talk';
+        return (
+          <div key={line.id} className="flex gap-2">
+            {continuing ? <span className="w-8 shrink-0" aria-hidden="true" /> : <Avatar />}
+            <div className="min-w-0 space-y-0.5">
+              {!continuing && (
+                <p className="text-eyebrow uppercase text-ink-muted" aria-hidden="true">
+                  {TEACHER_NAME}
+                </p>
+              )}
+              {line.question && <PredictQuestion prompt={line.question.prompt} answer={line.question.answer} />}
+              <p
+                aria-hidden="true"
+                data-role={line.role}
+                className="rounded-card rounded-tl-sm border border-hairline bg-surface-raised px-4 py-3 text-body-s text-ink shadow-card"
+              >
+                {text}
+              </p>
+            </div>
+          </div>
+        );
+      }
+
+      case 'points': {
+        const nudge = !!tryFirstHeading && line.group.heading === tryFirstHeading;
+        return (
+          <div key={line.id} className="pl-10">
+            <PointSection
+              heading={line.group.heading}
+              tone={line.group.tone}
+              compact={false}
+              aside={nudge ? <TriedMeter tried={nudgeQuotes.filter((q) => resolved.has(q)).length} total={nudgeQuotes.length} reduced={reduced} /> : undefined}
+            >
+              {line.group.points.map((p, j) =>
+                p.kind === 'claim' ? (
+                  <ClaimRow key={j} point={p} compact={false} hl={highlightedQuote} />
+                ) : nudge ? (
+                  <TryItFirst
+                    key={j}
+                    fix={p}
+                    highlightedQuote={highlightedQuote}
+                    micLocked={micOwner !== null && micOwner !== p.quote}
+                    onMicActive={(active) => setMicOwner(active ? p.quote : null)}
+                    onResolved={() => setResolved((r) => new Set(r).add(p.quote))}
+                  />
+                ) : (
+                  <FixRow key={j} point={p} compact={false} hl={highlightedQuote} action={<SpeakButton text={p.correction} />} />
+                ),
+              )}
+            </PointSection>
+          </div>
+        );
+      }
+
+      case 'section':
+        if (line.section === 'second-take') {
+          return (
+            <div key={line.id} className="pl-10">
+              <SecondTake
+                groups={pointGroups}
+                micLocked={micOwner !== null && micOwner !== SECOND_TAKE_MIC}
+                onMicActive={(active) => setMicOwner(active ? SECOND_TAKE_MIC : null)}
+                onTaken={onSecondTake}
+              />
+            </div>
+          );
+        }
+        return (
+          <div key={line.id} className="pl-10">
+            {line.section === 'say-it-better' && holdSayItBetter ? (
+              <p className="rounded-card border border-dashed border-hairline-strong px-4 py-3 text-body-s text-ink-muted">
+                Your improved answer appears here once you've tried the fixes above, or tapped "Just show me".
+              </p>
+            ) : (
+              renderSection?.(line.section)
+            )}
+          </div>
+        );
+    }
+  };
+
   return (
     <section
       aria-label={`${TEACHER_NAME}'s feedback`}
@@ -147,92 +241,14 @@ export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderS
         {announced}
       </div>
 
-      {visibleLines.map((line, i) => {
-        const prev = visibleLines[i - 1];
-        const typing = i === reveal.visible - 1 && !done;
-        switch (line.kind) {
-          case 'learner':
-            return <LearnerBubble key={line.id} text={line.text} quotes={quotes} />;
+      {visibleLines.map((line, i) => (
+        // Each line rises in as the teacher reaches it (the `enter` motion; a fade under reduced motion).
+        <motion.div key={line.id} variants={reduced ? enterReduced : enter} initial="hidden" animate="show">
+          {renderLine(line, i)}
+        </motion.div>
+      ))}
 
-          case 'talk': {
-            const text = typing ? typedPrefix(line.text, reveal.units) : line.text;
-            const continuing = prev?.kind === 'talk';
-            return (
-              <div key={line.id} className="flex gap-2">
-                {continuing ? <span className="w-7 shrink-0" aria-hidden="true" /> : <Avatar />}
-                <div className="min-w-0 space-y-0.5">
-                  {!continuing && (
-                    <p className="text-eyebrow uppercase text-ink-muted" aria-hidden="true">
-                      {TEACHER_NAME}
-                    </p>
-                  )}
-                  {line.question && <PredictQuestion prompt={line.question.prompt} answer={line.question.answer} />}
-                  <p
-                    aria-hidden="true"
-                    data-role={line.role}
-                    className="rounded-2xl rounded-tl-sm surface-raised px-3.5 py-2.5 text-sm leading-relaxed text-ink"
-                  >
-                    {text}
-                  </p>
-                </div>
-              </div>
-            );
-          }
-
-          case 'points': {
-            const nudge = !!tryFirstHeading && line.group.heading === tryFirstHeading;
-            return (
-              <div key={line.id} className="pl-9">
-                <PointSection heading={line.group.heading} tone={line.group.tone} compact={false}>
-                  {line.group.points.map((p, j) =>
-                    p.kind === 'claim' ? (
-                      <ClaimRow key={j} point={p} compact={false} hl={highlightedQuote} />
-                    ) : nudge ? (
-                      <TryItFirst
-                        key={j}
-                        fix={p}
-                        highlightedQuote={highlightedQuote}
-                        micLocked={micOwner !== null && micOwner !== p.quote}
-                        onMicActive={(active) => setMicOwner(active ? p.quote : null)}
-                        onResolved={() => setResolved((r) => new Set(r).add(p.quote))}
-                      />
-                    ) : (
-                      <FixRow key={j} point={p} compact={false} hl={highlightedQuote} action={<SpeakButton text={p.correction} />} />
-                    ),
-                  )}
-                </PointSection>
-              </div>
-            );
-          }
-
-          case 'section':
-            if (line.section === 'second-take') {
-              return (
-                <div key={line.id} className="pl-9">
-                  <SecondTake
-                    groups={pointGroups}
-                    micLocked={micOwner !== null && micOwner !== SECOND_TAKE_MIC}
-                    onMicActive={(active) => setMicOwner(active ? SECOND_TAKE_MIC : null)}
-                    onTaken={onSecondTake}
-                  />
-                </div>
-              );
-            }
-            return (
-              <div key={line.id} className="pl-9">
-                {line.section === 'say-it-better' && holdSayItBetter ? (
-                  <p className="text-sm text-ink-muted">
-                    Your improved answer appears here once you've tried the fixes above, or tapped "Just show me".
-                  </p>
-                ) : (
-                  renderSection?.(line.section)
-                )}
-              </div>
-            );
-        }
-      })}
-
-      {done && !holdSayItBetter && after ? <div className="pl-9">{after}</div> : null}
+      {done && !holdSayItBetter && after ? <div className="pl-10">{after}</div> : null}
 
       {!done && (
         <div className="flex justify-end">
@@ -246,6 +262,27 @@ export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderS
         </div>
       )}
     </section>
+  );
+}
+
+/** "1 of 2 tried" with a small bar that fills (the `fill` motion) — how far through the first fixes the learner is. */
+function TriedMeter({ tried, total, reduced }: { tried: number; total: number; reduced: boolean }) {
+  if (total < 1) return null;
+  const pct = `${(tried / total) * 100}%`;
+  return (
+    <span className="flex shrink-0 items-center gap-2" data-testid="tried-meter">
+      <span className="font-numeral text-caption text-ink-muted">
+        {tried} of {total} tried
+      </span>
+      <span className="h-1.5 w-12 overflow-hidden rounded-pill bg-track" aria-hidden="true">
+        <motion.span
+          className="block h-full rounded-pill bg-progress"
+          initial={false}
+          animate={{ width: pct }}
+          transition={reduced ? { duration: 0 } : fill(0)}
+        />
+      </span>
+    </span>
   );
 }
 

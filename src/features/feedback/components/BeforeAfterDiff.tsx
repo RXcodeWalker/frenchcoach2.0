@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowDown, ChevronDown, CheckCircle } from 'lucide-react';
-import { fadeUp } from '../../../components/motion/variants';
+import { useState, type ReactNode } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { CheckCircle, Wand2 } from 'lucide-react';
+import { correct, enter, enterReduced } from '../../../components/motion/variants';
 import { diffWords, attachChangeAnnotations, type AnnotatedDiffOp } from '../../../domain/learn/feedback/buildChanges';
 import type { CoachingIssue } from '../../../types';
 
@@ -13,45 +13,47 @@ interface Props {
   issues?: CoachingIssue[];
   /** Card heading; the coach view calls it "Say it better" (Learn Batch 4). */
   title?: string;
+  /** Actions under the rewrite (hear it / practise it). */
+  children?: ReactNode;
 }
 
 /**
- * One changed stretch of the improved answer: only the new words, in green.
- * The crossed-out originals are not repeated here — "Your response marked up"
- * already shows them (owner, 2026-11-13). A pure deletion shows nothing; tap a
- * word that has a reason to see why it changed.
+ * One changed stretch of the improved answer: only the new words, in green,
+ * dropping in with the `correct` motion in reading order. The crossed-out
+ * originals are not repeated here — "Your answer, marked up" already shows them
+ * (owner, 2026-11-13). A pure deletion shows nothing; tap a word that has a
+ * reason to see why it changed.
  */
-function DiffChip({ op }: { op: AnnotatedDiffOp }) {
+function DiffChip({ op, order, reduced }: { op: AnnotatedDiffOp; order: number; reduced: boolean }) {
   const [open, setOpen] = useState(false);
   const hasExplanation = !!op.annotation;
   if (op.type === 'delete') return null;
 
   return (
-    <span className="inline">
+    <motion.span
+      className="inline"
+      initial={reduced ? false : { opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={reduced ? { duration: 0 } : correct.fix(0.15 + order * 0.12)}
+    >
       {hasExplanation ? (
         <button
-          onClick={() => setOpen(o => !o)}
+          type="button"
+          onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          className="text-progress-text font-medium underline decoration-progress-text decoration-dotted underline-offset-2 cursor-pointer hover:opacity-80"
+          className="rounded-sm bg-progress-soft px-0.5 font-semibold text-progress-text underline decoration-progress-text decoration-dotted underline-offset-4"
         >
           {op.afterText}
         </button>
       ) : (
-        <span className="text-progress-text font-medium">{op.afterText}</span>
+        <span className="rounded-sm bg-progress-soft px-0.5 font-semibold text-progress-text">{op.afterText}</span>
       )}
       {hasExplanation && open && (
-        <AnimatePresence>
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="block mt-1 mb-1 text-xs text-action-text bg-action-soft border border-hairline rounded-md px-2 py-1"
-          >
-            {op.annotation!.explanation}
-          </motion.span>
-        </AnimatePresence>
+        <span className="mb-1 mt-1 block rounded-control border border-hairline bg-action-soft px-2.5 py-1.5 text-body-s text-action-text">
+          {op.annotation!.explanation}
+        </span>
       )}
-    </span>
+    </motion.span>
   );
 }
 
@@ -60,11 +62,11 @@ function SafeCorrectionsList({ issues }: { issues: CoachingIssue[] }) {
   return (
     <div className="space-y-1.5">
       {issues.map(issue => (
-        <div key={issue.id} className="flex items-start gap-1.5 text-sm p-2 rounded-lg surface-recessed">
-          <CheckCircle size={14} className="text-progress-text flex-shrink-0 mt-0.5" />
+        <div key={issue.id} className="flex items-start gap-1.5 rounded-control surface-recessed p-2 text-body-s">
+          <CheckCircle size={14} className="mt-0.5 flex-shrink-0 text-progress-text" />
           <div>
-            {issue.quote && <span className="font-mono text-ink-muted line-through mr-1">{issue.quote}</span>}
-            <span className="text-progress-text font-medium">{issue.correction}</span>
+            {issue.quote && <span className="mr-1 text-ink-muted line-through">{issue.quote}</span>}
+            <span className="font-semibold text-progress-text">{issue.correction}</span>
           </div>
         </div>
       ))}
@@ -72,7 +74,9 @@ function SafeCorrectionsList({ issues }: { issues: CoachingIssue[] }) {
   );
 }
 
-export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = [], title = 'Before → After' }: Props) {
+export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = [], title = 'Before → After', children }: Props) {
+  const reduced = useReducedMotion() ?? false;
+  const [showMine, setShowMine] = useState(false);
   // No complete improved_answer -> no diff, ever (docs Stage 4 invariant #11,
   // Stage 5: "it falls back to the Safe corrections individual-correction
   // presentation. A diff implies an authoritative corrected answer exists;
@@ -80,8 +84,8 @@ export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = 
   if (!improvedAnswer) {
     if (issues.length === 0) return null;
     return (
-      <motion.div variants={fadeUp} initial="hidden" animate="show" className="rounded-xl surface p-4">
-        <p className="text-eyebrow text-ink-subtle uppercase mb-2.5">Safe Corrections</p>
+      <motion.div variants={reduced ? enterReduced : enter} initial="hidden" animate="show" className="rounded-card border border-hairline bg-surface p-4">
+        <p className="mb-2.5 text-eyebrow uppercase text-ink-subtle">Safe Corrections</p>
         <SafeCorrectionsList issues={issues} />
       </motion.div>
     );
@@ -91,33 +95,46 @@ export function BeforeAfterDiff({ transcript, improvedAnswer, changes, issues = 
   const annotated = attachChangeAnnotations(ops, changes ?? []);
   const hasChange = annotated.some(op => op.type !== 'equal');
   if (!hasChange) return null;
+  let order = 0;
 
   return (
-    <motion.div variants={fadeUp} initial="hidden" animate="show" className="rounded-xl surface p-4">
-      <p className="text-eyebrow text-ink-subtle uppercase mb-2.5">{title}</p>
-      <div className="space-y-2">
-        <div className="p-3 rounded-lg surface-recessed">
-          <p className="text-eyebrow text-ink-subtle uppercase mb-1.5">Your answer</p>
-          <p className="text-sm text-ink-muted leading-relaxed">{transcript}</p>
-        </div>
-        <div className="flex justify-center">
-          <ArrowDown size={14} className="text-info-text" />
-        </div>
-        <div className="p-3 rounded-lg bg-info-soft border border-hairline">
-          <p className="text-eyebrow text-info-text uppercase mb-1.5">Improved version</p>
-          <p className="text-sm text-ink leading-relaxed">
-            {annotated.map((op, i) => op.type === 'equal'
-              ? <span key={i}>{op.afterText}</span>
-              : <DiffChip key={i} op={op} />
-            )}
-          </p>
-        </div>
-        {annotated.some(op => op.annotation) && (
-          <p className="text-xs text-ink-subtle flex items-center gap-1">
-            <ChevronDown size={9} /> Changes are in green. Tap an underlined word for why it changed
-          </p>
-        )}
+    <motion.section
+      variants={reduced ? enterReduced : enter}
+      initial="hidden"
+      animate="show"
+      aria-label={title}
+      className="rounded-card border border-hairline bg-surface p-4"
+    >
+      <div className="mb-3 flex items-center gap-2.5">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-pill bg-progress-soft text-progress-text" aria-hidden="true">
+          <Wand2 size={14} />
+        </span>
+        <p className="min-w-0 flex-1 text-section text-ink">{title}</p>
       </div>
-    </motion.div>
+      <p lang="fr" className="text-body-base leading-relaxed text-ink">
+        {annotated.map((op, i) =>
+          op.type === 'equal' ? <span key={i}>{op.afterText}</span> : <DiffChip key={i} op={op} order={order++} reduced={reduced} />,
+        )}
+      </p>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-caption text-ink-muted">
+          {annotated.some(op => op.annotation) ? 'Changes are in green. Tap an underlined word for why.' : 'Changes are in green.'}
+        </p>
+        <button
+          type="button"
+          onClick={() => setShowMine((v) => !v)}
+          aria-expanded={showMine}
+          className="text-label text-action-text underline-offset-2 hover:underline"
+        >
+          {showMine ? 'Hide your answer' : 'Compare with yours'}
+        </button>
+      </div>
+      {showMine && (
+        <p lang="fr" className="mt-2 rounded-control surface-recessed px-3 py-2.5 text-body-s text-ink-muted">
+          {transcript}
+        </p>
+      )}
+      {children && <div className="mt-3 border-t border-hairline pt-3">{children}</div>}
+    </motion.section>
   );
 }

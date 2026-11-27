@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { RotateCcw, ChevronRight } from 'lucide-react';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
+import { press } from '../../../components/motion/variants';
 
 interface Props {
   onRetry: () => void;
@@ -35,21 +36,20 @@ export function FeedbackFooter({ onRetry, onComplete, modelAnswer, retryNote = D
       <div className="flex gap-2">
         <motion.button
           onClick={() => setConfirming(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl surface-recessed text-ink font-semibold text-sm"
-          whileTap={{ scale: 0.97 }}
+          className="flex items-center gap-1.5 rounded-control border border-hairline bg-surface px-4 py-3 text-label text-ink transition-colors duration-state hover:bg-surface-recessed"
+          whileTap={press}
         >
-          <RotateCcw size={12} /> Get new feedback
+          <RotateCcw size={14} aria-hidden="true" /> Get new feedback
         </motion.button>
 
         <motion.button
           onClick={onComplete}
           data-shortcut="continue"
           title="Next question (N)"
-          className="flex-1 btn-primary py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.97 }}
+          className="flex flex-1 items-center justify-center gap-2 rounded-control bg-action py-3 text-label text-action-ink transition-colors duration-state hover:bg-action-hover"
+          whileTap={press}
         >
-          Next question <ChevronRight size={13} />
+          Next question <ChevronRight size={16} aria-hidden="true" />
         </motion.button>
       </div>
 

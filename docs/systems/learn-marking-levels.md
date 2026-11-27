@@ -575,3 +575,11 @@ their words and never replace a linking word. The drop-only filter (§6.1) disca
 a span of the transcript with a linking word replaced, and the needs card applies that drop again.
 Adding a linking word, without replacing one, is still shown. Nothing is rewritten.
 
+
+## Amendment: the feedback redesign (2026-11-27)
+
+Layout only; every rule above is unchanged. The "score line" and the "Full report grid" are now one
+component, the feedback hero (`features/feedback/components/FeedbackHero.tsx`), shown once above both
+feedback tabs: it reads the marked score and the relabelled ladder grid exactly as §8.2 says, and
+carries the §8.3 captions ("Checked against…", "Level marking unavailable…", "Not graded, so…"). The
+Full report is now called the Breakdown. The needs card stays in the Coach tab, after the conversation.

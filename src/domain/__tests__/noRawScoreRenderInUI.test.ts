@@ -17,8 +17,8 @@ const SCAN_DIRS = ['src/screens', 'src/features'];
 
 // Each entry: why this file's `scores.overall` reference(s) are safe.
 const ALLOWED: Record<string, string> = {
-  'src/features/feedback/components/SnapshotCard.tsx':
-    'guarded — early-returns a "not graded" card when isUnscored(feedback), before the scoreEntries render',
+  'src/features/feedback/components/FeedbackHero.tsx':
+    'guarded — when isUnscored(feedback) it renders the "not graded" block and never the score ring or the grid',
   'src/screens/learn/FeedbackPanel.tsx':
     'guarded — isUnscored(feedback) ternary renders a "not graded" block instead of the score grid',
   'src/screens/Learn.tsx':

@@ -91,6 +91,7 @@ import {
   DailyNewsFlash,
   CoachBeliefDebug,
   JuniorPlaytest,
+  FeedbackPreview,
   NotFound,
   IgcseFrenchSpeaking,
   FrenchRoleplayPractice,
@@ -480,6 +481,7 @@ function AppShell() {
             <>
               <Route path="/debug/beliefs" element={<CoachBeliefDebug />} />
               <Route path="/debug/junior-playtest" element={<JuniorPlaytest />} />
+              <Route path="/debug/feedback" element={<FeedbackPreview />} />
             </>
           )}
           {/* Catch-all for signed-in/guest users hitting an unregistered app path.

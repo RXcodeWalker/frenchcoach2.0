@@ -4,7 +4,7 @@
 // Batch 6b — the coach view is the teacher's conversation: your answer →
 // opening → what you did well (every strength) → fix these first (2, as "Try it
 // first" nudges) → also worth fixing (every other fix) → say it better → go
-// further, then the score line under the talk, pronunciation (unchanged props)
+// further (the score is in the hero above both tabs since the 2026-11-27 redesign), pronunciation (unchanged props)
 // and Next / Get new feedback. No engine bar, no band pill, no raw B2/C1, and no
 // unfiltered streamed strength. Most tests run under reduced motion (instant);
 // the typing tests turn it off.
@@ -113,13 +113,13 @@ function renderFeedback(props: Partial<Parameters<typeof FeedbackExperience>[0]>
 const showMe = () => screen.getAllByRole('button', { name: 'Just show me' }).forEach((b) => fireEvent.click(b));
 
 describe('FeedbackExperience coach view (Batch 6a + 6b)', () => {
-  it('renders the conversation in order, then the score line under the talk, then the footer', () => {
+  it('renders the score hero and tabs first, then the conversation in order, then the Breakdown pointer and the footer', () => {
     const { container } = renderFeedback();
     showMe();
     const text = container.textContent ?? '';
     const order = [
-      'What you did well', 'Fix these first', 'Also worth fixing', 'Say it better', 'Now say it again, and use the fixes.', '6.5', 'Open the Full report', 'Get new feedback', 'Next question',
-    ].map((t) => text.lastIndexOf(t)); // the live region at the top repeats the talk, so take the visible one
+      '6.5', 'Breakdown', 'What you did well', 'Fix these first', 'Also worth fixing', 'Say it better', 'Now say it again, and use the fixes.', 'Open the Breakdown', 'Get new feedback', 'Next question',
+    ].map((t, i) => (i < 2 ? text.indexOf(t) : text.lastIndexOf(t))); // the live region repeats the talk, so take the visible one
     expect(order.every((i) => i >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
   });
@@ -202,23 +202,62 @@ describe('FeedbackExperience coach view (Batch 6a + 6b)', () => {
     expect(text).toContain('Stretch (B2)');
   });
 
-  it('keeps vocabulary, extension ideas and the model answer in the Full report only (owner, 2026-11-13)', () => {
+  it('keeps vocabulary, extension ideas and the model answer in the Breakdown only (owner, 2026-11-13)', () => {
     const { container } = renderFeedback({ modelAnswer: 'Le modèle.' });
     showMe();
     expect(screen.queryByRole('region', { name: 'Go further' })).toBeNull();
-    expect(container.textContent).not.toContain('How To Extend Your Answer');
-    expect(container.textContent).not.toContain('Show model answer');
+    expect(container.textContent).not.toContain('Ideas to extend your answer');
+    expect(container.textContent).not.toContain('Model answer');
     expect(container.textContent).not.toContain('Add one sentence about what you will do next weekend.');
-    // One tap to the report, which has all three.
-    fireEvent.click(screen.getByRole('button', { name: /Open the Full report/ }));
-    expect(container.textContent).toContain('Vocabulary');
-    expect(container.textContent).toContain('How To Extend Your Answer');
-    expect(container.textContent).toContain('Show model answer');
+    // The pointer says what is there, and one tap opens it.
+    const pointer = screen.getByRole('button', { name: /Open the Breakdown/ });
+    expect(pointer.textContent).toContain('1 vocabulary upgrade');
+    expect(pointer.textContent).toContain('model answer');
+    fireEvent.click(pointer);
+    expect(container.textContent).toContain('Vocabulary upgrades');
+    expect(container.textContent).toContain('Ideas to extend your answer');
+    expect(container.textContent).toContain('Model answer');
   });
 
-  it('has no Full report pointer when there is nothing extra there', () => {
-    renderFeedback({ feedback: { ...FEEDBACK, vocabulary: [], vocabularyV2: [], expansion_ideas: [] } as FeedbackV2 });
-    expect(screen.queryByRole('button', { name: /Open the Full report/ })).toBeNull();
+  it('has no Breakdown pointer when there is nothing extra there', () => {
+    renderFeedback({ feedback: { ...FEEDBACK, issues: [], vocabulary: [], vocabularyV2: [], expansion_ideas: [] } as FeedbackV2 });
+    expect(screen.queryByRole('button', { name: /Open the Breakdown/ })).toBeNull();
+  });
+
+  it('shows the score once, in the hero above both tabs, with what the feedback found', () => {
+    const { container } = renderFeedback({ feedback: FIVE_FIXES });
+    const hero = screen.getByTestId('feedback-hero');
+    expect(hero.textContent).toContain('6.5');
+    expect(hero.textContent).toContain('2 strengths');
+    expect(hero.textContent).toContain('5 fixes');
+    expect(hero.textContent).toContain('Communication');
+    fireEvent.click(screen.getByRole('button', { name: 'Breakdown' }));
+    // Same hero, and no second score card in the Breakdown.
+    expect(screen.getAllByTestId('feedback-hero')).toHaveLength(1);
+    expect(container.textContent).not.toContain('Results');
+  });
+
+  it('the Breakdown does not repeat the improved answer the Coach tab shows', () => {
+    const { container } = renderFeedback();
+    fireEvent.click(screen.getByRole('button', { name: 'Breakdown' }));
+    expect(container.textContent).not.toContain('Say it better');
+    expect(container.textContent).not.toContain('Improved version');
+    expect(container.textContent).not.toContain(FEEDBACK.improved_answer!);
+  });
+
+  it('the Breakdown lists what the answer does, quoting it', () => {
+    renderFeedback();
+    fireEvent.click(screen.getByRole('button', { name: 'Breakdown' }));
+    const card = screen.getByRole('region', { name: 'What your answer does' });
+    expect(card.textContent).toContain('Talked about the past');
+    expect(card.textContent).toContain('« je suis allé »');
+  });
+
+  it('counts the "Fix these first" nudges as the learner tries them', () => {
+    renderFeedback();
+    expect(screen.getByTestId('tried-meter').textContent).toContain('0 of 2 tried');
+    fireEvent.click(screen.getAllByRole('button', { name: 'Just show me' })[0]);
+    expect(screen.getByTestId('tried-meter').textContent).toContain('1 of 2 tried');
   });
 
   it('shows the answer as it was confirmed and marked, not the raw captions', () => {
@@ -244,9 +283,9 @@ describe('FeedbackExperience coach view (Batch 6a + 6b)', () => {
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('the Full report holds the one focus and the third correction', () => {
+  it('the Breakdown holds the one focus and the third correction', () => {
     renderFeedback();
-    fireEvent.click(screen.getByRole('button', { name: 'Full report' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Breakdown' }));
     expect(screen.getByText('Add one sentence about what you will do next weekend.')).toBeTruthy();
     expect(screen.getByText(/je suis allé\(e\)/)).toBeTruthy();
   });
@@ -363,11 +402,11 @@ describe('FeedbackExperience typed reveal (Batch 6b)', () => {
     for (const bubble of container.querySelectorAll('[data-role]')) expect(bubble.getAttribute('aria-hidden')).toBe('true');
   });
 
-  it('does not type the same attempt again when you come back from the Full report', () => {
+  it('does not type the same attempt again when you come back from the Breakdown', () => {
     vi.useFakeTimers();
     const { container } = renderFeedback();
     act(() => { vi.advanceTimersByTime(6_000); });
-    fireEvent.click(screen.getByRole('button', { name: 'Full report' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Breakdown' }));
     fireEvent.click(screen.getByRole('button', { name: 'Coach' }));
     expect(container.textContent).toContain('Also worth fixing');
     expect(screen.queryByRole('button', { name: 'Show all' })).toBeNull();
@@ -424,7 +463,7 @@ describe('FeedbackExperience while the feedback is generated (Batch 6b)', () => 
     expect(view.container.textContent).toContain('While you waited, you predicted how your answer went.');
   });
 
-  it('shows the verdicts in the Full report too (owner report 2026-10-31)', () => {
+  it('shows the verdicts in the Breakdown too (owner report 2026-10-31)', () => {
     const demands = { cognitiveDemand: 'justify' as const, timeFrames: ['present' as const] };
     const view = waiting({ demands });
     fireEvent.click(within(screen.getByRole('group', { name: 'Do you think you made a grammar mistake?' })).getByRole('button', { name: 'Yes' }));
@@ -433,7 +472,7 @@ describe('FeedbackExperience while the feedback is generated (Batch 6b)', () => 
         <FeedbackExperience feedback={FEEDBACK} transcript="Je joue au foot." demands={demands} onRetry={vi.fn()} onComplete={vi.fn()} />
       </MemoryRouter>,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Full report' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Breakdown' }));
     const card = screen.getByRole('region', { name: 'Your predictions' });
     expect(card.textContent).toMatch(/1 of 1 right|0 of 1 right/);
   });

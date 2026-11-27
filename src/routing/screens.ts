@@ -82,6 +82,9 @@ export const CoachBeliefDebug = import.meta.env.DEV
 export const JuniorPlaytest = import.meta.env.DEV
   ? lazyScreen(() => import('../screens/JuniorPlaytest'), 'JuniorPlaytest')
   : () => null;
+export const FeedbackPreview = import.meta.env.DEV
+  ? lazyScreen(() => import('../screens/FeedbackPreview'), 'FeedbackPreview')
+  : () => null;
 
 // ── Admin (admin accounts only — never preloaded for anyone else) ───────────
 export const AdminLayout = lazyScreen(() => import('../layouts/AdminLayout'), 'AdminLayout');

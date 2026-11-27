@@ -2,18 +2,19 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { playSfx } from '../../services/sound/sfx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Loader2, Mic2 } from 'lucide-react';
+import { ChevronRight, LayoutList, Loader2, Mic2 } from 'lucide-react';
 import { CollapsibleCard } from '../../components/ui/CollapsibleCard';
 import { GuardianConsentNotice } from '../../components/GuardianConsentNotice';
 import { stagger } from '../../components/motion/variants';
 import { FeedbackProvider, useFeedbackContext } from './state/feedbackContext';
 import { useFeedbackState } from './hooks/useFeedbackState';
-import { SnapshotCard } from './components/SnapshotCard';
+import { FeedbackHero, type FeedbackTally } from './components/FeedbackHero';
+import { Segmented } from '../../components/ui/Segmented';
 import { LevelNeedsCard } from './components/LevelNeedsCard';
 import type { MarkingLevel } from '../../domain/learn/marking/markingLevel';
 import { BeforeAfterDiff } from './components/BeforeAfterDiff';
 import { ReportView } from './components/ReportView';
-import { FIX_FIRST_HEADING, coachPointGroups, hasGoFurther } from './coachPoints';
+import { FIX_FIRST_HEADING, breakdownSummary, coachPointGroups, selectCoachFixes, whatWorkedGroup } from './coachPoints';
 import { PronunciationCard } from './components/PronunciationCard';
 import { AzurePronunciationCard } from './components/AzurePronunciationCard';
 import { HowItSounded } from '../pronunciation/HowItSounded';
@@ -45,26 +46,25 @@ import {
 import { TeacherConversation } from './teacher/TeacherConversation';
 import { useElapsedMs } from './teacher/useElapsedMs';
 
-/** Docs Stage 6 — segmented control at the top of the feedback stack. Same FeedbackV2, no new route. */
-function ViewModeToggle() {
+/**
+ * Docs Stage 6 — the two tabs, one job each (no item in both): Coach is the
+ * teacher's conversation and the practice; Breakdown is the evidence and the
+ * reference (marked-up answer, every correction with its lesson, vocabulary,
+ * ideas, the model answer). The score sits above both, in the hero.
+ */
+function ViewModeTabs() {
   const { state, dispatch } = useFeedbackContext();
   return (
-    <div className="flex p-0.5 rounded-lg surface-recessed w-fit">
-      {(['coach', 'report'] as const).map(mode => (
-        <button
-          key={mode}
-          onClick={() => dispatch({ type: 'SET_VIEW_MODE', mode })}
-          aria-pressed={state.viewMode === mode}
-          className={`px-3 py-1.5 rounded-md text-eyebrow uppercase transition-colors ${
-            state.viewMode === mode
-              ? 'bg-violet-500/20 text-action-text'
-              : 'text-ink-muted hover:text-ink-muted'
-          }`}
-        >
-          {mode === 'coach' ? 'Coach' : 'Full report'}
-        </button>
-      ))}
-    </div>
+    <Segmented
+      label="Feedback view"
+      value={state.viewMode}
+      onChange={(mode) => dispatch({ type: 'SET_VIEW_MODE', mode })}
+      testIdPrefix="feedback-tab"
+      options={[
+        { id: 'coach', label: 'Coach' },
+        { id: 'report', label: 'Breakdown' },
+      ]}
+    />
   );
 }
 
@@ -188,20 +188,18 @@ function FeedbackContent({
   const correctedSentence = feedback.improved_answer?.trim() ?? '';
   const renderSection = (section: 'say-it-better' | 'go-further'): ReactNode =>
     section === 'say-it-better' && answerText ? (
-      <div className="space-y-3">
-        <BeforeAfterDiff
-          transcript={answerText}
-          improvedAnswer={feedback.improved_answer}
-          changes={feedback.changes}
-          title="Say it better"
-        />
+      <BeforeAfterDiff
+        transcript={answerText}
+        improvedAnswer={feedback.improved_answer}
+        changes={feedback.changes}
+        title="Say it better"
+      >
         {/* With the Lab live, hear and say the rewrite right here; "How it sounded" below does the rest. */}
-        {howItSounded && correctedSentence && (
+        {howItSounded && correctedSentence ? (
           <SayItBetterActions sentence={correctedSentence} onPractise={() => setPractiseSignal((n) => n + 1)} />
-        )}
-      </div>
+        ) : null}
+      </BeforeAfterDiff>
     ) : null;
-  const hasReportExtras = hasGoFurther(feedback) || !!modelAnswer;
 
   if (feedback.responseTier === 0 || feedback.responseTier === 1) {
     return (
@@ -218,42 +216,54 @@ function FeedbackContent({
   const isOffline = feedback.engineMeta?.actualEngine === 'offline';
   const offlineBecauseSignedOut = feedback.engineMeta?.failoverReason === SIGNED_OUT_FEEDBACK_REASON;
 
+  const tally: FeedbackTally = {
+    strengths: whatWorkedGroup(feedback).points.length,
+    fixes: selectCoachFixes(feedback).length,
+    selfCorrections: feedback.selfCorrections?.length ?? 0,
+  };
+  const reportCounts = breakdownSummary(feedback, !!modelAnswer);
+
+  const header = (
+    <>
+      {isOffline && <OfflineLimitationsBanner signedOut={offlineBecauseSignedOut} />}
+      <FailoverBadge engineMeta={feedback.engineMeta} />
+      <FeedbackHero feedback={feedback} markingLevel={markingLevel} tally={tally} />
+      <ViewModeTabs />
+    </>
+  );
+
   if (state.viewMode === 'report') {
     return (
-      <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-3">
-        {isOffline && <OfflineLimitationsBanner signedOut={offlineBecauseSignedOut} />}
-        <FailoverBadge engineMeta={feedback.engineMeta} />
-        <ViewModeToggle />
+      <div className="space-y-3">
+        {header}
         <ReportView
           feedback={feedback}
           transcript={answerText}
           majorIssues={majorIssues}
           polishIssues={polishIssues}
           onIssueClick={openCardFromIssue}
-          markingLevel={markingLevel}
           predictions={<PredictionResults lines={calibration} />}
+          modelAnswer={modelAnswer}
         />
-        <FeedbackFooter onRetry={onRetry} onComplete={onComplete} modelAnswer={modelAnswer} retryNote={retryNote} />
-      </motion.div>
+        <FeedbackFooter onRetry={onRetry} onComplete={onComplete} retryNote={retryNote} />
+      </div>
     );
   }
 
   return (
-    <motion.div
-      variants={stagger}
-      initial="hidden"
-      animate="show"
-      className="space-y-3"
-    >
-      {isOffline && <OfflineLimitationsBanner signedOut={offlineBecauseSignedOut} />}
-      <FailoverBadge engineMeta={feedback.engineMeta} />
-      <ViewModeToggle />
-
+    <div className="space-y-3">
+      {header}
+      <motion.div
+        variants={stagger}
+        initial="hidden"
+        animate="show"
+        className="space-y-3"
+      >
       {/* Learn Batch 6b — the teacher's conversation: your answer → opening →
           what you did well → fix these first (as "Try it first" nudges) → also
-          worth fixing → say it better → go further → a repeated mistake. The
-          score line moves under the talk. Lessons and the one-focus line live
-          in the Full report. */}
+          worth fixing → say it better → a repeated mistake → second take. The
+          score is in the hero above both tabs (2026-11-27 redesign). Lessons
+          and the one-focus line live in the Breakdown. */}
       <TeacherConversation
         lines={lines}
         revealKey={feedback}
@@ -278,7 +288,6 @@ function FeedbackContent({
         }
       />
 
-      <SnapshotCard feedback={feedback} variant="line" markingLevel={markingLevel} />
       {/* learn-marking §6.1 — Coach style only (the Examiner style never gets a marking level). */}
       {markingLevel && (
         <LevelNeedsCard feedback={feedback} markingLevel={markingLevel} transcript={answerText} />
@@ -355,19 +364,29 @@ function FeedbackContent({
         </>
       )}
 
-      {hasReportExtras && (
+      {reportCounts.length > 0 && (
         <button
           type="button"
-          onClick={() => dispatch({ type: 'SET_VIEW_MODE', mode: 'report' })}
-          className="w-full rounded-xl surface p-3 text-left text-sm text-ink-muted"
+          onClick={() => {
+            dispatch({ type: 'SET_VIEW_MODE', mode: 'report' });
+            window.scrollTo?.({ top: 0, behavior: 'smooth' });
+          }}
+          className="group flex w-full items-center gap-3 rounded-card border border-hairline bg-surface p-4 text-left transition-colors duration-state hover:border-hairline-strong"
         >
-          <span className="font-semibold text-action-text">Open the Full report</span> for vocabulary upgrades, ideas to
-          extend your answer and the model answer.
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-action-soft text-action-text" aria-hidden="true">
+            <LayoutList size={18} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-section text-ink">Open the Breakdown</span>
+            <span className="block text-caption text-ink-muted">{reportCounts.join(' · ')}</span>
+          </span>
+          <ChevronRight size={18} className="shrink-0 text-ink-subtle" aria-hidden="true" />
         </button>
       )}
+      </motion.div>
 
       <FeedbackFooter onRetry={onRetry} onComplete={onComplete} retryNote={retryNote} />
-    </motion.div>
+    </div>
   );
 }
 

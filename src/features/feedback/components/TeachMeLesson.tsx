@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { BookOpen, ChevronDown } from 'lucide-react';
 import type { TeachMe, MiniLesson } from '../../../types';
+import { slide } from '../../../components/motion/variants';
 
 interface Props {
   teachMe?: TeachMe;
@@ -31,12 +32,14 @@ export function TeachMeLesson({ teachMe, mini_lesson, defaultOpen = false, force
     <div className="mt-2">
       <button
         onClick={() => { if (forceOpen === undefined) setOpen(o => !o); }}
-        className="flex items-center gap-1.5 text-sm text-action-text hover:text-action-text transition-colors"
+        type="button"
+        aria-expanded={isOpen}
+        className="inline-flex items-center gap-1.5 rounded-pill bg-action-soft px-2.5 py-1 text-label text-action-text transition-colors duration-state hover:bg-surface-recessed"
       >
-        <BookOpen size={11} />
-        {mini_lesson ? mini_lesson.title : 'Teach Me'}
-        <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
-          <ChevronDown size={11} />
+        <BookOpen size={13} aria-hidden="true" />
+        {mini_lesson ? `Lesson: ${mini_lesson.title}` : 'Teach me'}
+        <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={slide} aria-hidden="true">
+          <ChevronDown size={13} />
         </motion.span>
       </button>
 

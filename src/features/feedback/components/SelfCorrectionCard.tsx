@@ -1,6 +1,5 @@
-import { motion } from 'framer-motion';
-import { RotateCcw } from 'lucide-react';
-import { fadeUp } from '../../../components/motion/variants';
+import { Undo2 } from 'lucide-react';
+import { BreakdownCard } from './BreakdownCard';
 import type { SelfCorrection } from '../../../domain/learn/feedback/selfCorrection';
 
 interface Props {
@@ -15,30 +14,26 @@ interface Props {
 export function SelfCorrectionCard({ selfCorrections }: Props) {
   if (!selfCorrections || selfCorrections.length === 0) return null;
   return (
-    <motion.section
-      variants={fadeUp}
-      initial="hidden"
-      animate="show"
-      aria-label="You fixed this yourself"
-      className="rounded-xl bg-progress-soft border border-hairline p-4 space-y-2"
+    <BreakdownCard
+      title="You fixed this yourself"
+      icon={Undo2}
+      tone="info"
+      count={selfCorrections.length > 1 ? selfCorrections.length : undefined}
+      subtitle="Not counted as a mistake"
     >
-      <p className="flex items-center gap-1.5 text-eyebrow uppercase text-progress-text">
-        <RotateCcw size={13} aria-hidden="true" />
-        You fixed {selfCorrections.length === 1 ? 'this' : 'these'} yourself
-      </p>
       <ul className="space-y-1.5">
         {selfCorrections.map((s) => (
-          <li key={s.quote} className="text-sm text-ink leading-relaxed">
-            <span className="line-through decoration-correction-text text-ink-muted">« {s.quote} »</span>
+          <li key={s.quote} lang="fr" className="text-body-s text-ink">
+            <span className="text-ink-muted line-through decoration-correction-text">« {s.quote} »</span>
             {' → '}
-            <span className="font-medium text-progress-text">« {s.repair} »</span>
+            <span className="font-semibold text-progress-text">« {s.repair} »</span>
           </li>
         ))}
       </ul>
-      <p className="text-sm text-ink-muted leading-relaxed">
+      <p className="mt-2 text-body-s text-ink-muted">
         Catching your own slip shows you know the rule, and an examiner doesn't hold a mistake you fix at once against
         you, so it isn't in your corrections. Next step: say it right first time.
       </p>
-    </motion.section>
+    </BreakdownCard>
   );
 }

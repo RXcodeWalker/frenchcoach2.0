@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Mic, Square } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { Check, Mic, Square } from 'lucide-react';
+import { enter, enterReduced } from '../../../components/motion/variants';
 import { SpeakingConsentGate } from '../../../components/SpeakingConsentGate';
 import { useAuth } from '../../../context/AuthContext';
 import { fixMatch } from '../../../domain/learn/feedback/fixMatch';
@@ -68,15 +70,16 @@ function FixMicButton({
       onClick={toggle}
       disabled={locked && !recording.isRecording}
       aria-label={recording.isRecording ? 'Stop and check what you said' : 'Say your fix'}
-      className="inline-flex items-center gap-1 rounded-lg surface-recessed px-2.5 py-1.5 text-sm font-bold text-action-text disabled:opacity-40"
+      className="inline-flex items-center gap-1.5 rounded-control border border-hairline bg-surface px-3 py-2 text-label text-action-text transition-colors duration-state hover:bg-action-soft disabled:opacity-40"
     >
-      {recording.isRecording ? <Square size={11} aria-hidden="true" /> : <Mic size={11} aria-hidden="true" />}
+      {recording.isRecording ? <Square size={14} aria-hidden="true" /> : <Mic size={14} aria-hidden="true" />}
       {recording.isRecording ? 'Stop' : 'Say it'}
     </button>
   );
 }
 
 export function TryItFirst({ fix, highlightedQuote, micLocked = false, onMicActive, onResolved }: Props) {
+  const reduced = useReducedMotion() ?? false;
   const [revealed, setRevealed] = useState<Revealed | null>(null);
   const [attempt, setAttempt] = useState('');
   // Whether the text in the box was spoken (and not yet edited) or typed.
@@ -95,20 +98,25 @@ export function TryItFirst({ fix, highlightedQuote, micLocked = false, onMicActi
 
   if (revealed) {
     return (
-      <div className="space-y-1.5">
+      <motion.div variants={reduced ? enterReduced : enter} initial="hidden" animate="show" className="space-y-1.5">
         {revealed !== 'shown' && (
-          <p className="text-sm font-semibold text-progress-text" role="status">
+          <p className="flex items-center gap-1.5 text-label text-progress-text" role="status">
+            {revealed === 'match' && (
+              <span className="flex h-5 w-5 items-center justify-center rounded-pill bg-progress-soft" aria-hidden="true">
+                <Check size={13} />
+              </span>
+            )}
             {revealed === 'match' ? "Yes, that's it." : "Here's how I'd say it:"}
           </p>
         )}
         <FixRow point={fix} compact={false} hl={highlightedQuote} action={<SpeakButton text={fix.correction} />} />
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="space-y-2" data-testid="try-it-first">
-      <p className="text-sm text-ink leading-relaxed">{tryItHint(fix.quote, fix.tag)}</p>
+    <div className="space-y-2.5" data-testid="try-it-first">
+      <p className="text-body-s text-ink">{tryItHint(fix.quote, fix.tag)}</p>
       <input
         type="text"
         lang="fr"
@@ -122,14 +130,14 @@ export function TryItFirst({ fix, highlightedQuote, micLocked = false, onMicActi
         }}
         aria-label={`Your fix for « ${fix.quote} »`}
         placeholder="Type your fix…"
-        className="w-full rounded-lg surface-recessed px-3 py-1.5 text-sm text-ink placeholder:text-ink-muted"
+        className="w-full rounded-control border border-hairline surface-recessed px-3 py-2 text-body-s text-ink placeholder:text-ink-muted focus:border-action focus:outline-none"
       />
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={() => check(attempt, attemptMode)}
           disabled={!attempt.trim()}
-          className="rounded-lg bg-action px-3 py-1.5 text-sm font-bold text-action-ink disabled:opacity-40"
+          className="rounded-control bg-action px-4 py-2 text-label text-action-ink transition-colors duration-state hover:bg-action-hover active:scale-[.97] disabled:opacity-40"
         >
           Check
         </button>
@@ -144,7 +152,7 @@ export function TryItFirst({ fix, highlightedQuote, micLocked = false, onMicActi
         <button
           type="button"
           onClick={() => reveal('shown')}
-          className="rounded-lg px-2 py-1.5 text-sm font-semibold text-ink-muted underline underline-offset-2"
+          className="rounded-control px-2 py-2 text-label text-ink-muted underline underline-offset-2 hover:text-ink"
         >
           Just show me
         </button>

@@ -64,3 +64,35 @@ export function answerHighlights(
   }
   return out;
 }
+
+/** A feature of the answer for the Breakdown's "What your answer does" — every one found, quoted. */
+export interface AnswerFeature {
+  /** "Gave a reason" — a label that stands on its own. */
+  label: string;
+  /** Verbatim from the answer. */
+  quote: string;
+}
+
+const FEATURE_LABEL: Record<string, string> = {
+  'gave a reason': 'Gave a reason',
+  'talked about the past': 'Talked about the past',
+  'talked about the future': 'Talked about the future',
+  'said what you would do': 'Said what you would do',
+  'gave your opinion': 'Gave your opinion',
+  'linked your ideas': 'Linked your ideas',
+};
+
+/**
+ * Every feature `answerHighlights` looks for that this answer really has, each
+ * with the words that show it (no cap, nothing skipped). Same markers, same
+ * rule: something not found is simply not listed — never "you didn't".
+ */
+export function answerFeatures(transcript: string): AnswerFeature[] {
+  if (!transcript.trim()) return [];
+  const out: AnswerFeature[] = [];
+  for (const c of CANDIDATES) {
+    const hit = c.find(transcript);
+    if (hit?.quote) out.push({ label: FEATURE_LABEL[c.phrase] ?? c.phrase, quote: hit.quote });
+  }
+  return out;
+}

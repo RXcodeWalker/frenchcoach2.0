@@ -1,21 +1,16 @@
 import { Target } from 'lucide-react';
-import { CollapsibleCard } from '../../../components/ui/CollapsibleCard';
+import { BreakdownCard } from './BreakdownCard';
 
 interface Props {
   opportunity?: string;
 }
 
+/** The Breakdown's lead card: the one thing that would most improve the next answer. */
 export function BiggestOpportunityCard({ opportunity }: Props) {
   if (!opportunity) return null;
-
   return (
-    <CollapsibleCard
-      title="Your One Focus"
-      icon={<Target size={13} className="text-reward-text" />}
-      defaultOpen={true}
-      className="border border-amber-500/10"
-    >
-      <p className="text-sm text-ink-muted leading-relaxed">{opportunity}</p>
-    </CollapsibleCard>
+    <BreakdownCard title="Your next step" icon={Target} tone="action" emphasis subtitle="The one change that would help most next time">
+      <p className="text-body-base text-ink">{opportunity}</p>
+    </BreakdownCard>
   );
 }

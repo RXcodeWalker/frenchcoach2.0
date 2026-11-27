@@ -133,3 +133,22 @@ export function hasGoFurther(feedback: FeedbackV2): boolean {
     (feedback.expansion_ideas?.length ?? 0) > 0
   );
 }
+
+/**
+ * What the Breakdown tab holds beyond the conversation, as short counted
+ * phrases for the Coach tab's pointer ("3 corrections with lessons · 2
+ * vocabulary upgrades · model answer"). Empty when it holds nothing extra.
+ */
+export function breakdownSummary(feedback: FeedbackV2, hasModelAnswer: boolean): string[] {
+  const out: string[] = [];
+  const corrections = feedback.issues?.length ?? 0;
+  const lessons = (feedback.issues ?? []).filter((i) => i.mini_lesson || i.teachMe).length;
+  if (lessons > 0) out.push(`${lessons} ${lessons === 1 ? 'lesson' : 'lessons'}`);
+  else if (corrections > 0) out.push(`${corrections} ${corrections === 1 ? 'correction' : 'corrections'} in place`);
+  const vocab = feedback.vocabularyV2?.length || feedback.vocabulary?.length || 0;
+  if (vocab > 0) out.push(`${vocab} vocabulary ${vocab === 1 ? 'upgrade' : 'upgrades'}`);
+  const ideas = feedback.expansion_ideas?.length ?? 0;
+  if (ideas > 0) out.push(`${ideas} ${ideas === 1 ? 'idea' : 'ideas'} to extend`);
+  if (hasModelAnswer) out.push('model answer');
+  return out;
+}

@@ -105,6 +105,7 @@ export const ROUTES: RouteEntry[] = [
   { path: '/teach/class/:classId/attempt/:attemptId', kind: 'dynamic', indexable: false },
   { path: '/debug/beliefs', kind: 'dev-only', indexable: false },
   { path: '/debug/junior-playtest', kind: 'dev-only', indexable: false },
+  { path: '/debug/feedback', kind: 'dev-only', indexable: false },
   { path: '/admin', kind: 'app', indexable: false },
   { path: '/admin/questions', kind: 'app', indexable: false },
   { path: '/admin/questions/new', kind: 'app', indexable: false },

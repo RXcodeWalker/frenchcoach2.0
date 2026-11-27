@@ -1,6 +1,5 @@
-import { motion } from 'framer-motion';
-import { Check, HelpCircle, X } from 'lucide-react';
-import { fadeUp } from '../../../components/motion/variants';
+import { Check, Gauge, HelpCircle, X } from 'lucide-react';
+import { BreakdownCard } from '../components/BreakdownCard';
 import type { CalibrationLine, PredictionVerdict } from './predictionQuestions';
 
 const VERDICT: Record<PredictionVerdict, { icon: typeof Check; label: string; tone: string }> = {
@@ -18,14 +17,8 @@ export function PredictionResults({ lines }: { lines: readonly CalibrationLine[]
   if (lines.length === 0) return null;
   const right = lines.filter((l) => l.verdict === 'right').length;
   return (
-    <motion.section variants={fadeUp} initial="hidden" animate="show" aria-label="Your predictions" className="rounded-xl surface p-4 space-y-2.5">
-      <div className="flex items-baseline justify-between gap-2">
-        <p className="text-eyebrow uppercase text-ink-subtle">Your predictions</p>
-        <p className="text-sm text-ink-muted font-numeral">
-          {right} of {lines.length} right
-        </p>
-      </div>
-      <ul className="space-y-2">
+    <BreakdownCard title="Your predictions" icon={Gauge} tone="action" subtitle={`${right} of ${lines.length} right`}>
+      <ul className="space-y-2.5">
         {lines.map((line) => {
           const v = VERDICT[line.verdict];
           const Icon = v.icon;
@@ -42,6 +35,6 @@ export function PredictionResults({ lines }: { lines: readonly CalibrationLine[]
           );
         })}
       </ul>
-    </motion.section>
+    </BreakdownCard>
   );
 }
