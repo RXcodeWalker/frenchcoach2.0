@@ -19,8 +19,9 @@ const REASON_COPY: Record<string, string> = {
   unknown: 'Something went wrong. Try again.',
 };
 
-// Shown on first visit to Rankings while username === null (plan §3.1, §6).
-// Never blocks Learn, Exam, or Home — this is the only place it's mounted.
+// Shown on first visit to Rankings while username === null (plan §3.1, §6), and on
+// request from the Daily Challenge and Leagues screens.
+// Never blocks Learn, Exam, or Home.
 export const UsernameSetupModal: React.FC<UsernameSetupModalProps> = ({ onClose }) => {
   const { dispatch, state } = useApp();
   const [value, setValue] = useState('');

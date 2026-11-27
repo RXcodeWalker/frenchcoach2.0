@@ -13,8 +13,10 @@ cron/admin jobs — never given to a client.
 
 A function's tier is readable from its grant footer, without opening the function body:
 
-- **`GRANT EXECUTE ... TO authenticated`** — client-facing, e.g. `mint_gems`,
-  `start_daily_challenge`, `submit_daily_challenge_attempt`.
+- **`GRANT EXECUTE ... TO authenticated`** — client-facing, e.g. `mint_gems`, `submit_xp_event`,
+  `daily_challenge_start`/`daily_challenge_answer`, `get_my_league` (the exam-based
+  `start_daily_challenge`/`submit_daily_challenge_attempt` were revoked from clients on 2026-11-26 —
+  `daily-challenge-and-leagues.md`).
 - **`GRANT EXECUTE ... TO service_role`** (no `authenticated` grant at all) — server-only, e.g.
   `award_xp`, `seed_daily_challenge(s_batch)`, `assign_weekly_league_cohorts(_as_of)`,
   `consume_shadowing_coaching_quota` / `release_shadowing_coaching_grant` (the last two are called

@@ -116,11 +116,12 @@ export const STORAGE_KEYS = {
   pendingMintQueue:      'frenchCoach_pendingMintQueue',
   shopBalanceCache:      'frenchCoach_shopBalanceCache',
   shopInventoryCache:    'frenchCoach_shopInventoryCache',
-  // ── Daily Challenge Phase 1: claim-recovery checkpoint (Fix 4) ──────────────────
-  dailyChallengePendingClaim: 'frenchCoach_dailyChallengePendingClaim',
+  // ── Leagues (daily-challenge-and-leagues §3.6): the last finished week whose
+  // promoted/demoted/stayed card this account has dismissed (a week key, nothing else).
+  leagueOutcomeSeen: 'frenchCoach_leagueOutcomeSeen',
   // ── Friend Duels Phase 2: claim-recovery checkpoints, keyed by duelId ────────────
-  // (plural — multiple duels can be in flight at once, unlike Daily Challenge's
-  // single-slot key; see duelsService.ts for the full rationale)
+  // (plural — multiple duels can be in flight at once; see duelsService.ts for the
+  // full rationale)
   duelPendingClaims: 'frenchCoach_duelPendingClaims',
   // ── League Power prerequisite (plan i-am-implementing-phase-hashed-karp.md,
   // Part A4): persisted claimed-state for Challenges.tsx's weekly-challenge

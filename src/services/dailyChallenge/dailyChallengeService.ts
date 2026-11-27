@@ -1,159 +1,177 @@
 /**
- * Daily Challenge (revised plan Phase 1) — mirrors friendsService.ts's
- * conventions: RPC wrapping with warn-and-degrade on error, no throwing.
- *
- * Score-binding flow (never trusts a client-sent score): start_daily_challenge
- * reserves a server-minted session_id BEFORE the exam runs; ExamMode uses it
- * verbatim instead of minting its own `exam-sim-${Date.now()}`;
- * submit_daily_challenge_attempt then verifies that exact session_id backs
- * the submitted scoring_envelopes row before pulling the real score from it.
- *
- * Claim recovery (Fix 4): savePendingClaim/getPendingClaim/clearPendingClaim
- * are built on the same storageGet/storageSet primitives localTranscriptStore.ts
- * already uses — not a new storage layer. The pending-claim record is the
- * single durable checkpoint written unconditionally the moment ExamMode's
- * scoring machine reaches Completed in daily-challenge mode, before the claim
- * RPC is even attempted — so a reload after a successful /score but a failed
- * claim can retry the claim without redoing the exam.
+ * Daily Challenge (docs/systems/daily-challenge-and-leagues.md §2) — the client of four
+ * SECURITY DEFINER RPCs. The server owns the challenge end to end: which items, the tile
+ * order, the clock, the marking, the XP and the board. The client never holds an answer
+ * key and never sends a score; it sends which tiles were placed, in order, and shows what
+ * the server says. Nothing is stored locally — reloading resumes from the server.
  */
 
 import { supabase, supabaseConfigured } from '../../lib/supabase';
-import { STORAGE_KEYS, storageGet, storageSet } from '../persistence/storage';
+import { classifyRpcError, type RpcFailure } from '../../lib/rpcFailure';
+import type {
+  BoardScope,
+  DailyChallengeBoard,
+  DailyChallengeBoardRow,
+  DailyChallengeItem,
+  DailyChallengeRun,
+  DailyChallengeState,
+} from '../../features/dailyChallenge/types';
 
-/** UTC ISO day, matching the existing week_key convention — no new boundary rule invented. */
-export function todayChallengeDate(): string {
-  return new Date().toISOString().slice(0, 10);
+const ANSWER_ERRORS = ['not_started', 'invalid_position', 'invalid_answer', 'run_finished'] as const;
+export type AnswerFailure = RpcFailure<(typeof ANSWER_ERRORS)[number]>;
+
+export type StateResult = { ok: true; state: DailyChallengeState } | { ok: false; reason: RpcFailure };
+export type AnswerResult =
+  | { ok: true; state: DailyChallengeState; repeat: boolean; expired: boolean }
+  | { ok: false; reason: AnswerFailure };
+export type BoardResult = { ok: true; board: DailyChallengeBoard } | { ok: false; reason: RpcFailure };
+
+type Json = Record<string, unknown>;
+const obj = (v: unknown): Json | null => (v && typeof v === 'object' && !Array.isArray(v) ? (v as Json) : null);
+const num = (v: unknown, fallback = 0): number =>
+  typeof v === 'number' && Number.isFinite(v) ? v : typeof v === 'string' && v !== '' && Number.isFinite(Number(v)) ? Number(v) : fallback;
+const numOrNull = (v: unknown): number | null => (v === null || v === undefined ? null : Number.isFinite(num(v, NaN)) ? num(v) : null);
+const str = (v: unknown): string | null => (typeof v === 'string' ? v : null);
+const strings = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+const ints = (v: unknown): number[] => (Array.isArray(v) ? v.filter((x): x is number => Number.isInteger(x)) : []);
+
+function parseItem(raw: unknown): DailyChallengeItem | null {
+  const it = obj(raw);
+  if (!it || typeof it.english !== 'string') return null;
+  const tiles = strings(it.tiles);
+  if (tiles.length === 0) return null;
+  const answer = obj(it.answer);
+  const solution = obj(it.solution);
+  const difficulty = num(it.difficulty, 1);
+  return {
+    position: num(it.position),
+    english: it.english,
+    theme: str(it.theme) ?? '',
+    difficulty: difficulty === 2 || difficulty === 3 ? difficulty : 1,
+    wordCount: Math.max(1, num(it.word_count, 1)),
+    tiles,
+    answer: answer ? { tiles: ints(answer.tiles), correct: answer.correct === true } : null,
+    solution:
+      solution && typeof solution.french === 'string'
+        ? { french: solution.french, explanation: str(solution.explanation) ?? '' }
+        : null,
+  };
 }
 
-export interface DailyChallengeAssignment {
-  challengeDate: string;
-  questionSetId: string;
+function parseRun(raw: unknown): DailyChallengeRun | null {
+  const r = obj(raw);
+  if (!r || (r.status !== 'in_progress' && r.status !== 'finished')) return null;
+  return {
+    status: r.status,
+    startedAt: str(r.started_at) ?? '',
+    deadlineAt: str(r.deadline_at) ?? '',
+    finishedAt: str(r.finished_at),
+    correctCount: num(r.correct_count),
+    durationMs: numOrNull(r.duration_ms),
+    flagged: r.flagged === true,
+    xpAwarded: num(r.xp_awarded),
+    rank: numOrNull(r.rank),
+  };
 }
 
-export type StartDailyChallengeResult =
-  | { ok: true; sessionId: string; questionSetId: string }
-  | { ok: false; reason: 'not_authenticated' | 'unknown_challenge' | 'already_completed' | 'offline' | 'unknown' };
-
-export type SubmitDailyChallengeResult =
-  | { ok: true; alreadyClaimed: boolean; xpAwarded?: number; scoreTotal?: number }
-  | { ok: false; reason: 'not_authenticated' | 'unknown_challenge' | 'unknown_envelope' | 'not_original_practice'
-      | 'question_set_mismatch' | 'wrong_day' | 'session_not_bound' | 'invalid_envelope_total' | 'offline' | 'unknown' };
-
-function mapStartError(message: string): StartDailyChallengeResult {
-  const known = ['not_authenticated', 'unknown_challenge', 'already_completed'] as const;
-  for (const reason of known) {
-    if (message.includes(reason)) return { ok: false, reason };
-  }
-  return { ok: false, reason: 'unknown' };
+/** Exported for tests: the RPC's JSON → state, or null when it is not that shape. */
+export function parseState(raw: unknown): DailyChallengeState | null {
+  const s = obj(raw);
+  const challengeDate = str(s?.challenge_date);
+  if (!s || !challengeDate) return null;
+  const streak = obj(s.streak);
+  const items = Array.isArray(s.items)
+    ? s.items.map(parseItem).filter((i): i is DailyChallengeItem => i !== null).sort((a, b) => a.position - b.position)
+    : [];
+  return {
+    challengeDate,
+    resetsAt: str(s.resets_at) ?? '',
+    itemCount: num(s.item_count, items.length),
+    participants: num(s.participants),
+    streak: { current: num(streak?.current), best: num(streak?.best) },
+    run: parseRun(s.run),
+    items,
+  };
 }
 
-function mapSubmitError(message: string): SubmitDailyChallengeResult {
-  const known = [
-    'not_authenticated', 'unknown_challenge', 'unknown_envelope', 'not_original_practice',
-    'question_set_mismatch', 'wrong_day', 'session_not_bound', 'invalid_envelope_total',
-  ] as const;
-  for (const reason of known) {
-    if (message.includes(reason)) return { ok: false, reason };
-  }
-  return { ok: false, reason: 'unknown' };
+function parseBoardRow(raw: unknown): DailyChallengeBoardRow | null {
+  const r = obj(raw);
+  const username = str(r?.username);
+  if (!r || !username) return null;
+  return {
+    rank: num(r.rank),
+    username,
+    avatarEmoji: str(r.avatar_emoji),
+    equippedFrame: str(r.equipped_frame),
+    equippedNameplate: str(r.equipped_nameplate),
+    correctCount: num(r.correct_count),
+    itemCount: num(r.item_count),
+    durationMs: num(r.duration_ms),
+    isMe: r.is_me === true,
+  };
 }
 
-/** Today's assigned question set, or null if unseeded (scheduled job missed a run) or offline. */
-export async function getTodaysChallenge(): Promise<DailyChallengeAssignment | null> {
-  if (!supabaseConfigured) return null;
-  try {
-    const { data, error } = await supabase
-      .from('daily_challenge_assignments')
-      .select('challenge_date, question_set_id')
-      .eq('challenge_date', todayChallengeDate())
-      .maybeSingle();
-
-    if (error || !data) {
-      if (error) console.warn('[dailyChallengeService] getTodaysChallenge failed:', error.message);
-      return null;
-    }
-    return { challengeDate: data.challenge_date, questionSetId: data.question_set_id };
-  } catch (err) {
-    console.warn('[dailyChallengeService] getTodaysChallenge error:', err);
-    return null;
-  }
+export function parseBoard(raw: unknown): DailyChallengeBoard | null {
+  const b = obj(raw);
+  const challengeDate = str(b?.challenge_date);
+  if (!b || !challengeDate) return null;
+  return {
+    challengeDate,
+    scope: b.scope === 'friends' ? 'friends' : 'global',
+    total: num(b.total),
+    rows: Array.isArray(b.rows) ? b.rows.map(parseBoardRow).filter((r): r is DailyChallengeBoardRow => r !== null) : [],
+  };
 }
 
-/** Whether the caller has already completed today's challenge. */
-export async function hasCompletedToday(userId: string): Promise<boolean> {
-  if (!supabaseConfigured) return false;
-  try {
-    const { data, error } = await supabase
-      .from('daily_challenge_attempts')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('challenge_date', todayChallengeDate())
-      .maybeSingle();
-
-    if (error) {
-      console.warn('[dailyChallengeService] hasCompletedToday failed:', error.message);
-      return false;
-    }
-    return data !== null;
-  } catch (err) {
-    console.warn('[dailyChallengeService] hasCompletedToday error:', err);
-    return false;
-  }
-}
-
-export async function startDailyChallenge(challengeDate: string): Promise<StartDailyChallengeResult> {
+async function callState(fn: 'daily_challenge_today' | 'daily_challenge_start'): Promise<StateResult> {
   if (!supabaseConfigured) return { ok: false, reason: 'offline' };
   try {
-    const { data, error } = await supabase.rpc('start_daily_challenge', { p_challenge_date: challengeDate });
-    if (error) {
-      console.warn('[dailyChallengeService] start failed:', error.message);
-      return mapStartError(error.message);
-    }
-    return { ok: true, sessionId: data.session_id, questionSetId: data.question_set_id };
-  } catch (err) {
-    console.warn('[dailyChallengeService] start error:', err);
-    return { ok: false, reason: 'unknown' };
+    const { data, error } = await supabase.rpc(fn);
+    if (error) return { ok: false, reason: classifyRpcError(error) };
+    const state = parseState(data);
+    return state ? { ok: true, state } : { ok: false, reason: 'error' };
+  } catch {
+    return { ok: false, reason: 'offline' };
   }
 }
 
-export async function submitDailyChallengeAttempt(challengeDate: string, attemptId: string): Promise<SubmitDailyChallengeResult> {
+/** Today's challenge and the caller's run (no items until it is started). */
+export function getDailyChallenge(): Promise<StateResult> {
+  return callState('daily_challenge_today');
+}
+
+/** Starts today's run (the server clock) and reveals the items. Calling it again never restarts it. */
+export function startDailyChallenge(): Promise<StateResult> {
+  return callState('daily_challenge_start');
+}
+
+/** Marks one item. `tiles` are indexes into that item's `tiles`, in the order placed. Final. */
+export async function answerDailyChallengeItem(challengeDate: string, position: number, tiles: number[]): Promise<AnswerResult> {
   if (!supabaseConfigured) return { ok: false, reason: 'offline' };
   try {
-    const { data, error } = await supabase.rpc('submit_daily_challenge_attempt', {
+    const { data, error } = await supabase.rpc('daily_challenge_answer', {
       p_challenge_date: challengeDate,
-      p_attempt_id: attemptId,
+      p_position: position,
+      p_tiles: tiles,
     });
-    if (error) {
-      console.warn('[dailyChallengeService] submit failed:', error.message);
-      return mapSubmitError(error.message);
-    }
-    return {
-      ok: true,
-      alreadyClaimed: data.already_claimed,
-      xpAwarded: data.xp_awarded,
-      scoreTotal: data.score_total,
-    };
-  } catch (err) {
-    console.warn('[dailyChallengeService] submit error:', err);
-    return { ok: false, reason: 'unknown' };
+    if (error) return { ok: false, reason: classifyRpcError(error, ANSWER_ERRORS) };
+    const state = parseState(data);
+    if (!state) return { ok: false, reason: 'error' };
+    const raw = obj(data);
+    return { ok: true, state, repeat: raw?.repeat === true, expired: raw?.expired === true };
+  } catch {
+    return { ok: false, reason: 'offline' };
   }
 }
 
-// ── Claim recovery (Fix 4) ──────────────────────────────────────────────────
-
-export interface PendingDailyChallengeClaim {
-  challengeDate: string;
-  attemptId: string;
-}
-
-export function savePendingClaim(claim: PendingDailyChallengeClaim): void {
-  storageSet(STORAGE_KEYS.dailyChallengePendingClaim, claim);
-}
-
-export function getPendingClaim(): PendingDailyChallengeClaim | null {
-  return storageGet<PendingDailyChallengeClaim | null>(STORAGE_KEYS.dailyChallengePendingClaim, null);
-}
-
-export function clearPendingClaim(): void {
-  storageSet(STORAGE_KEYS.dailyChallengePendingClaim, null);
+export async function getDailyChallengeBoard(scope: BoardScope): Promise<BoardResult> {
+  if (!supabaseConfigured) return { ok: false, reason: 'offline' };
+  try {
+    const { data, error } = await supabase.rpc('daily_challenge_board', { p_scope: scope });
+    if (error) return { ok: false, reason: classifyRpcError(error) };
+    const board = parseBoard(data);
+    return board ? { ok: true, board } : { ok: false, reason: 'error' };
+  } catch {
+    return { ok: false, reason: 'offline' };
+  }
 }

@@ -12,7 +12,7 @@ describe('Explore offline marking (offline support)', () => {
   });
 
   it('live speech recognition, AI, server-backed modes and the recorded-voice listening game are marked as needing a connection', () => {
-    for (const id of ['speaking', 'speed', 'scenario_arch', 'daily_news', 'accent', 'dictee', 'rankings', 'xp_shop', 'mystery_box']) {
+    for (const id of ['speaking', 'speed', 'scenario_arch', 'daily_news', 'accent', 'dictee', 'rankings', 'daily_challenge', 'league', 'xp_shop', 'mystery_box']) {
       expect(byId.get(id)?.needsConnection, id).toBe(true);
     }
   });
@@ -28,6 +28,8 @@ describe('Explore tiles match their feature flags', () => {
     challenges: 'challenges',
     my_plan: 'myPlan',
     fluency_trainer: 'fluencyTrainer',
+    daily_challenge: 'dailyChallenge',
+    league: 'league',
   } as const;
 
   it('locks every tile whose flag is coming-soon', () => {

@@ -1,204 +1,321 @@
-import { useCallback, useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Trophy, ArrowUp, ArrowDown } from 'lucide-react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion, useReducedMotion } from 'framer-motion';
+import { ArrowDown, ArrowUp, CalendarDays, Shield, Trophy } from 'lucide-react';
 import { PageShell } from '../components/layout/PageShell';
+import { TopContextBar } from '../components/TopContextBar';
+import { Button } from '../components/ui/Button';
+import { InlineAlert } from '../components/auth/InlineAlert';
+import { UsernameSetupModal } from '../components/ui/UsernameSetupModal';
+import { enter, enterReduced } from '../components/motion/variants';
 import { useAuth } from '../context/AuthContext';
-import { getMyLeagueStanding, getLastWeekOutcome } from '../services/league/leagueService';
-import type { MyLeagueStanding, LastWeekOutcome } from '../types/league';
+import { PersonRow } from '../features/rankings/PersonRow';
+import { useCatalogue } from '../services/shop/useCatalogue';
+import { rarityOf, RARITY_COLOR } from '../services/shop/rarity';
+import { track } from '../services/telemetry/telemetryService';
+import { getMyLeague, lastWeekCardSeen, markLastWeekCardSeen } from '../services/league/leagueService';
+import { lastWeekLine, myStandingLine, TIER_HUE, TIER_LABEL, zoneOf, type Zone } from '../features/league/leagueView';
+import { timeUntil } from '../features/dailyChallenge/format';
+import { LEAGUE_TIER_ORDER, type LeagueTier, type MyLeague } from '../types/league';
+import type { RpcFailure } from '../lib/rpcFailure';
 
-type ViewState = 'loading' | 'error' | 'unranked' | 'active';
+/**
+ * Leagues (docs/systems/daily-challenge-and-leagues.md §3): this week's group, ranked by
+ * the XP the server's ledger holds. Who is in the group, the ranks and the zones all come
+ * from `get_my_league()`; the screen draws them and decides nothing.
+ */
 
-const TIER_LABEL: Record<string, string> = {
-  bronze: 'Bronze',
-  silver: 'Silver',
-  gold: 'Gold',
-  platinum: 'Platinum',
-  diamond: 'Diamond',
-};
+type Load = { name: 'loading' } | { name: 'signed-out' } | { name: 'failed'; reason: RpcFailure } | { name: 'ready'; league: MyLeague };
 
-const TIER_COLOR: Record<string, string> = {
-  bronze: '#B87333',
-  silver: '#9CA3AF',
-  gold: '#F59E0B',
-  platinum: '#22D3EE',
-  diamond: '#A78BFA',
+const card = 'rounded-card border border-hairline bg-surface';
+
+function TierChip({ tier, size = 40 }: { tier: LeagueTier; size?: number }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="topic-chip flex shrink-0 items-center justify-center"
+      style={{ '--h': TIER_HUE[tier], width: size, height: size, borderRadius: 10 } as CSSProperties}
+    >
+      <Shield size={Math.round(size / 2)} strokeWidth={1.75} />
+    </span>
+  );
+}
+
+function TierLadder({ current }: { current: LeagueTier }) {
+  return (
+    <ol className="flex items-center gap-1.5" aria-label="League tiers">
+      {LEAGUE_TIER_ORDER.map(t => (
+        <li key={t} className="flex flex-col items-center gap-1" aria-current={t === current ? 'step' : undefined}>
+          <span className={t === current ? '' : 'opacity-40'}>
+            <TierChip tier={t} size={t === current ? 36 : 28} />
+          </span>
+          <span className={`text-caption ${t === current ? 'text-ink' : 'text-ink-subtle'}`}>{TIER_LABEL[t]}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+const ZONE_NOTE: Record<Exclude<Zone, 'safe' | 'unranked'>, { Icon: typeof ArrowUp; label: string; className: string }> = {
+  promote: { Icon: ArrowUp, label: 'Promotion zone', className: 'text-progress-text' },
+  demote: { Icon: ArrowDown, label: 'Drop zone', className: 'text-correction-text' },
 };
 
 export function League() {
+  const navigate = useNavigate();
+  const reduced = useReducedMotion();
+  const item = reduced ? enterReduced : enter;
   const { user } = useAuth();
   const userId = user?.id ?? null;
+  const catalogue = useCatalogue();
+  const [load, setLoad] = useState<Load>({ name: 'loading' });
+  const [showUsername, setShowUsername] = useState(false);
+  const [cardSeen, setCardSeen] = useState(false);
+  const tracked = useRef(false);
 
-  const [view, setView] = useState<ViewState>('loading');
-  const [standing, setStanding] = useState<MyLeagueStanding | null>(null);
-  const [lastWeek, setLastWeek] = useState<LastWeekOutcome | null>(null);
-  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const nameStyle = useMemo(
+    () => (itemId: string | null) => {
+      const it = itemId ? catalogue.find(i => i.id === itemId) : undefined;
+      return it ? { color: RARITY_COLOR[rarityOf(it)] } : undefined;
+    },
+    [catalogue],
+  );
 
-  const load = useCallback(async () => {
-    setView('loading');
-    const [standingResult, lastWeekResult] = await Promise.all([
-      getMyLeagueStanding(userId),
-      getLastWeekOutcome(userId),
-    ]);
-
-    if (standingResult === null) {
-      setStanding(null);
-      setLastWeek(lastWeekResult);
-      setView('unranked');
+  const refresh = useCallback(async () => {
+    if (!userId) {
+      setLoad({ name: 'signed-out' });
       return;
     }
-
-    setStanding(standingResult);
-    setLastWeek(lastWeekResult);
-    setView('active');
+    setLoad({ name: 'loading' });
+    const result = await getMyLeague(userId);
+    if (result.ok) {
+      setCardSeen(result.league.lastWeek ? lastWeekCardSeen(result.league.lastWeek.weekKey) : true);
+      setLoad({ name: 'ready', league: result.league });
+      if (!tracked.current) {
+        tracked.current = true;
+        track({ name: 'league_viewed', props: { status: result.league.status, tier: result.league.tier } });
+      }
+    } else {
+      setLoad(result.reason === 'signed_out' ? { name: 'signed-out' } : { name: 'failed', reason: result.reason });
+    }
   }, [userId]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    void refresh();
+  }, [refresh]);
 
-  if (view === 'loading') {
+  const bar = (
+    <TopContextBar title="Leagues" subtitle="This week’s group" showBack backLabel="Back to Rankings" onBack={() => navigate('/rankings')} />
+  );
+
+  if (load.name === 'loading') {
     return (
-      <PageShell maxWidth="sm">
-        <div className="text-center py-24 text-ink-muted text-sm">Loading…</div>
-      </PageShell>
+      <>
+        {bar}
+        <PageShell maxWidth="md" gap={16}>
+          <div className={`${card} h-48`} aria-busy="true" data-testid="league-loading" />
+        </PageShell>
+      </>
     );
   }
 
-  if (view === 'error') {
+  if (load.name === 'signed-out') {
     return (
-      <PageShell maxWidth="sm">
-        <div className="text-center py-24 space-y-2">
-          <p className="text-sm font-bold text-white">Couldn't load your league</p>
-          <button onClick={() => void load()} className="text-xs text-violet-400 font-bold underline underline-offset-2">
-            Try again
-          </button>
-        </div>
-      </PageShell>
+      <>
+        {bar}
+        <PageShell maxWidth="md" gap={16}>
+          <motion.section variants={item} className={`${card} p-6 text-center`}>
+            <Trophy size={28} aria-hidden="true" className="mx-auto text-ink-subtle" />
+            <h2 className="mt-3 text-section text-ink">Sign in to join a league</h2>
+            <p className="mt-1 text-body-s text-ink-muted">Each week you’re grouped with learners at your level. Finish near the top to move up.</p>
+            <div className="mt-5 flex justify-center">
+              <Link to="/login" className="inline-flex h-11 items-center rounded-control bg-action px-5 text-label text-action-ink">Sign in</Link>
+            </div>
+          </motion.section>
+        </PageShell>
+      </>
     );
   }
 
-  if (view === 'unranked') {
+  if (load.name === 'failed') {
     return (
-      <PageShell maxWidth="sm">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Trophy size={14} className="text-violet-400" />
-            <span className="text-[10px] font-bold text-violet-400 uppercase tracking-wider">League Power</span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-black text-white">Leagues</h1>
-        </div>
-        <div className="text-center py-16 space-y-2">
-          <Trophy size={24} className="mx-auto text-ink-subtle" />
-          <p className="text-sm font-bold text-white">Not ranked yet</p>
-          <p className="text-xs text-ink-muted max-w-xs mx-auto">
-            Earn XP this week and you'll be placed into a league cohort at the next weekly assignment.
-          </p>
-        </div>
-      </PageShell>
+      <>
+        {bar}
+        <PageShell maxWidth="md" gap={16}>
+          <motion.section variants={item} className={`${card} space-y-4 p-6`} data-testid="league-failed">
+            {load.reason === 'not_deployed' ? (
+              <p className="text-body text-ink-muted">Leagues are being switched on. Check back soon.</p>
+            ) : (
+              <InlineAlert>{load.reason === 'offline' ? 'You’re offline. Leagues need a connection.' : 'Couldn’t load your league.'}</InlineAlert>
+            )}
+            <Button variant="secondary" onClick={() => void refresh()}>Try again</Button>
+          </motion.section>
+        </PageShell>
+      </>
     );
   }
 
-  if (!standing) return null;
-
-  // Client-side promotion/demotion zone sizing MUST match the backend's own
-  // rule exactly (GREATEST(1, ROUND(size * 0.15)), top/bottom 15%) --
-  // 20260815090300_league_assignment_rpc.sql, Phase A UPDATE. This is
-  // display-only (the server already computed promoted/demoted per member),
-  // used just to draw the zone divider lines in the roster below.
-  const size = standing.members.length;
-  const zoneSize = Math.max(1, Math.round(size * 0.15));
-  const showLastWeekBanner =
-    !bannerDismissed &&
-    lastWeek &&
-    lastWeek.weekKey !== standing.weekKey &&
-    (lastWeek.promoted || lastWeek.demoted);
+  const league = load.league;
+  const cohort = league.cohort;
+  const me = cohort?.members.find(m => m.isMe);
+  const resetIn = timeUntil(league.resetsAt);
+  const last = league.lastWeek && !cardSeen ? lastWeekLine(league.lastWeek) : null;
 
   return (
-    <PageShell maxWidth="sm">
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <Trophy size={14} className="text-violet-400" />
-          <span className="text-[10px] font-bold text-violet-400 uppercase tracking-wider">League Power</span>
-        </div>
-        <h1 className="text-2xl md:text-3xl font-black text-white">Leagues</h1>
-      </div>
+    <>
+      {bar}
+      <PageShell maxWidth="md" gap={16}>
+        {showUsername && (
+          <UsernameSetupModal
+            onClose={() => {
+              setShowUsername(false);
+              void refresh();
+            }}
+          />
+        )}
 
-      <div
-        className="rounded-2xl p-5 surface-raised flex items-center gap-4"
-        style={{ borderColor: `${TIER_COLOR[standing.poolTier]}40` }}
-      >
-        <div
-          className="w-12 h-12 rounded-2xl flex items-center justify-center"
-          style={{ background: `${TIER_COLOR[standing.poolTier]}15`, border: `1px solid ${TIER_COLOR[standing.poolTier]}30` }}
-        >
-          <Trophy size={22} style={{ color: TIER_COLOR[standing.poolTier] }} />
-        </div>
-        <div>
-          <p className="text-lg font-black text-white">{TIER_LABEL[standing.poolTier] ?? standing.poolTier}</p>
-          <p className="text-[10px] text-ink-muted">Week {standing.weekKey}</p>
-        </div>
-      </div>
-
-      {showLastWeekBanner && lastWeek && (
-        <motion.div
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`rounded-xl p-4 flex items-center justify-between gap-3 border ${
-            lastWeek.promoted ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-rose-500/20 bg-rose-500/5'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            {lastWeek.promoted ? (
-              <ArrowUp size={16} className="text-emerald-400" />
-            ) : (
-              <ArrowDown size={16} className="text-rose-400" />
-            )}
-            <p className="text-xs font-bold text-white">
-              {lastWeek.promoted ? 'Promoted' : 'Demoted'} last week ({TIER_LABEL[lastWeek.poolTier] ?? lastWeek.poolTier})
-            </p>
-          </div>
-          <button
-            onClick={() => setBannerDismissed(true)}
-            className="text-[10px] font-bold text-ink-muted hover:text-white transition-colors"
+        {last && league.lastWeek && (
+          <motion.section
+            variants={item}
+            role="status"
+            data-testid="league-last-week"
+            className={`flex items-start justify-between gap-3 rounded-card border p-4 ${
+              last.tone === 'up' ? 'border-progress bg-progress-soft' : last.tone === 'down' ? 'border-correction bg-correction-soft' : 'border-hairline bg-surface'
+            }`}
           >
-            Dismiss
-          </button>
-        </motion.div>
-      )}
-
-      <div className="space-y-2">
-        {standing.members.map((m, i) => {
-          const rank = i + 1;
-          const inPromoteZone = rank <= zoneSize && size > zoneSize;
-          const inDemoteZone = rank > size - zoneSize && size > zoneSize;
-          return (
-            <motion.div
-              key={m.userId}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.02 }}
-              className={`flex items-center gap-3 p-3 rounded-xl ${
-                m.isCurrentUser ? 'bg-violet-electric/10 border border-violet-electric/30' : 'surface'
-              }`}
+            <p className={`flex items-start gap-2 text-body-s ${last.tone === 'up' ? 'text-progress-text' : last.tone === 'down' ? 'text-correction-text' : 'text-ink'}`}>
+              {last.tone === 'up' ? <ArrowUp size={16} aria-hidden="true" className="mt-0.5 shrink-0" /> : last.tone === 'down' ? <ArrowDown size={16} aria-hidden="true" className="mt-0.5 shrink-0" /> : null}
+              <span>{last.text}</span>
+            </p>
+            <Button
+              variant="quiet"
+              size="sm"
+              onClick={() => {
+                markLastWeekCardSeen(league.lastWeek!.weekKey);
+                setCardSeen(true);
+              }}
             >
-              <div className="w-6 text-center text-sm font-black text-ink-subtle">{rank}</div>
-              <span className="text-lg">{m.avatarEmoji ?? '🙂'}</span>
-              <div className="flex-1">
-                <p className="text-sm font-bold text-slate-200">
-                  {m.username} {m.isCurrentUser && <span className="text-[10px] text-violet-400">(You)</span>}
-                </p>
+              Got it
+            </Button>
+          </motion.section>
+        )}
+
+        <motion.section variants={item} className={`${card} p-5 md:p-6`} aria-label="Your league" data-testid="league-summary">
+          <div className="flex items-center gap-4">
+            <TierChip tier={league.tier} size={48} />
+            <div className="min-w-0 flex-1">
+              <p className="text-eyebrow uppercase text-ink-subtle">Your league</p>
+              <p className="text-title text-ink">{TIER_LABEL[league.tier]}</p>
+            </div>
+            {cohort && me?.rank != null && (
+              <div className="text-right">
+                <p className="text-eyebrow uppercase text-ink-subtle">Rank</p>
+                <p className="font-numeral text-title text-ink" data-testid="league-rank">#{me.rank}</p>
               </div>
-              {inPromoteZone && <ArrowUp size={12} className="text-emerald-400" />}
-              {inDemoteZone && <ArrowDown size={12} className="text-rose-400" />}
-              <p className="text-sm font-black text-white">
-                {m.liveWeeklyXp.toLocaleString()}
-                <span className="text-[10px] font-bold text-ink-subtle ml-1">XP</span>
+            )}
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className="rounded-control bg-surface-recessed p-3">
+              <p className="text-caption text-ink-subtle">XP this week</p>
+              <p className="mt-0.5 font-numeral text-section text-ink">{league.myWeeklyXp.toLocaleString()}</p>
+            </div>
+            <div className="rounded-control bg-surface-recessed p-3">
+              <p className="text-caption text-ink-subtle">Week ends in</p>
+              <p className="mt-0.5 inline-flex items-center gap-1.5 font-numeral text-section text-ink">
+                <CalendarDays size={16} aria-hidden="true" className="text-ink-muted" />
+                {resetIn ?? '–'}
               </p>
-            </motion.div>
-          );
-        })}
-      </div>
-    </PageShell>
+            </div>
+          </div>
+          {cohort && <p className="mt-4 text-body-s text-ink-muted" data-testid="league-standing">{myStandingLine(me, cohort)}</p>}
+          {league.status === 'not_joined' && (
+            <p className="mt-4 text-body-s text-ink-muted" data-testid="league-not-joined">
+              Earn your first XP this week to join a {TIER_LABEL[league.tier]} group: answer a Learn question or take the{' '}
+              <Link to="/daily-challenge" className="font-semibold text-action-text underline-offset-2 hover:underline">Daily Challenge</Link>.
+            </p>
+          )}
+          {league.status === 'needs_username' && (
+            <p className="mt-4 text-body-s text-ink-muted" data-testid="league-needs-username">
+              Leagues show your username to the others in your group.{' '}
+              <button type="button" onClick={() => setShowUsername(true)} className="font-semibold text-action-text underline-offset-2 hover:underline">Pick a username</button>{' '}
+              to join.
+            </p>
+          )}
+          {league.status === 'not_global' && (
+            <p className="mt-4 text-body-s text-ink-muted" data-testid="league-not-global">
+              Your leaderboard visibility hides you from other learners, so you aren’t placed in a league. Set it to Everyone in{' '}
+              <Link to="/profile" className="font-semibold text-action-text underline-offset-2 hover:underline">Profile</Link> to join next time you earn XP.
+            </p>
+          )}
+          <div className="mt-5 overflow-x-auto">
+            <TierLadder current={league.tier} />
+          </div>
+        </motion.section>
+
+        {cohort && (
+          <motion.section variants={item} className={card} aria-labelledby="league-table">
+            <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-hairline px-4 py-3">
+              <h2 id="league-table" className="text-section text-ink">{TIER_LABEL[cohort.tier]} group</h2>
+              <p className="text-caption text-ink-subtle">
+                <span className="font-numeral">{cohort.activeMembers}</span> {cohort.activeMembers === 1 ? 'learner' : 'learners'} this week
+                {cohort.mixed && ' · mixed levels'}
+              </p>
+            </div>
+            <ul className="divide-y divide-hairline" data-testid="league-members">
+              {cohort.members.map((m, i) => {
+                const zone = zoneOf(m, cohort);
+                const prev = i > 0 ? zoneOf(cohort.members[i - 1], cohort) : null;
+                const note = zone === 'promote' || zone === 'demote' ? ZONE_NOTE[zone] : null;
+                const showDivider = note && prev !== zone;
+                return (
+                  <Fragment key={`${m.rank ?? 'u'}-${m.username}-${i}`}>
+                    {showDivider && (
+                      <li className={`flex items-center gap-1.5 bg-surface-recessed px-4 py-1.5 text-caption ${note.className}`} aria-hidden="true">
+                        <note.Icon size={12} /> {note.label}
+                      </li>
+                    )}
+                    <PersonRow
+                      username={m.username}
+                      avatar={m.avatarEmoji}
+                      frame={m.equippedFrame}
+                      catalogue={catalogue}
+                      nameStyle={nameStyle(m.equippedNameplate)}
+                      isYou={m.isMe}
+                      lead={
+                        <span
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-pill font-numeral text-label ${
+                            m.rank === 1 ? 'bg-reward-soft text-reward-text' : 'bg-track text-ink-muted'
+                          }`}
+                          aria-label={m.rank ? `Rank ${m.rank}` : 'No XP yet'}
+                        >
+                          {m.rank ?? '–'}
+                        </span>
+                      }
+                      note={cohort.mixed && m.standingTier !== cohort.tier ? `${TIER_LABEL[m.standingTier]} league` : note ? <span className={note.className}>{note.label}</span> : undefined}
+                      trail={
+                        <p className="shrink-0 text-right text-label text-ink">
+                          <span className="font-numeral">{m.weeklyXp.toLocaleString()}</span>
+                          <span className="ml-1 text-caption font-normal text-ink-subtle">XP</span>
+                        </p>
+                      }
+                    />
+                  </Fragment>
+                );
+              })}
+            </ul>
+            <p className="border-t border-hairline px-4 py-3 text-caption text-ink-subtle">
+              Top <span className="font-numeral">{cohort.promoteCount}</span> with at least <span className="font-numeral">{cohort.promoteMinXp}</span> XP move up
+              {cohort.demoteCount > 0 ? (
+                <>; the bottom <span className="font-numeral">{cohort.demoteCount}</span> move down</>
+              ) : (
+                '; no one moves down in a group this small'
+              )}
+              . The table settles on Monday at 00:00 UTC.
+            </p>
+          </motion.section>
+        )}
+      </PageShell>
+    </>
   );
 }
 

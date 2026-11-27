@@ -86,7 +86,6 @@ import { useShowNavRail } from '../components/layout/shellChrome';
 import { RolePlayCardPreview } from './exam/RolePlayCardPreview';
 import { GREETING_TEXT, ROLE_PLAY_FINISHED_TEXT, topicAnnouncementText } from './exam/examAnnouncements';
 import { ExitConfirmDialog } from './exam/ExitConfirmDialog';
-import { savePendingClaim, clearPendingClaim, submitDailyChallengeAttempt } from '../services/dailyChallenge/dailyChallengeService';
 import { savePendingDuelClaim, clearPendingDuelClaim, submitDuelAttempt } from '../services/duels/duelsService';
 import { useScreenWakeLock } from '../lib/useScreenWakeLock';
 import { useBackHandler } from '../lib/useBackHandler';
@@ -134,12 +133,6 @@ function scoringPhaseCopy(machine: ScoringMachineState): { title: string; detail
   }
 }
 
-interface DailyChallengeLocationState {
-  dailyChallengeDate?: string;
-  questionSetId?: string;
-  sessionId?: string;
-}
-
 interface DuelLocationState {
   duelId?: string;
   questionSetId?: string;
@@ -157,20 +150,11 @@ export function ExamMode() {
   const { state, dispatch } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
-  const dailyChallenge = location.state as DailyChallengeLocationState | null;
-  // Additive extension: only takes effect when all three of dailyChallengeDate/
-  // questionSetId/sessionId are present (Daily Challenge Phase 1 lifecycle step 4)
-  // — any other navigation to /exam behaves exactly as before.
-  const dailyChallengeDate = dailyChallenge?.dailyChallengeDate;
-  const dailyChallengeQuestionSetId = dailyChallenge?.questionSetId;
-  const dailyChallengeSessionId = dailyChallenge?.sessionId;
-  const isDailyChallengeRun = Boolean(dailyChallengeDate && dailyChallengeQuestionSetId && dailyChallengeSessionId);
-
-  // Second, coexisting additive extension (Friend Duels Phase 2) — only takes
-  // effect when all three of duelId/questionSetId/sessionId are present. The
-  // two is*Run flags are mutually exclusive at runtime (only one screen ever
-  // populates location.state per navigation), so both checks can coexist
-  // unconditionally with no interference.
+  // Friend Duels Phase 2: only takes effect when all three of duelId/
+  // questionSetId/sessionId are present — any other navigation to /exam behaves
+  // exactly as before. (The exam-based Daily Challenge that shared this hook was
+  // retired on 2026-11-26: the Daily Challenge is now its own short server-marked
+  // screen and never opens an exam — docs/systems/daily-challenge-and-leagues.md.)
   const duelState = location.state as DuelLocationState | null;
   const duelId = duelState?.duelId;
   const duelQuestionSetId = duelState?.questionSetId;
@@ -179,14 +163,14 @@ export function ExamMode() {
 
   // Homework (features/homework): `/exam?assignment=<id>` is a mock exam a teacher set.
   // It counts only once the learner's own my_assignments() confirms it; it is always
-  // Exam Sim (like Daily Challenge / Duels) and has its own allowance on the server.
+  // Exam Sim (like Duels) and has its own allowance on the server.
   const requestedHomeworkId = homeworkIdFromSearch(location.search);
   const { assignments: myHomework } = useMyHomework(Boolean(requestedHomeworkId));
   const homework = requestedHomeworkId
     ? myHomework?.find((a) => a.id === requestedHomeworkId && a.kind === 'mock_exam') ?? null
     : null;
   const homeworkId = homework?.id ?? null;
-  const isCompetitiveOrHomeworkRun = isDailyChallengeRun || isDuelRun || homeworkId !== null;
+  const isCompetitiveOrHomeworkRun = isDuelRun || homeworkId !== null;
 
   // The exam guide's "Start Exam Sim" (after the first-time guide) lands straight on the Exam Sim intro.
   const startSim = (location.state as StartSimLocationState | null)?.startSim === true;
@@ -214,7 +198,7 @@ export function ExamMode() {
   const [turnPending, setTurnPending] = useState(false);
   const [envelopeView, setEnvelopeView] = useState<EnvelopeView | null>(null);
   // W5: the ExamSelect toggle's choice, applied when startExam() constructs the
-  // SimulationSession. Daily Challenge / Duel / resume-on-reload flows skip
+  // SimulationSession. Duel / resume-on-reload flows skip
   // ExamSelect and keep the default (Exam Sim) — resume instead restores the
   // already-decided value from the persisted snapshot (session.coached).
   // Step 5: defaults to Exam Sim (false) so a candidate who never touches the
@@ -280,7 +264,7 @@ export function ExamMode() {
   // W1's authoritative coached flag once a session exists; coachedMode (the
   // ExamSelect toggle's choice) is the pre-session fallback so ExamIntro can
   // read it before startExam() constructs the SimulationSession. Step 5:
-  // Daily Challenge / Duel runs are always Exam Sim, whatever the toggle says
+  // Duel and homework runs are always Exam Sim, whatever the toggle says
   // — those flows skip ExamSelect entirely, so this is defence-in-depth, not
   // the only place it's enforced (see startExam()).
   const coached = sessionRef.current?.coached ?? resolveCoachedMode(coachedMode, isCompetitiveOrHomeworkRun);
@@ -451,26 +435,9 @@ export function ExamMode() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Daily Challenge lifecycle step 4: skip ExamSelect entirely, load the
-  // server-assigned question set, and run the exact same intro -> greeting ->
-  // card -> running flow as a normal exam. Only fires when the resume-on-
-  // reload effect above didn't already claim the mount (that effect returns
-  // early with no pending sessionId, so both can safely run on the same mount).
-  useEffect(() => {
-    if (!isDailyChallengeRun || !dailyChallengeQuestionSetId) return;
-    if (getPendingScoreSessionId()) return; // resume-on-reload takes priority
-    if (getRunningSession()) return; // mid-exam resume takes priority
-    selectedQuestionSetIdRef.current = dailyChallengeQuestionSetId;
-    void (async () => {
-      const authoredSet = await getAuthoredQuestionSet(dailyChallengeQuestionSetId);
-      selectedAuthoredSetRef.current = authoredSet ?? undefined;
-      setExamState('intro');
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Friend Duels Phase 2: sibling of the Daily Challenge effect above — same
-  // skip-ExamSelect, load-the-assigned-set, jump-to-intro behavior.
+  // Friend Duels Phase 2: skip ExamSelect entirely, load the duel's assigned
+  // question set and run the same intro -> greeting -> card -> running flow as a
+  // normal exam. Only fires when the resume-on-reload effects didn't claim the mount.
   useEffect(() => {
     if (!isDuelRun || !duelQuestionSetId) return;
     if (getPendingScoreSessionId()) return; // resume-on-reload takes priority
@@ -520,7 +487,7 @@ export function ExamMode() {
     examStartedAtRef.current = startedAt;
     track({
       name: 'exam_started',
-      props: { mode: coached ? 'coached' : 'sim', entry: isDailyChallengeRun ? 'daily_challenge' : isDuelRun ? 'duel' : 'free' },
+      props: { mode: coached ? 'coached' : 'sim', entry: isDuelRun ? 'duel' : 'free' },
     });
     // Fresh attempt (first run, or a retake reusing this same mounted component) —
     // clear the startExam re-entrancy guard so the new attempt can actually start.
@@ -612,20 +579,17 @@ export function ExamMode() {
       await recording.stop();
     }
 
-    // Daily Challenge / Duels: use the server-reserved session_id verbatim
-    // instead of minting a client one — this is what lets
-    // submit_daily_challenge_attempt / submit_duel_attempt later prove the
-    // run was entered through the respective flow (Fix 2's pattern, reused).
+    // Duels: use the server-reserved session_id verbatim instead of minting a
+    // client one — this is what lets submit_duel_attempt later prove the run was
+    // entered through the duel flow.
     // Free-play: a random id, not `Date.now()` — an enumerable free-play
     // sessionId let a foreign user probe GET /score for someone else's
     // envelope. The store-level user_id scoping is the actual fix; this is
     // defence-in-depth. The `exam-sim-` prefix is kept for log readability
     // only; nothing parses it (verified single call site).
-    const sessionId = isDailyChallengeRun && dailyChallengeSessionId
-      ? dailyChallengeSessionId
-      : isDuelRun && duelSessionId
-        ? duelSessionId
-        : `exam-sim-${crypto.randomUUID()}`;
+    const sessionId = isDuelRun && duelSessionId
+      ? duelSessionId
+      : `exam-sim-${crypto.randomUUID()}`;
     clearExamAudio(sessionIdRef.current);
     turnTranscriberRef.current?.cancel();
     turnTranscriberRef.current = createExamTurnTranscriberFor({ webSpeechAvailable: recording.sttSupported });
@@ -1020,21 +984,8 @@ export function ExamMode() {
 
     if (scoringMachine.phase === 'Completed') {
       clearPendingScoreSessionId();
-      // Fix 4 — durable checkpoint written unconditionally, before the claim
-      // RPC is even attempted, so a reload during/after a failed claim call
-      // can retry without redoing the exam. Only in daily-challenge mode.
-      if (isDailyChallengeRun && dailyChallengeDate && envelopeView) {
-        savePendingClaim({ challengeDate: dailyChallengeDate, attemptId: envelopeView.attemptId });
-        // Best-effort inline attempt — DailyChallenge.tsx's own mount-effect
-        // check is the recovery path for a failed/interrupted call.
-        void submitDailyChallengeAttempt(dailyChallengeDate, envelopeView.attemptId)
-          .then((result) => {
-            if (result.ok) clearPendingClaim();
-          })
-          .catch((err) => captureError(err, { area: 'exam_session', stage: 'submitDailyChallengeAttempt.inline', sessionId: transcript.sessionId }));
-      }
-      // Friend Duels Phase 2: sibling of the Daily Challenge block above —
-      // same durable-checkpoint-then-inline-attempt pattern. DuelDetail.tsx's
+      // Friend Duels Phase 2: a durable checkpoint written before the claim RPC
+      // is attempted, then a best-effort inline attempt. DuelDetail.tsx's
       // own mount-effect check is the recovery path for a failed/interrupted
       // call; clearPendingDuelClaim takes duelId since claims are keyed per-duel.
       if (isDuelRun && duelId && envelopeView) {
@@ -1271,7 +1222,7 @@ export function ExamMode() {
           resumedRef.current = false;
           setExamState('select');
         }}
-        onHome={() => navigate(isDailyChallengeRun ? '/daily-challenge' : isDuelRun && duelId ? `/duel/${duelId}` : '/')}
+        onHome={() => navigate(isDuelRun && duelId ? `/duel/${duelId}` : '/')}
       />
       </>
     );

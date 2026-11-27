@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
-  AudioLines, Bot, Headphones, Building2, CalendarDays, Dices, Ear, Flame, Gift,
+  AudioLines, Bot, Headphones, Building2, CalendarCheck, CalendarDays, Dices, Ear, Flame, Gift,
   Handshake, Map, Medal, Mountain, Newspaper, Palmtree, Puzzle, 
   Gauge, ScanSearch, ShoppingBag, Smile, Sparkles, Swords, Target, Timer, Users, Wrench, Zap,
   Briefcase, CloudRain, Plane, Shield, ShoppingBasket, Stethoscope, Ticket,
@@ -39,6 +39,8 @@ const ICONS: Record<string, LucideIcon> = {
   friends: Handshake,
   groups: Users,
   rankings: Medal,
+  daily_challenge: CalendarCheck,
+  league: Shield,
 };
 
 const CATEGORY_HUES: Record<string, number> = {

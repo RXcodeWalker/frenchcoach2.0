@@ -39,6 +39,8 @@ export const FEATURES: FeatureCard[] = [
   { id: 'fluency_trainer', title: 'Fluency Trainer', description: 'Your speed and pauses, plus the 60-45-30 s drill', icon: '⏱', category: 'Insights & Plan', color: '#10B981', locked: false, screen: 'fluency', badge: 'New' },
   { id: 'my_plan', title: 'My Plan', description: 'Your path to the exam: today, this week and every stage after', icon: '🗺', category: 'Insights & Plan', color: '#7C3AED', locked: false, screen: 'plan', badge: 'New' },
   { id: 'challenges', title: 'Challenges', description: 'Weekly competitive events', icon: '⚔', category: 'Compete & Rewards', color: '#EF4444', locked: true, screen: 'challenges' },
+  { id: 'daily_challenge', title: 'Daily Challenge', description: 'Same 8 sentences for everyone, once a day', icon: '📅', category: 'Compete & Rewards', color: '#F59E0B', locked: false, screen: 'daily-challenge', needsConnection: true, badge: 'New' },
+  { id: 'league', title: 'Leagues', description: 'Climb from Bronze to Diamond each week', icon: '🛡', category: 'Compete & Rewards', color: '#F59E0B', locked: false, screen: 'league', needsConnection: true, badge: 'New' },
   { id: 'rankings', title: 'Rankings', description: 'See where you stand', icon: '🥇', category: 'Compete & Rewards', color: '#F59E0B', locked: false, screen: 'rankings', needsConnection: true },
   { id: 'xp_shop', title: 'Shop', description: 'Spend gems on streak safety and your look', icon: '🛍', category: 'Compete & Rewards', color: '#F59E0B', locked: false, screen: 'shop', needsConnection: true },
   { id: 'mystery_box', title: 'Mystery Box', description: 'Open a daily box for rewards', icon: '🎁', category: 'Compete & Rewards', color: '#EC4899', locked: false, screen: 'mystery-box', needsConnection: true },

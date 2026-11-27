@@ -410,9 +410,28 @@ interface LearnSessionAbandonedProps {
   elapsed_ms: number;
 }
 
+interface DailyChallengeStartedProps {
+  /** The learner's challenge streak going in (days). */
+  streak: number;
+}
+
+interface DailyChallengeFinishedProps {
+  correct: number;
+  total: number;
+  duration_ms: number;
+  /** Too fast to count (server rule): no XP, not ranked. */
+  flagged: boolean;
+  xp: number;
+}
+
+interface LeagueViewedProps {
+  status: 'active' | 'not_joined' | 'needs_username' | 'not_global';
+  tier: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
+}
+
 interface ExamStartedProps {
   mode: 'sim' | 'coached';
-  entry: 'free' | 'daily_challenge' | 'duel';
+  entry: 'free' | 'duel';
 }
 
 interface ExamPrepFinishedProps {
@@ -543,6 +562,9 @@ export type TelemetryEvent =
   | { name: 'ear_training_round';      props: EarTrainingRoundProps }
   | { name: 'news_segment_completed';  props: NewsSegmentCompletedProps }
   | { name: 'mystery_box_opened';      props: MysteryBoxOpenedProps }
+  | { name: 'daily_challenge_started'; props: DailyChallengeStartedProps }
+  | { name: 'daily_challenge_finished'; props: DailyChallengeFinishedProps }
+  | { name: 'league_viewed';           props: LeagueViewedProps }
   | { name: 'learn_session_completed'; props: LearnSessionCompletedProps }
   | { name: 'learn_session_abandoned'; props: LearnSessionAbandonedProps }
   | { name: 'exam_started';            props: ExamStartedProps }
@@ -638,6 +660,9 @@ const DECLARED_PROPS = {
   ear_training_round: ['correct', 'total'],
   news_segment_completed: ['segment', 'level', 'featured', 'answered'],
   mystery_box_opened: ['outcome', 'xp'],
+  daily_challenge_started: ['streak'],
+  daily_challenge_finished: ['correct', 'total', 'duration_ms', 'flagged', 'xp'],
+  league_viewed: ['status', 'tier'],
   learn_session_completed: ['topic_key', 'questions_answered', 'avg_score', 'duration_ms', 'ended_early'],
   learn_session_abandoned: ['topic_key', 'questions_answered', 'last_step', 'elapsed_ms'],
   exam_started: ['mode', 'entry'],

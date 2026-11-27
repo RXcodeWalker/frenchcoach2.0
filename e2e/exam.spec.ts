@@ -11,7 +11,7 @@
  * Covers Step 1 (extension-prompt-not-repeat on a short answer), Step 2
  * (a further question's answer reaching the Turn-by-Turn panel), Step 5/6
  * (Exam Sim mic-only/read-only/full /40 with subtotals vs Coached's
- * practice-mark banner and history tag), that Daily Challenge/Duel runs
+ * practice-mark banner and history tag), that Duel runs
  * are forced into Exam Sim, and (Phase 3 Batch A) the post-marking report's
  * sections, a task-specific role-play reason, and no N/N in the feedback.
  */
@@ -211,19 +211,19 @@ test.describe('Coached Practice (typed + edited)', () => {
   });
 });
 
-test.describe('Daily Challenge / Duel force Exam Sim', () => {
+test.describe('Duel forces Exam Sim', () => {
   /**
-   * dailyChallengeService.ts/duelsService.ts gate on `supabaseConfigured`
-   * (no Supabase project in this sandbox), so their own Start buttons can't
+   * duelsService.ts gates on `supabaseConfigured`
+   * (no Supabase project in this sandbox), so its own Start button can't
    * be driven end-to-end here without a real or stubbed Supabase project —
    * that full lifecycle (assignment fetch, start RPC, submit RPC) is NOT
    * exercised by this test; see the report for that limitation.
    *
-   * What IS exercised, live: ExamMode.tsx has two mount-time effects
-   * (isDailyChallengeRun / isDuelRun, ~line 305) that fire whenever
-   * location.state carries the same {dailyChallengeDate, questionSetId,
-   * sessionId} / {duelId, questionSetId, sessionId} shape those two screens'
-   * onClick handlers navigate with — regardless of whether the question set
+   * What IS exercised, live: ExamMode.tsx has a mount-time effect
+   * (isDuelRun) that fires whenever location.state carries the same
+   * {duelId, questionSetId, sessionId} shape DuelDetail's onClick handler
+   * navigates with (the exam-based Daily Challenge that shared it was retired
+   * on 2026-11-26) — regardless of whether the question set
    * id actually resolves — and jump straight to 'intro', skipping ExamSelect
    * (the mode picker) entirely. `coached` is then resolveCoachedMode(...,
    * true) => forced false. We reproduce that exact navigation shape with
@@ -242,21 +242,6 @@ test.describe('Daily Challenge / Duel force Exam Sim', () => {
     }, state);
     await page.reload();
   }
-
-  test('Daily Challenge navigation state skips ExamSelect and forces Exam Sim', async ({ page }) => {
-    await loadExamWithState(page, {
-      dailyChallengeDate: '2026-01-01',
-      questionSetId: 'e2e-fake-daily-set',
-      sessionId: 'e2e-daily-session',
-    });
-
-    // ExamSelect (the mode picker) must never appear for this run.
-    await expect(page.getByText('Choose an Exam')).toHaveCount(0);
-    await page.waitForSelector('text=EXAM SIM', { timeout: 10000 });
-    const text = await bodyText(page);
-    expect(text).toContain('EXAM SIM');
-    expect(text).not.toContain('COACHED PRACTICE');
-  });
 
   test('Duel navigation state skips ExamSelect and forces Exam Sim', async ({ page }) => {
     await loadExamWithState(page, {

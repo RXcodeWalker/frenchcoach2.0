@@ -55,7 +55,7 @@ export function countsTowardProgress({ coached, transcript, earlyStart, resumed 
   return { countsTowardProgress: reasons.length === 0, reasons };
 }
 
-/** Competitive runs (Daily Challenge, Duels) are always Exam Sim, whatever the candidate's picker choice was. */
+/** Competitive runs (Duels) and homework mocks are always Exam Sim, whatever the candidate's picker choice was. */
 export function resolveCoachedMode(requestedCoached: boolean, isCompetitiveRun: boolean): boolean {
   return isCompetitiveRun ? false : requestedCoached;
 }

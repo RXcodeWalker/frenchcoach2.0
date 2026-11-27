@@ -4885,3 +4885,23 @@ classes, per-class leave, the 5-class cap, owner can't leave). Frontend: Profile
 teachers; Join no longer moves a student out of a class; Home's homework names the class when it comes from
 several; the teacher area labels co-taught classes, has "Join a colleague's class" and a Teachers section; the
 Monday email goes to every teacher of the class.
+
+## 2026-11-26 — Daily Challenge and Leagues relaunch (SQL verified locally; not applied to production)
+
+Backend migrations `20261126090000_daily_challenge_and_leagues_relaunch.sql` + generated `20261126090100_daily_challenge_bank_seed.sql`
+(spec `docs/systems/daily-challenge-and-leagues.md`). `plain_pg/daily_challenge_and_leagues_test.sql` passes on a local
+Postgres 16 cluster (prelude + all migrations) **and** on PGlite via `run_all_migrations.mjs`, together with every
+`security_2026_11_*` test (F15's search_path/privilege checks included). It covers: per-event and per-source clamps,
+the 1500 overall cap, zero-XP sources, server-only sources still refused, idempotent retry; lazy league join on first XP,
+no join without a username or with hidden visibility, the 30 cap opening a second cohort, adjacent-tier merge, a missed
+cron finalizing two past weeks in order with the right promotions/demotions and zero-XP members unranked, idempotent
+re-run, zones, no user ids in `get_my_league`; Daily Challenge items hidden until start, no answer key in any payload,
+right/wrong marking through the shuffle, one try per item, the last answer finishing the run with server time and
+10+5×correct XP in the ledger (which joined the league), a millisecond run flagged with no XP and off the board, hidden
+visibility off the global board but visible to the learner, an abandoned run closing at the 20-minute deadline, the
+seed workflow building tomorrow without repeating today. Concurrency smoke on Postgres 16: 80 simultaneous first-XP
+inserts → cohorts 30/30/30/26, every learner placed, `member_count` equal to the real count.
+Frontend: typecheck/lint clean for the touched files; 42 new tests; full `npm test` 8342 passed, 2 files failing that
+fail identically on `main` before this change (`catalogueCoverage` budget guard, `sessionBuilder.filters` bank fit).
+**Not done:** the migrations are not applied to production, so nothing has run against real data; the zone, flag and
+cap numbers are UNVALIDATED product choices.

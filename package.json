@@ -20,6 +20,7 @@
     "authoring:status": "tsx scripts/authoring/status.ts",
     "authoring:generate": "tsx scripts/authoring/generateFixtures.ts",
     "authoring:parity": "tsx scripts/authoring/checkFixtureParity.ts",
+    "daily-challenge:seed": "tsx --tsconfig tsconfig.scripts.json scripts/dailyChallenge/generateBankSeed.ts",
     "roleplay:check": "tsx scripts/roleplay/check.ts",
     "roleplay:skeleton": "tsx scripts/roleplay/skeleton.ts",
     "learn:skeleton": "tsx scripts/authoring/learnSkeleton.ts",

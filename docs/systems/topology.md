@@ -469,7 +469,10 @@ on them with `backend/supabase/ops/expire_open_duels_at_deploy.sql` (D11; run by
 
 - `daily-challenge-seed.yml`, `league-weekly-assignment.yml`, and the reusable
   `scheduled-rpc.yml` they call — a single Supabase RPC invocation per run, no outbound
-  network calls beyond that.
+  network calls beyond that. Since the 2026-11-26 relaunch (`daily-challenge-and-leagues.md`)
+  neither is required: the first request of a day builds that day's challenge, and any
+  `get_my_league()` call (or XP write) finalizes a past league week — the workflows only
+  do it earlier.
 - `teacher-digest.yml` (teacher dashboard) — hourly, runs `scripts/scheduledJobs/sendTeacherDigest.ts`,
   which emails each class's teacher on Monday 07:00–08:59 in the class's time zone (Resend; claim-before-send
   on `teacher_digest_log`). Secrets `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, optional `RESEND_API_KEY`; repo
