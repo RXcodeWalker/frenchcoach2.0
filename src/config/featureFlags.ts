@@ -7,7 +7,7 @@ export const FEATURE_FLAGS = {
   rankings:          'live',
   // docs/systems/daily-challenge-and-leagues.md — relaunched 2026-11-26 as a short,
   // server-marked challenge and lazily-joined weekly leagues. Needs backend migrations
-  // 20261126090000 + 20261126090100 applied; until then both screens say "being switched
+  // 20261126090000 + 20261126090100 (applied to production 2026-11-27); without them both screens say "being switched
   // on" (the RPCs answer PGRST202). Rollback: 'coming-soon' (the Explore tiles lock with it).
   dailyChallenge:    'live',
   league:            'live',
