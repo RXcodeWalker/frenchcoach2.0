@@ -4905,3 +4905,12 @@ Frontend: typecheck/lint clean for the touched files; 42 new tests; full `npm te
 fail identically on `main` before this change (`catalogueCoverage` budget guard, `sessionBuilder.filters` bank fit).
 **Not done:** the migrations are not applied to production, so nothing has run against real data; the zone, flag and
 cap numbers are UNVALIDATED product choices.
+
+## 2026-11-27 — Daily Challenge and Leagues migrations applied to production
+
+`20261126090000_daily_challenge_and_leagues_relaunch` and `20261126090100_daily_challenge_bank_seed` applied to the
+production Supabase project via the Supabase MCP (owner's instruction). Checked afterwards: 65 active bank items;
+`seed_daily_challenges_batch()` built today's and tomorrow's 8-item sets; anon cannot call `get_my_league`, clients
+cannot read `daily_challenge_bank` or call the old `start_daily_challenge`; `league_cohort_roster` is gone. A real
+account's `get_my_league` (status `not_joined`), `daily_challenge_start` (8 items) and `daily_challenge_board` ran
+as `authenticated` inside a rolled-back transaction; `daily_challenge_runs` is still empty afterwards.
