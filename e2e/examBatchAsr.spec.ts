@@ -85,7 +85,7 @@ test.describe('Exam Sim — answers marked from Whisper, live captions as fallba
     expect(sent.every((s) => (s.prompt ?? '').length > 0)).toBe(true);
 
     await clickButton(page, 'Submit for marking');
-    await page.waitForSelector('text=Practice Session Complete', { timeout: 30_000 });
+    await page.waitForSelector('[data-testid="exam-results-hero"]', { timeout: 30_000 });
     await expect(page.getByTestId('live-captions-notice')).toHaveCount(0);
   });
 
@@ -119,7 +119,7 @@ test.describe('Exam Sim — answers marked from Whisper, live captions as fallba
     network.offline = false;
     await context.setOffline(false);
     await clickButton(page, 'Submit for marking');
-    await page.waitForSelector('text=Practice Session Complete', { timeout: 30_000 });
+    await page.waitForSelector('[data-testid="exam-results-hero"]', { timeout: 30_000 });
     await expect(page.getByTestId('live-captions-notice')).toContainText(/answers were marked from live captions/);
   });
 });

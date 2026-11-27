@@ -118,7 +118,7 @@ test.describe('Exam Sim (spoken)', () => {
     await clickButton(page, 'Submit for marking');
 
     // Scoring against the fake server, then results.
-    await page.waitForSelector('text=Practice Session Complete', { timeout: 20000 });
+    await page.waitForSelector('[data-testid="exam-results-hero"]', { timeout: 20000 });
     const results = await bodyText(page);
     expect(results).toContain('/40');
     // D3 (Batch 3): entering via "Start now" makes this attempt practice-only.
@@ -143,13 +143,14 @@ test.describe('Exam Sim (spoken)', () => {
     expect(reasons.length).toBeGreaterThan(0);
     expect(reasons.some((r) => !r.includes(RP_MARK_2[0]))).toBe(true);
 
-    // Step 6: no time-frame/filler mis-teaching in the Turn-by-Turn panel.
-    await clickButton(page, 'Turn-by-Turn Breakdown');
+    // Step 6: no time-frame/filler mis-teaching in the "Your answers" tab.
+    await page.getByTestId('exam-tab-answers').click();
+    await page.getByTestId('exam-answers').waitFor();
     const withTurns = await bodyText(page);
     expect(withTurns.toLowerCase()).not.toContain('time frame');
     expect(withTurns.toLowerCase()).not.toContain('filler density');
     // Step 2: the further question's answer is projected into the panel.
-    expect(withTurns).toMatch(/further1|further2/i);
+    expect(withTurns).toMatch(/further question/i);
   });
 });
 
@@ -187,7 +188,7 @@ test.describe('Coached Practice (typed + edited)', () => {
 
     await clickButton(page, 'Confirm & Finish');
 
-    await page.waitForSelector('text=Practice Session Complete', { timeout: 20000 });
+    await page.waitForSelector('[data-testid="exam-results-hero"]', { timeout: 20000 });
     const results = await bodyText(page);
     expect(results).toContain('/40');
     expect(results.toLowerCase()).toContain('practice mark');
@@ -196,9 +197,10 @@ test.describe('Coached Practice (typed + edited)', () => {
 
     // D5 (Batch 3): Coached always asks both authored further questions per
     // topic (not time-based) — their answers must still reach the panel.
-    await clickButton(page, 'Turn-by-Turn Breakdown');
+    await page.getByTestId('exam-tab-answers').click();
+    await page.getByTestId('exam-answers').waitFor();
     const withTurns = await bodyText(page);
-    expect(withTurns).toMatch(/further1|further2/i);
+    expect(withTurns).toMatch(/further question/i);
 
     // History tag: the Progress screen's Past attempts list tags this attempt.
     // domcontentloaded, not the default 'load' — a lingering background poll

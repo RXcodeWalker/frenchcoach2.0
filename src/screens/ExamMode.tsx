@@ -11,9 +11,12 @@ import { useAuth } from '../context/AuthContext';
 import { SpeakingConsentGate } from '../components/SpeakingConsentGate';
 import { getSkillProfile } from '../services/coaching/diagnosticEngine';
 import { checkAchievements, getProgressionState, awardParticipationXP } from '../services/progression/progressionService';
-import { recordSession as persistSession } from '../services/analytics/analyticsService';
+import { getSessionHistory, recordSession as persistSession } from '../services/analytics/analyticsService';
 import { buildAchievementContext } from '../services/coach/achievementContextBuilder';
 import { examMarksFromView } from '../features/progress/examMarks';
+import { examFacts, previousCountedExam } from '../features/exam/report/examReport';
+import { examSummary } from '../features/progress/progressSummary';
+import { ExamMarkingScreen } from './exam/ExamMarkingScreen';
 import { recordExamLosses, refineExamLosses } from '../services/coach/examLossStore';
 import type { Session } from '../types/index';
 import { useRecording } from '../features/recording/useRecording';
@@ -1115,6 +1118,7 @@ export function ExamMode() {
         onRolePlayDrill={() => navigate('/exam/role-play')}
         onGuide={() => navigate('/exam/guide')}
         initialMode={examModeFromSearch(location.search)}
+        lastExam={examSummary(getSessionHistory()).counted[0] ?? null}
         homework={homework ? { assignmentId: homework.id, title: homework.title, teacherName: homework.teacherName } : null}
         examLocked={
           examPracticeUnlocked(state.learnerTrack, state.junior?.missionsDone)
@@ -1172,25 +1176,22 @@ export function ExamMode() {
     // one static spinner for a process that can legitimately run for minutes —
     // see examScoringMachine.ts's phase diagram.
     const { title, detail } = scoringPhaseCopy(scoringMachine);
+    const stage = scoringMachine.phase === 'Queued' || scoringMachine.phase === 'Submitting' ? 'sending' : 'marking';
     return (
-      <div data-hatch="immersive" className="min-h-screen bg-bg flex items-center justify-center px-6">
-        <div className="text-center space-y-3 max-w-xs">
-          <div className="w-10 h-10 mx-auto border-2 border-action-soft border-t-action rounded-full animate-spin" />
-          <p className="text-body-base font-semibold text-ink">{title}</p>
-          <p className="text-body-s text-ink-muted">{detail}</p>
-          <button
-            onClick={() => setShowScoringExitConfirm(true)}
-            className="text-body-s text-ink-subtle hover:text-ink transition-colors duration-state ease-smooth underline underline-offset-2"
-          >
-            Exit
-          </button>
-        </div>
+      <>
+        <ExamMarkingScreen
+          title={title}
+          detail={detail}
+          stage={stage}
+          facts={transcript ? examFacts(transcript) : null}
+          onExit={() => setShowScoringExitConfirm(true)}
+        />
         <ExitConfirmDialog
           open={showScoringExitConfirm}
           onCancel={() => setShowScoringExitConfirm(false)}
           onConfirm={() => navigate('/')}
         />
-      </div>
+      </>
     );
   }
 
@@ -1209,6 +1210,8 @@ export function ExamMode() {
         resumed={resumedRef.current}
         pronunciation={pronunciation}
         onReportReady={refineExamLosses}
+        previousExam={previousCountedExam(getSessionHistory(), transcript.sessionId)}
+        onPractise={(to) => navigate(to)}
         onRetake={() => {
           clearExamAudio(sessionIdRef.current);
           turnTranscriberRef.current?.cancel();

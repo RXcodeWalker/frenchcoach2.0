@@ -21,6 +21,42 @@ interface Props {
 /** TN p.1/p.5, Syl p.19: 10 minutes of supervised preparation. Exam Sim only. */
 const PREP_SECONDS = 10 * 60;
 
+const RING_R = 22;
+const RING_C = 2 * Math.PI * RING_R;
+
+/** The preparation time left, as a ring that empties once a second (a CSS transition, no looping motion). */
+function PrepRing({ remainingS }: { remainingS: number }) {
+  const offset = RING_C * (1 - remainingS / PREP_SECONDS);
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className="text-caption text-ink-subtle">Preparation</span>
+      <div className="relative h-14 w-14">
+        <svg viewBox="0 0 50 50" className="h-full w-full -rotate-90" aria-hidden="true">
+          <circle cx="25" cy="25" r={RING_R} fill="none" strokeWidth="4" className="stroke-track" />
+          <circle
+            cx="25"
+            cy="25"
+            r={RING_R}
+            fill="none"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeDasharray={RING_C}
+            strokeDashoffset={offset}
+            className={remainingS <= 60 ? 'stroke-reward' : 'stroke-action'}
+            style={{ transition: 'stroke-dashoffset 1s linear' }}
+          />
+        </svg>
+        <span
+          className="absolute inset-0 flex items-center justify-center font-numeral text-caption tabular-nums text-ink"
+          aria-label="Preparation time remaining"
+        >
+          {formatTime(remainingS)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function RolePlayCardPreview({ scenario, coached, onBegin }: Props) {
   const [remainingS, setRemainingS] = useState(PREP_SECONDS);
 
@@ -50,14 +86,7 @@ export function RolePlayCardPreview({ scenario, coached, onBegin }: Props) {
       >
         <div className="flex items-center justify-between">
           <div className="text-eyebrow uppercase text-ink-subtle">Role play card · preparation</div>
-          {!coached && (
-            <div
-              className="font-numeral text-body-s tabular-nums text-ink-subtle"
-              aria-label="Preparation time remaining"
-            >
-              {formatTime(remainingS)}
-            </div>
-          )}
+          {!coached && <PrepRing remainingS={remainingS} />}
         </div>
 
         <div className="rounded-card surface p-6">

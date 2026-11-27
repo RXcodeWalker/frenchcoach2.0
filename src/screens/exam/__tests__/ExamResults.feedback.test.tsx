@@ -210,3 +210,55 @@ describe('ExamResults — post-marking feedback (Phase 3 Batch A)', () => {
     expect(screen.queryByTestId('exam-feedback')).toBeNull();
   });
 });
+
+describe('ExamResults — practice plan and last time (redesign 2026-11-27)', () => {
+  const previousExam = {
+    date: '2026-11-10T00:00:00.000Z',
+    marks: { rolePlay: 2, rolePlayMax: 4, communication: 8, qualityOfLanguage: 8, total: 18 },
+  };
+
+  it('ranks the areas by marks not awarded, fills in the report’s next step, and opens practice', async () => {
+    const onPractise = vi.fn();
+    render(
+      <ExamResults
+        transcript={TRANSCRIPT}
+        envelopeView={view(ENVELOPE_ERRORS)}
+        scoringError={null}
+        onRetryScoring={vi.fn()}
+        onRetake={vi.fn()}
+        onHome={vi.fn()}
+        coached={false}
+        railEntries={[]}
+        requestFeedback={() => Promise.resolve(REPORT)}
+        onPractise={onPractise}
+      />,
+    );
+    const plan = screen.getByTestId('exam-practice-plan');
+    const order = within(plan).getAllByRole('heading', { level: 3 }).map((h) => h.textContent);
+    expect(order).toEqual(['Quality of Language', 'Communication', 'Role play']);
+    expect(within(plan).getByText('Task 2 was not fully credited.')).not.toBeNull();
+    expect(await within(plan).findByText('Add an example to each opinion.')).not.toBeNull();
+    fireEvent.click(within(screen.getByTestId('plan-rolePlay')).getByRole('button', { name: /role play/i }));
+    expect(onPractise).toHaveBeenCalledWith('/exam/role-play');
+  });
+
+  it('shows what changed since the last counted Exam Sim only when this attempt counts too', () => {
+    const props = {
+      transcript: TRANSCRIPT,
+      envelopeView: view(),
+      scoringError: null,
+      onRetryScoring: vi.fn(),
+      onRetake: vi.fn(),
+      onHome: vi.fn(),
+      railEntries: [],
+      requestFeedback: () => new Promise<ExamFeedbackReport>(() => {}),
+      previousExam,
+    };
+    const { rerender } = render(<ExamResults {...props} coached={false} />);
+    expect(screen.getByTestId('exam-change-total').textContent).toBe('+9');
+    expect(screen.getByTestId('exam-change').textContent).toContain('18 of 40');
+
+    rerender(<ExamResults {...props} coached={true} />);
+    expect(screen.queryByTestId('exam-change')).toBeNull();
+  });
+});

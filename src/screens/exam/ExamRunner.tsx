@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { enter, enterReduced } from '../../components/motion/variants';
 import { buildTurnLabels } from './turnLabels';
 import { Volume2, VolumeX, RotateCcw, Info, MessageSquareText } from 'lucide-react';
 import { formatTime } from '../../domain/time';
@@ -58,6 +60,12 @@ const PART_SHORT: Record<string, string> = {
   rolePlay: 'Role Play',
   topic1: 'Topic 1',
   topic2: 'Topic 2',
+};
+
+const PART_TITLE: Record<string, string> = {
+  rolePlay: 'Role play',
+  topic1: 'Topic conversation 1',
+  topic2: 'Topic conversation 2',
 };
 
 const PART_LABEL: Record<string, string> = {
@@ -128,6 +136,18 @@ export function ExamRunner({
   const part = action?.part ?? 'rolePlay';
   const phaseLabel = PART_LABEL[part] ?? part;
 
+  const reduced = useReducedMotion() ?? false;
+  // A short "Part 2 of 3" card when the exam moves on to a new part (never on the first part).
+  const lastPartRef = useRef(part);
+  const [partBanner, setPartBanner] = useState<string | null>(null);
+  useEffect(() => {
+    if (part === lastPartRef.current) return;
+    lastPartRef.current = part;
+    setPartBanner(part);
+    const t = window.setTimeout(() => setPartBanner(null), 3500);
+    return () => window.clearTimeout(t);
+  }, [part]);
+
   const [showSilenceNudge, setShowSilenceNudge] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
@@ -194,7 +214,7 @@ export function ExamRunner({
     <div data-hatch="immersive" className="fixed inset-0 bg-bg flex flex-col z-40">
       <header className="grid grid-cols-3 items-center px-5 py-3 border-b border-hairline surface shrink-0">
         {/* Segmented position bar — answered parts in --action, current outlined */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5" role="img" aria-label={`Part ${currentPartIndex + 1} of ${PARTS.length}`}>
           {PARTS.map((p, i) => {
             const answered = i < currentPartIndex;
             const current = i === currentPartIndex;
@@ -257,6 +277,26 @@ export function ExamRunner({
           <p className="max-w-2xl mx-auto text-body-s text-ink-subtle leading-relaxed mt-1">{rolePlaySetup}</p>
         )}
       </div>
+
+      <AnimatePresence>
+        {partBanner && (
+          <motion.div
+            key={partBanner}
+            variants={reduced ? enterReduced : enter}
+            initial="hidden"
+            animate="show"
+            exit={{ opacity: 0 }}
+            role="status"
+            data-testid="exam-part-banner"
+            className="pointer-events-none absolute inset-x-0 top-28 z-50 mx-auto w-fit max-w-[90vw] rounded-card border border-action bg-surface-raised px-5 py-3 text-center shadow-overlay"
+          >
+            <p className="text-eyebrow uppercase text-action-text">
+              Part {PARTS.indexOf(partBanner as (typeof PARTS)[number]) + 1} of {PARTS.length}
+            </p>
+            <p className="mt-0.5 text-section text-ink">{PART_TITLE[partBanner] ?? partBanner}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="flex-1 flex md:flex-row overflow-hidden">
         <div className="flex-1 flex flex-col min-w-0 max-w-2xl mx-auto w-full">

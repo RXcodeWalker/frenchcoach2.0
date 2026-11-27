@@ -228,7 +228,7 @@ describe('ExamResults — pronunciation section (Batch 6)', () => {
     expect(within(section()).getByRole('button', { name: 'Analyse my pronunciation' })).not.toBeNull();
     expect(analyse).not.toHaveBeenCalled();
     // after the marks and the examiner report, never inside either
-    const marks = screen.getByText(/Marks — Unvalidated Estimate/).closest('div.rounded-xl')!;
+    const marks = screen.getByTestId('exam-marks');
     expect(marks.contains(section())).toBe(false);
     expect(marks.compareDocumentPosition(section()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByTestId('exam-feedback').compareDocumentPosition(section()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();

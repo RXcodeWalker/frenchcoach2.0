@@ -8,7 +8,7 @@
  * renders every new section without throwing.
  */
 import { describe, expect, it, vi, afterEach } from 'vitest';
-import { render, screen, cleanup, fireEvent } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, within } from '@testing-library/react';
 import {
   initConductEngineState,
   startConduct,
@@ -125,14 +125,22 @@ describe('ExamResults (W6)', () => {
       />,
     );
 
-    expect(screen.getByText('Practice Session Complete')).not.toBeNull();
-    expect(screen.getByText(`${envelopeView.total}`)).not.toBeNull();
-    expect(screen.getByText('Marks — Unvalidated Estimate')).not.toBeNull();
-    expect(screen.getByText('Turn-by-Turn Breakdown')).not.toBeNull();
-    expect(screen.getByText('How This Was Scored')).not.toBeNull();
-    expect(screen.getByText('Live Corrections From This Session')).not.toBeNull();
+    expect(screen.getByText('Coached practice complete')).not.toBeNull();
+    expect(screen.getByTestId('exam-total').textContent).toBe(`${envelopeView.total}`);
+    expect(screen.getByTestId('exam-marks')).not.toBeNull();
+    expect(screen.getByTestId('exam-practice-plan')).not.toBeNull();
     expect(screen.getByText('Coached Practice — doesn’t count')).not.toBeNull();
     expect(screen.getByText('Practice mark — doesn’t count')).not.toBeNull();
+
+    // Your answers: every answer the scorer read, by part.
+    fireEvent.click(screen.getByTestId('exam-tab-answers'));
+    expect((await screen.findAllByTestId('exam-answer')).length).toBe(envelopeView.evidenceGroups.length);
+    expect(screen.getByText('Topic conversation 1')).not.toBeNull();
+
+    // Details: the live rail and how it was scored.
+    fireEvent.click(screen.getByTestId('exam-tab-details'));
+    expect(await screen.findByText('How this was scored')).not.toBeNull();
+    expect(screen.getByText('Live corrections from this session')).not.toBeNull();
   });
 
   it('renders the Exam Sim badge and omits the rail section when there are no accumulated rail entries', async () => {
@@ -152,8 +160,11 @@ describe('ExamResults (W6)', () => {
     );
 
     expect(screen.getByText('Exam Sim')).not.toBeNull();
-    expect(screen.queryByText('Live Corrections From This Session')).toBeNull();
+    expect(screen.getByText('Exam Sim complete')).not.toBeNull();
     expect(screen.queryByText(/Practice mark/)).toBeNull();
+    fireEvent.click(screen.getByTestId('exam-tab-details'));
+    expect(await screen.findByText('How this was scored')).not.toBeNull();
+    expect(screen.queryByText('Live corrections from this session')).toBeNull();
   });
 
   it('D3 (Batch 3): an Exam Sim attempt started early ("Start now") shows the doesn’t-count banner and its reason', async () => {
@@ -214,19 +225,22 @@ describe('ExamResults (W6)', () => {
       />,
     );
 
-    expect(screen.getByText('Role play')).not.toBeNull();
+    const marks = within(screen.getByTestId('exam-marks'));
+    expect(marks.getByText('Role play')).not.toBeNull();
     const rolePlayTaskMarks = envelopeView.criteria.filter((c) => c.criterion === 'rolePlayTask');
     const rolePlaySubtotal = rolePlayTaskMarks.reduce((sum, c) => sum + c.mark, 0);
-    expect(screen.getByText(`${rolePlaySubtotal}/10`)).not.toBeNull();
-    expect(screen.getAllByText('/2').length).toBe(rolePlayTaskMarks.length);
-    expect(screen.getAllByText('/15').length).toBe(2);
+    expect(marks.getByText(`${rolePlaySubtotal}/10`)).not.toBeNull();
+    expect(marks.getAllByText('/2').length).toBe(rolePlayTaskMarks.length);
+    expect(marks.getAllByText('/15').length).toBe(2);
     expect(screen.queryByText(/Confidence: unassessed/)).toBeNull();
 
-    fireEvent.click(screen.getByText('How This Was Scored'));
+    fireEvent.click(screen.getByTestId('exam-tab-details'));
+    fireEvent.click(await screen.findByText('How this was scored'));
     expect(screen.getByText('Not measured')).not.toBeNull();
     expect(screen.queryByText(/mean word confidence/)).toBeNull();
 
-    fireEvent.click(screen.getByText('Turn-by-Turn Breakdown'));
+    fireEvent.click(screen.getByTestId('exam-tab-answers'));
+    await screen.findByTestId('exam-answers');
     expect(screen.queryByText(/filler density/)).toBeNull();
     expect(screen.queryByText(/time frame:/)).toBeNull();
   });
@@ -302,6 +316,8 @@ describe('ExamResults (W6)', () => {
     );
 
     expect(screen.getByText('Scoring failed')).not.toBeNull();
-    expect(screen.queryByText('Marks — Unvalidated Estimate')).toBeNull();
+    expect(screen.queryByTestId('exam-marks')).toBeNull();
+    expect(screen.queryByTestId('exam-practice-plan')).toBeNull();
+    expect(screen.getByText('Your transcript')).not.toBeNull();
   });
 });

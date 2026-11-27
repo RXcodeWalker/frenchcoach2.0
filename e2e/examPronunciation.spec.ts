@@ -163,7 +163,7 @@ async function runSpokenExamToResults(page: Page) {
   }
   await page.waitForSelector('text=Review Your Transcript', { timeout: 10000 });
   await clickButton(page, 'Submit for marking');
-  await page.waitForSelector('text=Practice Session Complete', { timeout: 30000 });
+  await page.waitForSelector('[data-testid="exam-results-hero"]', { timeout: 30000 });
   // let the examiner report settle so only the pronunciation section can change afterwards
   await expect(page.getByTestId('exam-feedback').getByText('What you did well').first()).toBeVisible({ timeout: 20000 });
 }
@@ -171,10 +171,7 @@ async function runSpokenExamToResults(page: Page) {
 /** The marks as the candidate sees them: the /40 total and the criteria card. */
 async function marksSnapshot(page: Page): Promise<{ total: string; card: string }> {
   const total = /(\d+)\s*\/40/.exec(await bodyText(page))?.[0] ?? '';
-  const card = await page
-    .getByText('Marks — Unvalidated Estimate')
-    .locator('xpath=ancestor::div[contains(@class,"rounded-xl")][1]')
-    .innerText();
+  const card = await page.getByTestId('exam-marks').innerText();
   return { total, card };
 }
 
@@ -232,7 +229,7 @@ test.describe('Exam pronunciation (opt-in, feedback only)', () => {
     await expect(section.getByRole('button', { name: 'Analyse my pronunciation' })).toHaveCount(0);
 
     expect(await marksSnapshot(page)).toEqual(before);
-    await expect(page.getByText('Practice Session Complete')).toBeVisible();
+    await expect(page.getByTestId('exam-results-hero')).toBeVisible();
   });
 
   test('Coached: a card appears when the role play ends, and nothing is sent until it is tapped', async ({ page }) => {
