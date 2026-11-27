@@ -37,9 +37,11 @@ interface Props {
   emphasis?: boolean;
   children: ReactNode;
   testId?: string;
+  /** A jump target for the hero's counts. */
+  section?: string;
 }
 
-export function BreakdownCard({ title, icon: Icon, tone = 'neutral', count, subtitle, aside, collapsible, emphasis, children, testId }: Props) {
+export function BreakdownCard({ title, icon: Icon, tone = 'neutral', count, subtitle, aside, collapsible, emphasis, children, testId, section }: Props) {
   const reduced = useReducedMotion() ?? false;
   const [open, setOpen] = useState(collapsible?.defaultOpen ?? true);
   const bodyId = useId();
@@ -67,6 +69,7 @@ export function BreakdownCard({ title, icon: Icon, tone = 'neutral', count, subt
       variants={reduced ? enterReduced : enter}
       aria-label={title}
       data-testid={testId}
+      data-section={section}
       className={`rounded-card border bg-surface p-4 ${emphasis ? 'border-hairline-strong shadow-card' : 'border-hairline'}`}
     >
       {collapsible ? (

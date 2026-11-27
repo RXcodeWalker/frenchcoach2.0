@@ -33,7 +33,8 @@ export function FeedbackFooter({ onRetry, onComplete, modelAnswer, retryNote = D
         </details>
       )}
 
-      <div className="flex gap-2">
+      {/* The actions stay in reach at the bottom of the screen while the feedback scrolls (Learn hides the app dock in a session). */}
+      <div className="sticky bottom-0 z-10 -mx-1 flex gap-2 border-t border-hairline bg-bg px-1 pb-[max(env(safe-area-inset-bottom),12px)] pt-3" data-testid="feedback-actions">
         <motion.button
           onClick={() => setConfirming(true)}
           className="flex items-center gap-1.5 rounded-control border border-hairline bg-surface px-4 py-3 text-label text-ink transition-colors duration-state hover:bg-surface-recessed"

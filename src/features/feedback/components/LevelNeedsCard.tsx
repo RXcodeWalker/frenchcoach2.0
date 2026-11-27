@@ -42,14 +42,14 @@ export function LevelNeedsCard({ feedback, markingLevel, transcript }: Props) {
       <motion.section
         variants={fadeUp}
         aria-label={meetsLine(view.level)}
-        className="rounded-xl bg-progress-soft border border-hairline px-4 py-3 space-y-1"
+        className="rounded-card bg-progress-soft border border-hairline p-4 space-y-1"
       >
         <div className="flex items-center gap-2.5">
           <CheckCircle2 size={16} className="text-progress-text shrink-0" aria-hidden="true" />
-          <p className="text-sm font-bold text-progress-text">{meetsLine(view.level)}</p>
+          <p className="text-label text-progress-text">{meetsLine(view.level)}</p>
         </div>
         {view.level === 'exam' && (
-          <p className="text-sm text-ink-muted leading-snug pl-[26px]">{EXAM_STANDARD_NOTE}</p>
+          <p className="text-body-s text-ink-muted pl-[26px]">{EXAM_STANDARD_NOTE}</p>
         )}
       </motion.section>
     );
@@ -61,16 +61,16 @@ export function LevelNeedsCard({ feedback, markingLevel, transcript }: Props) {
     <motion.section
       variants={fadeUp}
       aria-label={needsHeading(view.level)}
-      className="rounded-xl surface-raised overflow-hidden"
+      className="rounded-card border border-hairline bg-surface overflow-hidden"
     >
       <header className="flex items-start gap-3 px-4 pt-4 pb-3">
-        <span className="w-7 h-7 rounded-lg bg-action-soft flex items-center justify-center shrink-0" aria-hidden="true">
-          <ListChecks size={14} className="text-action-text" />
+        <span className="w-9 h-9 rounded-control bg-action-soft flex items-center justify-center shrink-0" aria-hidden="true">
+          <ListChecks size={18} className="text-action-text" />
         </span>
         <div className="min-w-0 pt-0.5">
-          <h3 className="text-sm font-bold text-ink leading-tight">{needsHeading(view.level)}</h3>
+          <h3 className="text-section text-ink">{needsHeading(view.level)}</h3>
           {view.level === 'exam' && (
-            <p className="text-sm text-ink-muted leading-snug mt-1">{EXAM_STANDARD_NOTE}</p>
+            <p className="text-caption text-ink-muted mt-0.5">{EXAM_STANDARD_NOTE}</p>
           )}
         </div>
       </header>
@@ -83,20 +83,20 @@ export function LevelNeedsCard({ feedback, markingLevel, transcript }: Props) {
             className={`border-l-2 pl-3 space-y-1.5 ${need.firstStep ? 'border-action' : 'border-hairline-strong'}`}
           >
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <span className="text-sm font-bold text-ink">{need.label}</span>
+              <span className="text-label text-ink">{need.label}</span>
               {need.firstStep && (
-                <span className="text-eyebrow uppercase px-1.5 py-0.5 rounded bg-action-soft text-action-text">
+                <span className="text-caption font-semibold px-2 py-0.5 rounded-pill bg-action-soft text-action-text">
                   {FIRST_STEP_LABEL}
                 </span>
               )}
             </div>
-            <p className="text-sm text-ink-muted leading-relaxed">{need.text}</p>
+            <p className="text-body-s text-ink-muted">{need.text}</p>
             {need.example && (
-              <p className="flex items-start gap-2 rounded-lg surface-recessed px-3 py-2">
-                <Quote size={11} className="text-action-text shrink-0 mt-[3px]" aria-hidden="true" />
+              <p className="flex items-start gap-2 rounded-control surface-recessed px-3 py-2">
+                <Quote size={13} className="text-action-text shrink-0 mt-[3px]" aria-hidden="true" />
                 <span className="min-w-0">
                   <span className="sr-only">For example: </span>
-                  <span lang="fr" className="text-sm text-ink leading-relaxed italic">{need.example}</span>
+                  <span lang="fr" className="text-body-s text-ink italic">{need.example}</span>
                 </span>
               </p>
             )}

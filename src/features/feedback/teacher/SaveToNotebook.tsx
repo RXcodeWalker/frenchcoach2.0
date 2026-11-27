@@ -46,7 +46,7 @@ export function SaveToNotebook({ feedback, question, signedIn, offered, savedAns
   if (!signedIn) {
     if (!offered) return null;
     return (
-      <p className="rounded-xl surface-recessed p-3 text-sm text-ink-muted" data-testid="notebook-guest">
+      <p className="rounded-card border border-hairline bg-surface p-4 text-body-s text-ink-muted" data-testid="notebook-guest">
         Sign in to keep your notes.{' '}
         <Link to="/login" className="font-semibold text-action-text underline underline-offset-2">
           Sign in
@@ -58,7 +58,7 @@ export function SaveToNotebook({ feedback, question, signedIn, offered, savedAns
   const alreadySaved = justSaved || (savedAnswer !== null && isSameAnswer(savedAnswer, answer));
   if (alreadySaved) {
     return (
-      <p className="flex items-center gap-1.5 rounded-xl surface-recessed p-3 text-sm text-progress-text" role="status" data-testid="notebook-saved">
+      <p className="flex items-center gap-1.5 rounded-card border border-hairline bg-progress-soft p-4 text-body-s text-progress-text" role="status" data-testid="notebook-saved">
         <BookMarked size={12} aria-hidden="true" />
         Saved to your notebook.
         <Link to="/notebook" className="ml-1 font-semibold text-action-text underline underline-offset-2">
@@ -81,8 +81,8 @@ export function SaveToNotebook({ feedback, question, signedIn, offered, savedAns
 
   if (offered && !dismissed) {
     return (
-      <div className="space-y-2 rounded-xl surface-recessed p-3" data-testid="notebook-offer">
-        <p className="text-sm text-ink">
+      <div className="space-y-3 rounded-card border border-hairline bg-surface p-4" data-testid="notebook-offer">
+        <p className="text-body-s text-ink">
           Keep this version for your exam notes?
           <span className="text-ink-muted">
             {' '}
@@ -91,13 +91,13 @@ export function SaveToNotebook({ feedback, question, signedIn, offered, savedAns
           </span>
         </p>
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={save} className="rounded-lg bg-action px-3 py-1.5 text-sm font-bold text-action-ink">
+          <button type="button" onClick={save} className="rounded-control bg-action px-4 py-2.5 text-label text-action-ink transition-colors duration-state hover:bg-action-hover active:scale-[.97]">
             {saveLabel}
           </button>
           <button
             type="button"
             onClick={() => setDismissed(true)}
-            className="rounded-lg px-2 py-1.5 text-sm font-semibold text-ink-muted underline underline-offset-2"
+            className="rounded-control px-2 py-2.5 text-label text-ink-muted underline underline-offset-2 hover:text-ink"
           >
             Not now
           </button>
@@ -111,9 +111,9 @@ export function SaveToNotebook({ feedback, question, signedIn, offered, savedAns
       type="button"
       onClick={save}
       data-testid="notebook-quiet"
-      className="inline-flex items-center gap-1.5 rounded-lg surface-recessed px-3 py-1.5 text-sm font-bold text-action-text"
+      className="inline-flex items-center gap-1.5 rounded-control border border-hairline bg-surface px-4 py-2.5 text-label text-action-text transition-colors duration-state hover:bg-action-soft"
     >
-      <BookMarked size={11} aria-hidden="true" />
+      <BookMarked size={14} aria-hidden="true" />
       {saveLabel}
     </button>
   );

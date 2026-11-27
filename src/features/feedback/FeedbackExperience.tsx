@@ -8,7 +8,7 @@ import { GuardianConsentNotice } from '../../components/GuardianConsentNotice';
 import { stagger } from '../../components/motion/variants';
 import { FeedbackProvider, useFeedbackContext } from './state/feedbackContext';
 import { useFeedbackState } from './hooks/useFeedbackState';
-import { FeedbackHero, type FeedbackTally } from './components/FeedbackHero';
+import { FeedbackHero, type FeedbackTally, type TallyTarget } from './components/FeedbackHero';
 import { Segmented } from '../../components/ui/Segmented';
 import { LevelNeedsCard } from './components/LevelNeedsCard';
 import type { MarkingLevel } from '../../domain/learn/marking/markingLevel';
@@ -160,6 +160,27 @@ function FeedbackContent({
   const [tookSecondTake, setTookSecondTake] = useState(false);
   // Each bump asks the "How it sounded" card to open its practice (the Say-it-better card's button).
   const [practiseSignal, setPractiseSignal] = useState(0);
+  // Each bump shows the whole conversation at once (a hero count was tapped).
+  const [showAllSignal, setShowAllSignal] = useState(0);
+
+  // The hero's counts jump to their part of the feedback: strengths and fixes are in the
+  // conversation (shown in full first), the self-fixes card is in the Breakdown.
+  const jumpTo = (to: TallyTarget) => {
+    const mode = to === 'self' ? 'report' : 'coach';
+    dispatch({ type: 'SET_VIEW_MODE', mode });
+    if (mode === 'coach') setShowAllSignal((n) => n + 1);
+    const selectors = to === 'fixes' ? ['fixes', 'more-fixes'] : [to];
+    setTimeout(() => {
+      for (const sel of selectors) {
+        const el = document.querySelector<HTMLElement>(`[data-section="${sel}"]`);
+        if (el) {
+          const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+          el.scrollIntoView?.({ block: 'start', behavior: reduced ? 'auto' : 'smooth' });
+          return;
+        }
+      }
+    }, 60);
+  };
 
   // Each answered Predict check, judged against the answer and the filtered fixes.
   const calibration = useMemo(
@@ -227,7 +248,7 @@ function FeedbackContent({
     <>
       {isOffline && <OfflineLimitationsBanner signedOut={offlineBecauseSignedOut} />}
       <FailoverBadge engineMeta={feedback.engineMeta} />
-      <FeedbackHero feedback={feedback} markingLevel={markingLevel} tally={tally} />
+      <FeedbackHero feedback={feedback} markingLevel={markingLevel} tally={tally} onJump={jumpTo} />
       <ViewModeTabs />
     </>
   );
@@ -267,6 +288,7 @@ function FeedbackContent({
       <TeacherConversation
         lines={lines}
         revealKey={feedback}
+        showAllSignal={showAllSignal}
         tryFirstHeading={FIX_FIRST_HEADING}
         renderSection={renderSection}
         onSecondTake={() => {

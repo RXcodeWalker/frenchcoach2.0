@@ -73,9 +73,9 @@ export function TakeRecorder({
       onClick={toggle}
       disabled={locked && !recording.isRecording}
       aria-label={recording.isRecording ? stopLabel : label}
-      className="inline-flex items-center gap-1.5 rounded-lg bg-action px-3 py-1.5 text-sm font-bold text-action-ink disabled:opacity-40"
+      className="inline-flex items-center gap-1.5 rounded-control bg-action px-4 py-2.5 text-label text-action-ink transition-colors duration-state hover:bg-action-hover active:scale-[.97] disabled:opacity-40"
     >
-      {recording.isRecording ? <Square size={11} aria-hidden="true" /> : <Mic size={11} aria-hidden="true" />}
+      {recording.isRecording ? <Square size={14} aria-hidden="true" /> : <Mic size={14} aria-hidden="true" />}
       {recording.isRecording ? 'Stop' : label}
     </button>
   );
@@ -83,12 +83,12 @@ export function TakeRecorder({
 
 function Result({ result }: { result: RetakeResult }) {
   if (result.empty) {
-    return <p className="text-sm text-ink-muted">I couldn't hear anything in that take. Have another go whenever you like.</p>;
+    return <p className="text-body-s text-ink-muted">I couldn't hear anything in that take. Have another go whenever you like.</p>;
   }
   return (
-    <ul className="space-y-1.5" aria-label="What I heard in your second take">
+    <ul className="space-y-2" aria-label="What I heard in your second take">
       {result.fixes.map((f) => (
-        <li key={f.quote} className="text-sm leading-relaxed" data-state={f.state}>
+        <li key={f.quote} className="text-body-s" data-state={f.state}>
           {f.state === 'heard' && (
             <span className="text-progress-text">
               I heard <span className="exam-quote italic">« {f.correction} »</span> ✓
@@ -107,7 +107,7 @@ function Result({ result }: { result: RetakeResult }) {
         </li>
       ))}
       {result.kept.map((q) => (
-        <li key={`kept:${q}`} className="text-sm leading-relaxed text-progress-text" data-state="kept">
+        <li key={`kept:${q}`} className="text-body-s text-progress-text" data-state="kept">
           Kept <span className="exam-quote italic">« {q} »</span> ✓
         </li>
       ))}
@@ -123,7 +123,7 @@ export function SecondTake({ groups, micLocked = false, onMicActive, onTaken }: 
   if (fixes.length === 0) return null;
 
   return (
-    <div className="space-y-2.5 rounded-xl surface-recessed p-3" data-testid="second-take">
+    <div className="space-y-3 rounded-card border border-hairline bg-surface p-4" data-testid="second-take">
       <SpeakingConsentGate>
         <TakeRecorder
           locked={micLocked}

@@ -30,6 +30,8 @@ interface Props {
   feedback: FeedbackV2;
   markingLevel?: MarkingLevel;
   tally: FeedbackTally;
+  /** Makes each count a button that shows that part of the feedback. */
+  onJump?: (to: TallyTarget) => void;
 }
 
 /** The grid's short labels, written out (the hero has the room). */
@@ -85,41 +87,57 @@ function ScoreRing({ value, reduced }: { value: number; reduced: boolean }) {
   );
 }
 
-function TallyChips({ tally }: { tally: FeedbackTally }) {
+export type TallyTarget = 'strengths' | 'fixes' | 'self';
+
+function TallyChips({ tally, onJump }: { tally: FeedbackTally; onJump?: (to: TallyTarget) => void }) {
   const chips = [
     tally.strengths > 0 && {
-      key: 'strengths',
+      key: 'strengths' as const,
       icon: Check,
       text: `${tally.strengths} ${tally.strengths === 1 ? 'strength' : 'strengths'}`,
       cls: 'bg-progress-soft text-progress-text',
     },
     {
-      key: 'fixes',
+      key: 'fixes' as const,
       icon: PenLine,
       text: tally.fixes === 0 ? 'No fixes needed' : `${tally.fixes} ${tally.fixes === 1 ? 'fix' : 'fixes'}`,
       cls: tally.fixes === 0 ? 'bg-progress-soft text-progress-text' : 'bg-correction-soft text-correction-text',
     },
     tally.selfCorrections > 0 && {
-      key: 'self',
+      key: 'self' as const,
       icon: Undo2,
       text: `${tally.selfCorrections} fixed yourself`,
       cls: 'bg-info-soft text-info-text',
     },
-  ].filter(Boolean) as { key: string; icon: typeof Check; text: string; cls: string }[];
+  ].filter(Boolean) as { key: TallyTarget; icon: typeof Check; text: string; cls: string }[];
 
   return (
     <ul className="flex flex-wrap gap-1.5" aria-label="What the feedback found">
       {chips.map(({ key, icon: Icon, text, cls }) => (
-        <li key={key} className={`inline-flex items-center gap-1 rounded-pill px-2.5 py-1 text-label ${cls}`}>
-          <Icon size={13} aria-hidden="true" />
-          {text}
+        <li key={key}>
+          {onJump && !(key === 'fixes' && tally.fixes === 0) ? (
+            <button
+              type="button"
+              onClick={() => onJump(key)}
+              aria-label={`${text}: show`}
+              className={`inline-flex items-center gap-1 rounded-pill px-2.5 py-1 text-label transition-colors duration-state hover:bg-surface-recessed active:scale-[.97] ${cls}`}
+            >
+              <Icon size={13} aria-hidden="true" />
+              {text}
+            </button>
+          ) : (
+            <span className={`inline-flex items-center gap-1 rounded-pill px-2.5 py-1 text-label ${cls}`}>
+              <Icon size={13} aria-hidden="true" />
+              {text}
+            </span>
+          )}
         </li>
       ))}
     </ul>
   );
 }
 
-export function FeedbackHero({ feedback, markingLevel, tally }: Props) {
+export function FeedbackHero({ feedback, markingLevel, tally, onJump }: Props) {
   const reduced = useReducedMotion() ?? false;
   const { scores, wordCount, cefrLevel, levelCheck } = feedback;
   const level = cefrLevelLabel(cefrLevel);
@@ -193,7 +211,7 @@ export function FeedbackHero({ feedback, markingLevel, tally }: Props) {
       )}
       {!unscored && markingNote && <div className="mt-3">{markingNote}</div>}
       <div className="mt-3 border-t border-hairline pt-3">
-        <TallyChips tally={tally} />
+        <TallyChips tally={tally} onJump={onJump} />
       </div>
     </motion.section>
   );

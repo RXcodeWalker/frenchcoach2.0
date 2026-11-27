@@ -253,6 +253,25 @@ describe('FeedbackExperience coach view (Batch 6a + 6b)', () => {
     expect(card.textContent).toContain('« je suis allé »');
   });
 
+  it('the hero counts jump to their part of the feedback', () => {
+    vi.useFakeTimers();
+    const { container } = renderFeedback({ feedback: { ...FIVE_FIXES, selfCorrections: [{ quote: 'dans ton', repair: 'dans mon' }] } as FeedbackV2 });
+    fireEvent.click(screen.getByRole('button', { name: /1 fixed yourself: show/ }));
+    act(() => { vi.advanceTimersByTime(100); });
+    expect(screen.getByRole('region', { name: 'You fixed this yourself' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /5 fixes: show/ }));
+    act(() => { vi.advanceTimersByTime(100); });
+    expect(container.querySelector('[data-section="fixes"]')).toBeTruthy();
+    expect(container.querySelector('[data-section="strengths"]')).toBeTruthy();
+  });
+
+  it('keeps Next and Get new feedback in a sticky action bar', () => {
+    renderFeedback();
+    const bar = screen.getByTestId('feedback-actions');
+    expect(bar.className).toContain('sticky');
+    expect(within(bar).getByRole('button', { name: /Next question/ })).toBeTruthy();
+  });
+
   it('counts the "Fix these first" nudges as the learner tries them', () => {
     renderFeedback();
     expect(screen.getByTestId('tried-meter').textContent).toContain('0 of 2 tried');

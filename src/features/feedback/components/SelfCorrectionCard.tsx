@@ -20,6 +20,7 @@ export function SelfCorrectionCard({ selfCorrections }: Props) {
       tone="info"
       count={selfCorrections.length > 1 ? selfCorrections.length : undefined}
       subtitle="Not counted as a mistake"
+      section="self"
     >
       <ul className="space-y-1.5">
         {selfCorrections.map((s) => (

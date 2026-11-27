@@ -52,6 +52,8 @@ interface Props {
    * to keep that rewrite never appears before the learner can see it.
    */
   after?: ReactNode;
+  /** Each change shows everything at once (the hero's counts jump into the conversation). */
+  showAllSignal?: number;
 }
 
 const INTERACTIVE = 'button, input, textarea, select, a, label';
@@ -89,7 +91,7 @@ function LearnerBubble({ text, quotes }: { text: string; quotes: string[] }) {
   );
 }
 
-export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderSection, highlightedQuote, onSecondTake, after }: Props) {
+export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderSection, highlightedQuote, onSecondTake, after, showAllSignal }: Props) {
   const unitCounts = useMemo(() => lines.map((l) => (l.kind === 'talk' ? typingUnits(l.text).length : 0)), [lines]);
   const reduced = useReducedMotion() ?? false;
   const reveal = useTypedReveal(revealKey, unitCounts);
@@ -102,6 +104,10 @@ export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderS
       : [],
   );
   const holdSayItBetter = nudgeQuotes.some((q) => !resolved.has(q));
+
+  useEffect(() => {
+    if (showAllSignal) skip();
+  }, [showAllSignal, skip]);
 
   // Space shows everything, unless the key is meant for a control or a text field.
   useEffect(() => {
@@ -174,7 +180,11 @@ export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderS
       case 'points': {
         const nudge = !!tryFirstHeading && line.group.heading === tryFirstHeading;
         return (
-          <div key={line.id} className="pl-10">
+          <div
+            key={line.id}
+            className="scroll-mt-4 pl-10"
+            data-section={line.group.tone === 'good' ? 'strengths' : nudge ? 'fixes' : 'more-fixes'}
+          >
             <PointSection
               heading={line.group.heading}
               tone={line.group.tone}
@@ -241,6 +251,18 @@ export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderS
         {announced}
       </div>
 
+      {!done && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={skip}
+            className="rounded-pill border border-hairline bg-surface px-3 py-1.5 text-label text-ink-muted transition-colors duration-state hover:text-ink"
+          >
+            Show all
+          </button>
+        </div>
+      )}
+
       {visibleLines.map((line, i) => (
         // Each line rises in as the teacher reaches it (the `enter` motion; a fade under reduced motion).
         <motion.div key={line.id} variants={reduced ? enterReduced : enter} initial="hidden" animate="show">
@@ -250,17 +272,6 @@ export function TeacherConversation({ lines, revealKey, tryFirstHeading, renderS
 
       {done && !holdSayItBetter && after ? <div className="pl-10">{after}</div> : null}
 
-      {!done && (
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={skip}
-            className="rounded-lg px-2 py-1 text-sm font-semibold text-ink-muted underline underline-offset-2"
-          >
-            Show all
-          </button>
-        </div>
-      )}
     </section>
   );
 }

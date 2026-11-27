@@ -172,10 +172,10 @@ export function FixRow({
       </p>
       {(point.why || point.tag) && (
         <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-body-s text-ink-muted">
+          {point.why && <span>{point.why}</span>}
           {point.tag && (
             <span className="rounded-pill surface-recessed px-2 py-0.5 text-caption font-semibold text-ink-muted">{point.tag}</span>
           )}
-          {point.why && <span>{point.why}</span>}
         </p>
       )}
     </Anchor>
